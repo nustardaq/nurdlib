@@ -503,6 +503,12 @@ sis_3316_setup_adcs(struct Sis3316Module *m)
 		adc_input_span = SPI_AD9268_INPUT_SPAN_1V5;
 		adc_output_mode = SPI_AD9268_OUTPUT_LVDS;
 	}
+	if (m->config.bit_depth != BD_14BIT
+	    && m->config.use_dithering == 1) {
+		log_error(LOGL,
+		    "Dithering only supported on 14 bit ADC.");
+		abort();
+	}
 	for (i = 0; i < N_ADCS; ++i) {
 		int adc;
 		for (adc = SPI_CH12; adc <= SPI_CH34; adc += SPI_CH34) {
@@ -521,7 +527,18 @@ sis_3316_setup_adcs(struct Sis3316Module *m)
 			    SPI_WRITE | SPI_ENABLE | adc |
 			    SPI_OP(SPI_OP_OUTPUT_MODE) | adc_output_mode);
 			time_sleep(20e-3);
-/* TODO: Add use_dithering */
+
+			/* Dithering (only 125 MHz ADC) */
+			if (m->config.bit_depth == BD_14BIT &&
+			    m->config.use_dithering == 1) {
+				MAP_WRITE(m->sicy_map,
+				    fpga_adc_spi_control[i],
+				    SPI_WRITE | SPI_ENABLE | adc
+				    | SPI_OP(SPI_OP_DITHER_ENABLE)
+				    | SPI_AD9268_DITHER_ENABLE);
+				time_sleep(20e-3);
+			}
+
 			/* Update values atomically */
 			MAP_WRITE(m->sicy_map, fpga_adc_spi_control(i),
 			    SPI_WRITE | SPI_ENABLE | adc |
@@ -764,7 +781,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		CHECK_REG_SET(channel_trigger_threshold(i), 0);
 	}
 
-	/* Set high energy threshold. */
+	/* Set high energy threshold (and both edges bit). */
 	for (i = 0; i < N_CHANNELS; ++i) {
 		if (i < N_ADCS) {
 			MAP_WRITE(m->sicy_map,
@@ -774,10 +791,14 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    m->config.threshold_high_e[i]);
 		}
 		MAP_WRITE(m->sicy_map, channel_trigger_thr_high_e(i),
-		    m->config.threshold_high_e[i]);
+		    (((m->config.use_dual_threshold >> i) & 1) << 31)
+		    | m->config.threshold_high_e[i]);
 		CHECK_REG_SET(channel_trigger_thr_high_e(i),
 		    m->config.threshold_high_e[i]);
-/* TODO: Add dual threshold */
+		*(m->arr->channel_trigger_thr_high_e[i]) =
+		    | m->config.threshold_high_e[i];
+		CHECK_REG_SET(*(m->arr->channel_trigger_thr_high_e[i]),
+		    m->config.threshold_high_e[i]);
 	}
 
 	/* FIR trigger setup. */
@@ -3086,6 +3107,12 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	LOGF(verbose)(LOGL, "use_internal_trigger = mask 0x%08x",
 	    a_module->config.use_internal_trigger);
 
+	/* use dual threshold trigger */
+	a_module->config.use_dual_threshold = config_get_bitmask(a_block,
+	    KW_USE_DUAL_THRESHOLD, 0, 15);
+	LOGF(verbose)(LOGL, "use_dual_threshold = mask 0x%08x",
+	    a_module->config.use_dual_threshold);
+
 	/* TODO: internal gate */
 
 	/* external gate (region of interest) */
@@ -3127,6 +3154,12 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    KW_USE_USER_COUNTER);
 	LOGF(verbose)(LOGL, "use user counter = %s.",
 	    a_module->config.use_user_counter ? "yes" : "no");
+
+	/* Enable ADC dithering (improve linearity) */
+	a_module->config.use_dithering = config_get_boolean(a_block,
+	    KW_USE_DITHERING);
+	LOGF(verbose)(LOGL, "use ADC dithering = %s.",
+	    a_module->config.use_dithering ? "yes" : "no");
 
 	/* Automatic switching */
 	a_module->config.use_auto_bank_switch = config_get_boolean(a_block,
