@@ -121,6 +121,7 @@ void sis_3316_dump_stat_counters(struct Sis3316Module *, int);
 uint32_t sis_3316_get_event_counter(struct Sis3316Module *) FUNC_RETURNS;
 int sis_3316_post_init(struct Crate *, struct Module *);
 void sis_3316_set_iob_delay_logic(struct Sis3316Module *, int);
+void sis_3316_setup_averaging_mode(struct Sis3316Module *);
 void sis_3316_setup_event_config(struct Sis3316Module *);
 void sis_3316_setup_data_format(struct Sis3316Module *);
 void sis_3316_set_offset(struct Sis3316Module *, int );
@@ -583,6 +584,25 @@ sis_3316_setup_event_config(struct Sis3316Module *m)
 /* TODO: Add averaging mode */
 
 void
+sis_3316_setup_averaging_mode(struct Sis3316Module *m)
+{
+	int i;
+
+	for (i = 0; i < N_ADCS; ++i) {
+		uint32_t data;
+
+		data = (m->config.average_mode[i] << 28)
+		     | (m->config.average_pretrigger[i] << 16)
+		     | (m->config.average_length[i]);
+
+		LOGF(verbose)(LOGL, "Average mode setup[%d] = 0x%08x", i, data);
+		*(m->arr->fpga_adc_average_config[i]) = data;
+		CHECK_REG_SET(*(m->arr->fpga_adc_average_config[i]), data);
+	}
+}
+
+
+void
 sis_3316_setup_data_format(struct Sis3316Module *m)
 {
 	int i;
@@ -633,12 +653,20 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 		uint32_t data;
 		/* Length of a single event */
 		m->config.event_length[i] = header_length
-		    + m->config.sample_length[i]/2
+		    + m->config.sample_length[i] / 2
+		    + m->config.average_length[i] / 2
 		    + m->config.sample_length_maw[i];
 		LOGF(verbose)(LOGL, "Event length %d = %d",
 		    i, m->config.event_length[i]);
 
+		/* additional header for averaging mode */
+		if (m->config.average_mode[i] != 0) {
+			m->config.event_length[i] += 1;
+		}
+
 		MAP_WRITE(m->sicy_map, fpga_adc_data_format_config(i),
+		    data_format);
+		CHECK_REG_SET(*(m->arr->fpga_adc_data_format_config[i]),
 		    data_format);
 		CHECK_REG_SET(fpga_adc_data_format_config(i), data_format);
 		data = m->config.sample_length_maw[i]
@@ -1123,7 +1151,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
          */
 	sis_3316_setup_event_config(m);
 	sis_3316_setup_data_format(m);
-/* TODO: sis_3316_setup_averaging_mode(m); */
+	sis_3316_setup_averaging_mode(m);
 
 	/*
 	 * Set threshold according to crate multi-event limit to allow
@@ -3184,6 +3212,50 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    KW_USE_TERMINATION);
 	LOGF(verbose)(LOGL, "use termination = %s.",
 	    a_module->config.use_termination ? "yes" : "no");
+
+	/* average mode settings */
+	CONFIG_GET_INT_ARRAY(a_module->config.average_mode, a_block,
+	    KW_AVERAGE_MODE, CONFIG_UNIT_NONE, 0, 256);
+	CONFIG_GET_INT_ARRAY(a_module->config.average_pretrigger, a_block,
+	    KW_AVERAGE_PRETRIGGER, CONFIG_UNIT_NONE, 0,4094);
+	CONFIG_GET_INT_ARRAY(a_module->config.average_length, a_block,
+	    KW_AVERAGE_LENGTH, CONFIG_UNIT_NONE, 0, 65534);
+
+	for (i = 0; i < LENGTH(a_module->config.average_mode); ++i) {
+		int mode_bits = 0;
+		switch (a_module->config.average_mode[i]) {
+			case 0:
+				break;
+			case 4:
+				mode_bits = 1; break;
+			case 8:
+				mode_bits = 2; break;
+			case 16:
+				mode_bits = 3; break;
+			case 32:
+				mode_bits = 4; break;
+			case 64:
+				mode_bits = 5; break;
+			case 128:
+				mode_bits = 6; break;
+			case 256:
+				mode_bits = 7; break;
+			default:
+				log_error(LOGL,
+				    NAME"Unsupported averaging mode (%d).",
+				    a_module->config.average_mode[i]);
+				abort();
+		}
+		LOGF(verbose)(LOGL, "average mode[%d]       = %d samples (0x%2x)",
+		    i, a_module->config.average_mode[i], mode_bits);
+		a_module->config.average_mode[i] = mode_bits;
+		LOGF(verbose)(LOGL, "average pretrigger[%d] = %d samples",
+		    i, a_module->config.average_pretrigger[i]);
+		LOGF(verbose)(LOGL, "average length[%d]     = %d samples",
+		    i, a_module->config.average_length[i]);
+		a_module->config.average_length[i] -=
+		    a_module->config.average_length[i] % 2;
+	}
 
 	/* check level */
 	kw_check_level = CONFIG_GET_KEYWORD(a_block,

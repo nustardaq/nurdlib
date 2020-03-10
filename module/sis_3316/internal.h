@@ -159,6 +159,9 @@ struct Sis3316Config {
 	uint32_t	threshold[N_CHANNELS];		/* calculated */
 	uint32_t	threshold_high_e[N_CHANNELS];	/* calculated */
 	uint8_t		has_rataclock_receiver;	/* boolean */
+	uint32_t	average_mode[N_ADCS];		/* 0, 4, 8, ... 256 samples */
+	uint32_t	average_pretrigger[N_ADCS];	/* 0..4094 samples */
+	uint32_t	average_length[N_ADCS];		/* 0, 2, 4, ... 65534 samples */
 };
 
 struct Sis3316ChannelCounters {
