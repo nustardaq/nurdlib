@@ -49,6 +49,7 @@
 #define SPI_OP(addr)	(addr << 8)
 #define SPI_OP_OUTPUT_MODE	0x14
 #define SPI_OP_INPUT_SPAN	0x18
+#define SPI_OP_DITHER_ENABLE	0x30
 #define SPI_OP_TRANSFER		0xff
 #define SPI_OP_RESET		0x00
 #define SPI_AD9634_INPUT_SPAN_1V5	0x15
@@ -59,6 +60,7 @@
 #define SPI_AD9268_INPUT_SPAN_1V75	0x80
 #define SPI_AD9268_INPUT_SPAN_2V	0xC0
 #define SPI_AD9268_OUTPUT_INVERT	0x4
+#define SPI_AD9268_DITHER_ENABLE	0x10
 #define SPI_AD9268_OUTPUT_LVDS		0x40
 
 enum BitDepth	{BD_14BIT, BD_16BIT};
@@ -143,6 +145,7 @@ struct Sis3316Config {
 	uint32_t	use_external_trigger;		/* A bitmask */
 	uint32_t	use_external_veto;		/* A bitmask */
 	uint32_t	use_internal_trigger;		/* A bitmask */
+	uint32_t	use_dual_threshold;		/* A bitmask */
 	uint32_t	use_tau_correction;		/* A bitmask */
 	uint32_t	channels_to_read;		/* A bitmask */
 	uint32_t	use_external_gate;		/* A bitmask */
@@ -155,6 +158,7 @@ struct Sis3316Config {
 	uint8_t		write_traces_maw;
 	uint8_t		write_traces_maw_energy;
 	uint8_t		write_histograms;
+	uint8_t		use_dithering;			/* ADC dithering */
 	uint32_t	trigger_gate_window_length;	/* calculated */
 	uint32_t	threshold[N_CHANNELS];		/* calculated */
 	uint32_t	threshold_high_e[N_CHANNELS];	/* calculated */
