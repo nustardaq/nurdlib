@@ -732,6 +732,85 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
          */
 	sis_3316_calculate_settings((struct Sis3316Module *)m);
 
+	/*
+	 * Set sample_clock_distribution_control register.
+	 */
+	if (m->config.is_fpbus_master) {
+		if (m->config.ext_clk_freq == 0) {
+			m->map->sample_clock_distribution_control = CS_INTERNAL;
+			CHECK_REG_SET(m->map->sample_clock_distribution_control,
+			    CS_INTERNAL);
+		} else {
+			m->map->sample_clock_distribution_control = CS_EXTERNAL;
+			CHECK_REG_SET(m->map->sample_clock_distribution_control,
+			    CS_EXTERNAL);
+		}
+	} else {
+		m->map->sample_clock_distribution_control = CS_FP_BUS;
+		CHECK_REG_SET(m->map->sample_clock_distribution_control,
+		    CS_FP_BUS);
+	}
+	LOGF(verbose)(LOGL, "sis3316[%d]: Enable %s clock", m->module.id,
+	    c_clock_source[m->map->sample_clock_distribution_control]);
+
+	/*
+	 * FB Bus Enable
+	 * 0 - Control out,
+	 * 1 - Status out,
+	 * 4 - Clock out,
+	 * 5 - Clock MUX out (0 internal source, 1 from external)
+	 */
+	if (m->config.is_fpbus_master) {
+		uint32_t data = 0;
+		LOGF(verbose)(LOGL, "sis3316[%d]: is FPbus master (default).",
+		    m->module.id);
+		data |= (1 << 4); /* Enable sample clock output on fp-bus */
+		if (m->config.ext_clk_freq != 0) {
+			/* Enable external clock output on fp-bus */
+			data |= (1 << 5);
+		}
+		data |= (1 << 0); /* Enable all control lines on fp-bus
+				     (trigger/veto, ts clear) */
+		m->map->fpbus_control = data; /* Master only */
+		CHECK_REG_SET(m->map->fpbus_control, data);
+	}
+
+	if (m->config.ext_clk_freq != 0) {
+		/* Configure external clock multiplier */
+		sis_3316_configure_external_clock_input(m);
+
+		LOGF(verbose)(LOGL, "sis3316: wait for clock to stabilise");
+		time_sleep(1.2);
+
+		/* PLL Lock */
+		m->map->reset_adc_clock = 0x0;
+
+		/* Wait until ADC clock / PLL is reset */
+		time_sleep(30e-3);
+	} else {
+		/* Set clock frequency */
+		sis_3316_set_clock_frequency(m);
+	}
+
+	/* ADC status. */
+	for (i = 0; i < N_ADCS; ++i) {
+		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
+		    *(m->arr->fpga_adc_status[i]));
+	}
+
+	/* Calibrate IOB _delay logic. */
+	LOGF(verbose)(LOGL, "Calibrating IOB logic.");
+	for (i = 0; i < N_ADCS; ++i) {
+		/*
+		 * 0xf00 = Calibration + Clear errors + Select all channels.
+		 */
+		*(m->arr->fpga_adc_tap_delay[i]) = 0xf00;
+		CHECK_REG_SET(*(m->arr->fpga_adc_tap_delay[i]), 0xf00);
+	}
+	time_sleep(30e-3);
+
+	sis_3316_setup_adcs(m);
+
 	for (i = 0; i < N_ADCS; ++i) {
 		sis_3316_set_offset(m, i);
 	}
