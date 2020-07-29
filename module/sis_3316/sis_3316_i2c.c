@@ -143,6 +143,9 @@ sis_3316_make_ext_clk_mul_config(enum Sis3316ExternalClockInputFrequency
 		case IN_10_MHZ:
 			SIS3316_SET_EXT_MUL_CFG(c, 0, 4, 10, 500);
 			break;
+		case IN_12_MHZ:
+			SIS3316_SET_EXT_MUL_CFG(c, 0, 7, 6, 420);
+			break;
 		case IN_20_MHZ:
 			SIS3316_SET_EXT_MUL_CFG(c, 1, 5, 8, 250);
 			break;
