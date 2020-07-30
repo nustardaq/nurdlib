@@ -370,6 +370,7 @@ void
 sis_3316_set_iob_delay_logic(struct Sis3316Module *m, int i)
 {
 	uint32_t data;
+
 	/* 0x300 = Select all channels */
 	if (m->config.clk_freq == 25) {
 		if (m->config.bit_depth == BD_14BIT) {
@@ -389,7 +390,9 @@ sis_3316_set_iob_delay_logic(struct Sis3316Module *m, int i)
 		data = ADD_HALF_PERIOD | 0x300 | V2004_14BIT_TAP_DELAY_250MHZ;
 	}
 
-/* TODO: Add fine tune */
+	/* Add fine tune value. */
+	data = (data & 0xffffff00)
+	    | ((data + m->config.tap_delay_fine_tune) & 0xff);
 
 	MAP_WRITE(m->sicy_map, fpga_adc_tap_delay(i), data);
 	CHECK_REG_SET(fpga_adc_tap_delay(i), data);
@@ -3415,6 +3418,10 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	default:
 		log_die(LOGL, "Unsupported external clock frequency set.");
 	}
+
+	/* tap delay fine tune */
+	a_module->config.tap_delay_fine_tune = config_get_int32(a_block,
+	    KW_TAP_DELAY_FINE_TUNE, CONFIG_UNIT_NONE, -32, 32);
 
 	/* Accumulator 2 */
 	a_module->config.use_accumulator2 = config_get_boolean(a_block,
