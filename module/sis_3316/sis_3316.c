@@ -39,8 +39,16 @@
 #include <util/fmtmod.h>
 #include <util/time.h>
 
+/*
+ * Enabled: Necessary to have FIFOs in good state.
+ */
 #define DO_RESET_FSM 1
-/* #define DO_CLEAR_TIMESTAMP */ /* Disabled: Dangerous, and not wanted */
+/*
+ * Disabled: Dangerous, and not wanted
+ * This should only be enabled, if modules are
+ * not synchronised via the FP bus.
+ */
+/* #define DO_CLEAR_TIMESTAMP */
 #define POLL_OK 0
 #define POLL_TIMEOUT 1
 #define ADC_MEM_OFFSET 0x100000
