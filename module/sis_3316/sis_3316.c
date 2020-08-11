@@ -39,6 +39,8 @@
 #include <util/fmtmod.h>
 #include <util/time.h>
 
+#define DO_RESET_FSM 1
+/* #define DO_CLEAR_TIMESTAMP */ /* Disabled: Dangerous, and not wanted */
 #define POLL_OK 0
 #define POLL_TIMEOUT 1
 #define ADC_MEM_OFFSET 0x100000
@@ -1720,6 +1722,7 @@ get_event_counter_retry:
 		ctr[i] = MAP_READ(m->sicy_map, adc_fifo_memory_fifo(i));
 		SERIALIZE_IO;
 
+#if DO_RESET_FSM
 		/*
 		 * Reset the FSM
 		 * This is needed to clear out the FIFO until the next read.
@@ -1727,6 +1730,7 @@ get_event_counter_retry:
 		MAP_WRITE(m->sicy_map,
 		    fpga_ctrl_status_data_transfer_control(i), 0x0);
 		SERIALIZE_IO;
+#endif
 	}
 
 	tested = 0;
@@ -2068,6 +2072,10 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 		int n_tries = 0;
 		uint32_t prev = a_module->event_counter.value;
 
+#ifdef DO_CLEAR_TIMESTAMP
+		uint32_t event_counter_saved = prev;
+		prev = 0;
+#endif
 		/* BL: TODO this needs to be expanded for multi-event */
 		while (1) {
 			a_module->event_counter.value = sis_3316_get_event_counter(m);
