@@ -1687,6 +1687,9 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
  * NOTE: This only checks the event counter of the first ADC channel in
  * each ADC group. Otherwise one would have to read 24 words every time.
  * Only used in SYNC mode.
+ *
+ * TODO: Run this check on *all* enabled channels, but not on every
+ * event to save deadtime.
  */
 uint32_t
 sis_3316_get_event_counter(struct Sis3316Module *m)
@@ -1780,10 +1783,10 @@ get_event_counter_retry:
 		}
 	}
 
-        /* we don't know, so expect increase of 1 */
-        if (tested == 0) {
-                count = m->module.event_counter.value + 1;
-        }
+	/* we don't know, so expect increase of 1 */
+	if (tested == 0) {
+		count = m->module.event_counter.value + 1;
+	}
 
 	if (tries > 0) {
 		LOGF(info)(LOGL, "event counter ok after %d tries.", tries);
