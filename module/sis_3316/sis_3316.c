@@ -40,15 +40,41 @@
 #include <util/time.h>
 
 /*
+ * Options
+ */
+
+/*
  * Enabled: Necessary to have FIFOs in good state.
  */
 #define DO_RESET_FSM 1
+
 /*
  * Disabled: Dangerous, and not wanted
  * This should only be enabled, if modules are
  * not synchronised via the FP bus.
  */
 /* #define DO_CLEAR_TIMESTAMP */
+
+/*
+ * Only peek into the header of each channel and discard the rest of the data
+ * as soon as a decision can be made.
+ * ###     DANGEROUS    ###
+ * THIS OPTION DISCARDS DATA CONVERTED BY THE MODULE.
+ * ### USE WITH CAUTION ###
+ * Currently, this checks the status_flag in the 0xE or 0xA data word.
+ * If the status_flag is not set, the rest of the data will NOT be read out.
+ * Channels where this condition does not apply (i.e. are always read out),
+ * are specified in the never_discard_data bitmask.
+ */
+/* #define DO_DISCARD_UNWANTED_DATA */
+
+#ifdef DO_DISCARD_UNWANTED_DATA
+	/* channels that are always read. */
+#	define NEVER_DISCARD_DATA_CH 0x000f
+	/* compared to module address */
+#	define NEVER_DISCARD_DATA_MODULE 0x30000000
+#endif
+
 #define POLL_OK 0
 #define POLL_TIMEOUT 1
 #define ADC_MEM_OFFSET 0x100000
@@ -726,8 +752,11 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 		    + m->config.sample_length[i] / 2
 		    + m->config.average_length[i] / 2
 		    + m->config.sample_length_maw[i];
-		LOGF(verbose)(LOGL, "Event length %d = %d",
-		    i, m->config.event_length[i]);
+		LOGF(verbose)(LOGL, "Event length %d = %d (raw=%d,avg=%d,maw=%d)",
+		    i, m->config.event_length[i],
+		    m->config.sample_length[i] / 2,
+		    m->config.average_length[i] / 2,
+		    m->config.sample_length_maw[i]);
 
 		/* additional header for averaging mode */
 		if (m->config.average_mode[i] != 0) {
@@ -957,7 +986,14 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    MAP_READ(m->sicy_map, channel_trigger_threshold(i)));
 	}
 
-/* TODO: Add enengy pickup index */
+	/* FIR energy pickup index */
+	for (i = 0; i < N_CHANNELS; ++i) {
+		uint32_t data;
+		data = (m->config.energy_pickup[i] & 0x7ff) << 16;
+		MAP_WRITE(m->sicy_map, channel_energy_pickup_config(i), data);
+		CHECK_REG_SET(channel_energy_pickup_config(i), data);
+		LOGF(verbose)(LOGL, "energy_pickup[%02d] = %08x", i, data);
+	}
 
 	/* FIR energy setup. */
 	for (i = 0; i < N_CHANNELS; ++i) {
@@ -1014,6 +1050,14 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    "1022, is %d", i,
 			    m->config.pretrigger_delay_maw_e[i]);
 		}
+		/* BL: Stupid to do this here */
+		/* if (m->config.write_traces_maw == 0) {
+			m->config.sample_length_maw[i] = 0;
+		}
+		if (m->config.write_traces_maw_energy == 0) {
+			m->config.sample_length_maw_e[i] = 0;
+		}
+		*/
 	}
 
 	/* Set up trigger gate lengths. */
@@ -1405,6 +1449,19 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    enable_sample_bank_swap_control_with_nim_input, 1);
 	}
 
+#ifdef DO_DISCARD_UNWANTED_DATA
+	LOGF(verbose)(LOGL, "DO_DISCARD_UNWANTED_DATA is ACTIVE!");
+	if (m->config.address == NEVER_DISCARD_DATA_MODULE) {
+		m->config.never_discard_data = NEVER_DISCARD_DATA_CH;
+		LOGF(verbose)(LOGL, "Will not discard data for channels: %08x",
+		    m->config.never_discard_data);
+	} else {
+		LOGF(verbose)(LOGL, "Possibly discard data for ALL channels");
+	}
+#endif
+
+	/* Note: Timestamp clear is now done in post_init function. */
+
 	LOGF(verbose)(LOGL, NAME" init_fast }");
 	return 1;
 }
@@ -1566,10 +1623,9 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 void
 sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 {
-#define ADC_FSM_N_BURSTS 64
 #define ADC_FSM_BURST_SIZE 64 /* Fixed, see manual (2.8 Memory Handling) */
 #define ADC_MEM_BLOCK_SIZE ADC_FSM_BURST_SIZE * ADC_FSM_N_BURSTS
-	const uint32_t block_size = ADC_MEM_BLOCK_SIZE;
+	struct RandomSeed seed;
 	/* Some old compilers don't like huge (16B...) alignments. */
 	static uint32_t *data = NULL;
 	uint32_t *data_read;
@@ -1578,6 +1634,11 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 	int chunks = 0;
 	uint32_t i = 0;
 	struct Sis3316Module *m;
+	/* TODO: HTJ: wondering if this change, moving block_size from above
+	 * is really wanted...
+	 */
+	uint32_t block_size;
+	double t_start, t_end;
 
 	if (a_memtest_mode == KW_OFF) {
 		return;
@@ -1595,14 +1656,27 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 		chunks = 1000;
 	}
 
+	for (i = 0; LENGTH(seed.seed) > i; ++i) {
+		seed.seed[i] = i;
+	}
+
+	m->config.n_memtest_bursts = 64;
+	block_size = m->config.n_memtest_bursts * ADC_FSM_BURST_SIZE;
+	if (block_size > ADC_MEM_MAX_BLOCK_SIZE) {
+		log_die(LOGL, "block_size > ADC_MEM_MAX_BLOCK_SIZE");
+	}
+
+	LOGF(verbose)(LOGL, "n_memtest_bursts = %u",
+	    m->config.n_memtest_bursts);
+
 	if (NULL == data) {
-		static uint32_t data_storage[ADC_MEM_BLOCK_SIZE + 15];
+		static uint32_t data_storage[ADC_MEM_MAX_BLOCK_SIZE + 15];
 
 		data = (uint32_t *)((uintptr_t)data_storage + (0xf & (16 -
 		    (0xf & (uintptr_t)data_storage))));
 	}
 	{
-		uint32_t data_read_storage[ADC_MEM_BLOCK_SIZE + 15];
+		uint32_t data_read_storage[ADC_MEM_MAX_BLOCK_SIZE + 15];
 
 		data_read = (uint32_t *)((uintptr_t)data_read_storage +
 		    (0xf & (16 - (0xf & (uintptr_t)data_read_storage))));
@@ -1616,11 +1690,18 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 	}
 
 	for (adc = 0; adc < N_ADCS; ++adc) {
+		volatile uint32_t *mem = NULL;
+		uint32_t bytes = 0;
+
 		LOGF(spam)(LOGL, "adc[%d] {", adc);
 
 		/* Start FSM write */
 		sis_3316_start_fsm(m, adc * 4, SIS3316_FSM_WRITE);
 		time_sleep(1e-3);
+
+		SERIALIZE_IO;
+		t_start = time_getd();
+		SERIALIZE_IO;
 
 		/* Write to ADC FPGA memory */
 		for (chunk = 0; chunk < chunks; ++chunk) {
@@ -1631,17 +1712,32 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 				    adc_fifo_memory_fifo(adc), data[i]);
 			}
 			LOGF(spam)(LOGL, "chunk wr %d }", chunk);
+			bytes += block_size;
 		}
+
+		SERIALIZE_IO;
+		t_end = time_getd();
+		SERIALIZE_IO;
+
+		LOGF(verbose)(LOGL, "wrote %u bytes in %f us.\n", bytes,
+		    (t_end - t_start) * 1e6);
 
 		/* Start FSM read */
 		sis_3316_start_fsm(m, adc * 4, SIS3316_FSM_READ);
 		time_sleep(1e-3);
 
 		/* Read from ADC FPGA memory */
+
+		mem = m->arr->adc_fifo_memory_fifo[adc];
 		for (chunk = 0; chunk < chunks; ++chunk) {
 			int ret = 0;
 
 			LOGF(spam)(LOGL, "chunk rd %d {", chunk);
+
+			SERIALIZE_IO;
+			t_start = time_getd();
+			SERIALIZE_IO;
+
 			if (KW_NOBLT == m->config.blt_mode) {
 			for (i = 0; i < block_size; ++i) {
 				LOGF(spam)(LOGL, "read to data[%u]", i);
@@ -1655,6 +1751,13 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 					log_error(LOGL, "DMA read failed!");
 				}
 			}
+
+			SERIALIZE_IO;
+			t_end = time_getd();
+			SERIALIZE_IO;
+			LOGF(verbose)(LOGL, "read %u bytes in %f us.\n",
+			    block_size, (t_end - t_start) * 1e6);
+
 			LOGF(spam)(LOGL, "chunk rd %d }", chunk);
 
 			/* Compare */
@@ -1675,7 +1778,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 				}
 			}
 		}
-		LOGF(spam)(LOGL, "adc[%d] }", adc);
+		LOGF(verbose)(LOGL, "adc[%d] }", adc);
 	}
 	LOGF(verbose)(LOGL, "passed OK");
 	LOGF(verbose)(LOGL, NAME" memtest }");
@@ -2721,6 +2824,71 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		    ((a_words_to_read * sizeof(uint32_t)) + 1) & ~0xf;
 	}
 
+#ifdef DO_DISCARD_UNWANTED_DATA
+	/* Skip this part, if this should never be discarded */
+
+	if (((a_sis3316->config.never_discard_data >> a_ch) & 1) == 0)
+	{
+		uint32_t baseline;
+		uint32_t energy;
+		uint32_t header_end;
+		char status_flag;
+		volatile uint32_t *adc_mem;
+
+		LOGF(spam)(LOGL, "Peeking into event header {");
+		LOGF(spam)(LOGL, "a_words_to_read = %d", a_words_to_read);
+		LOGF(spam)(LOGL, "use_maw3 = %d", a_sis3316->config.use_maw3);
+
+		/* Have to read a multiple of 4 words in 2eSST mode to stay 
+		 * properly aligned. Settle for 8, we'll have the status flag
+		 * in there in any case. */
+		assert(a_words_to_read >= 8);
+		/* Assume that the maw3 values are not read out */
+		assert(a_sis3316->config.use_maw3 == 0);
+
+		adc_mem = a_sis3316->arr->adc_fifo_memory_fifo[adc];
+
+		*outp++ = *adc_mem++; /* timestamp 1 */
+		*outp++ = *adc_mem++; /* timestamp 2 */
+
+		/* baseline */
+		baseline = *adc_mem++;
+		*outp++ = baseline;
+		LOGF(spam)(LOGL, "baseline = 0x%08x", baseline);
+
+		/* energy */
+		energy = *adc_mem++;
+		*outp++ = energy;
+		LOGF(spam)(LOGL, "energy = 0x%08x", energy);
+
+		/* header_end */
+		header_end = *adc_mem++;
+		*outp++ = header_end;
+		LOGF(spam)(LOGL, "header_end = 0x%08x", header_end);
+		assert((header_end & 0xf0000000) == 0xa0000000);
+
+		*outp++ = *adc_mem++; /* average samples */
+		*outp++ = *adc_mem++; /* adc data */
+		*outp++ = *adc_mem++; /* adc data */
+
+		a_words_to_read -= 8;
+		bytes_to_read -= 8 * 4;
+
+		LOGF(spam)(LOGL, "Peeking into event header }");
+
+		/* check the condition, if should stop reading this channel */
+		status_flag = (header_end >> 26) & 0x1;
+		if (status_flag == 1) {
+			LOGF(spam)(LOGL, "Status flag is set!");
+		} else {
+			LOGF(spam)(LOGL, "Status flag is not set! SKIP!");
+			goto end_readout_channel_dma;
+		}
+	} else {
+		LOGF(spam)(LOGL, "This channel data is never discarded");
+	}
+#endif
+
 	/* Add padding value to channel header */
 	filler |= (n_padding << 12);
 
@@ -2740,6 +2908,10 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 	}
 
 	outp += a_words_to_read;
+
+#ifdef DO_DISCARD_UNWANTED_DATA
+end_readout_channel_dma:
+#endif
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
 
 	LOGF(spam)(LOGL, "After DMA: target = %p.", a_event_buffer->ptr);
@@ -3232,6 +3404,14 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	for (i = 0; i < LENGTH(a_module->config.dac_offset); ++i) {
 		LOGF(verbose)(LOGL, "dac_offset[%d] = %d.", (int)i,
 		    a_module->config.dac_offset[i]);
+	}
+
+	/* energy pickup */
+	CONFIG_GET_INT_ARRAY(a_module->config.energy_pickup, a_block,
+	    KW_ENERGY_PICKUP, CONFIG_UNIT_NONE, 0, 2048);
+	for (i = 0; i < LENGTH(a_module->config.energy_pickup); ++i) {
+		LOGF(verbose)(LOGL, "energy_pickup[%d] = %d.", (int)i,
+		    a_module->config.energy_pickup[i]);
 	}
 
 	/* internal trigger delay (use in conjunction with external gate) */
