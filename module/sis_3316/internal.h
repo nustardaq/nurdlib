@@ -136,6 +136,7 @@ struct Sis3316Config {
 	uint8_t		gap[N_CHANNELS];		/* 2,4..510 */
 	uint16_t	peak_e[N_CHANNELS];		/* 2,4..2044 */
 	uint16_t	gap_e[N_CHANNELS];		/* 2,4..510 */
+	uint16_t	energy_pickup[N_CHANNELS];	/* 2,4..2048 */
 	uint16_t	histogram_divider[N_CHANNELS];
 	uint8_t		extra_filter[N_CHANNELS];	/* 0..3 */
 	uint8_t		tau_factor[N_CHANNELS];		/* 0..63 */
@@ -150,6 +151,7 @@ struct Sis3316Config {
 	uint32_t	use_tau_correction;		/* A bitmask */
 	uint32_t	channels_to_read;		/* A bitmask */
 	uint32_t	use_external_gate;		/* A bitmask */
+	uint16_t	never_discard_data;		/* A bitmask */
 	struct Gate	gate[N_GATES];
 	enum BitDepth	bit_depth;
 	enum Keyword	blt_mode;
@@ -168,6 +170,7 @@ struct Sis3316Config {
 	uint32_t	average_pretrigger[N_ADCS];	/* 0..4094 samples */
 	uint32_t	average_length[N_ADCS];		/* 0, 2, 4, ... 65534 samples */
 	int		tap_delay_fine_tune;		/* [-32 .. 32] * 40 ps */
+	uint32_t	n_memtest_bursts;	/* number of memtest bursts */
 };
 
 struct Sis3316ChannelCounters {
