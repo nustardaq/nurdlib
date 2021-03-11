@@ -55,26 +55,6 @@
  */
 /* #define DO_CLEAR_TIMESTAMP */
 
-/*
- * Only peek into the header of each channel and discard the rest of the data
- * as soon as a decision can be made.
- * ###     DANGEROUS    ###
- * THIS OPTION DISCARDS DATA CONVERTED BY THE MODULE.
- * ### USE WITH CAUTION ###
- * Currently, this checks the status_flag in the 0xE or 0xA data word.
- * If the status_flag is not set, the rest of the data will NOT be read out.
- * Channels where this condition does not apply (i.e. are always read out),
- * are specified in the never_discard_data bitmask.
- */
-/* #define DO_DISCARD_UNWANTED_DATA */
-
-#ifdef DO_DISCARD_UNWANTED_DATA
-	/* channels that are always read. */
-#	define NEVER_DISCARD_DATA_CH 0x000f
-	/* compared to module address */
-#	define NEVER_DISCARD_DATA_MODULE 0x30000000
-#endif
-
 #define POLL_OK 0
 #define POLL_TIMEOUT 1
 #define ADC_MEM_OFFSET 0x100000
@@ -1449,17 +1429,9 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    enable_sample_bank_swap_control_with_nim_input, 1);
 	}
 
-#ifdef DO_DISCARD_UNWANTED_DATA
-	LOGF(verbose)(LOGL, "DO_DISCARD_UNWANTED_DATA is ACTIVE!");
-	if (m->config.address == NEVER_DISCARD_DATA_MODULE) {
-		m->config.never_discard_data = NEVER_DISCARD_DATA_CH;
-		LOGF(verbose)(LOGL, "Will not discard data for channels: %08x",
-		    m->config.never_discard_data);
-	} else {
-		LOGF(verbose)(LOGL, "Possibly discard data for ALL channels");
-	}
-#endif
-
+	LOGF(verbose)(LOGL, "May discard data for channels: %08x",
+	    m->config.discard_data);
+	
 	/* Note: Timestamp clear is now done in post_init function. */
 
 	LOGF(verbose)(LOGL, NAME" init_fast }");
@@ -2818,18 +2790,24 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		    ((a_words_to_read * sizeof(uint32_t)) + 1) & ~0xf;
 	}
 
-#ifdef DO_DISCARD_UNWANTED_DATA
-	/* Skip this part, if this should never be discarded */
+	/* Add padding value to channel header */
+	filler |= (n_padding << 12);
 
-	if (((a_sis3316->config.never_discard_data >> a_ch) & 1) == 0)
+	/* Add channel header */
+	*header = filler;
+
+	/* Skip this part, if this should not be discarded */
+	if (((a_sis3316->config.discard_data >> a_ch) & 1) == 1)
 	{
 		uint32_t baseline;
 		uint32_t energy;
+		uint32_t *header_end_ptr;
+		uint32_t *avg_samples_ptr;
 		uint32_t header_end;
 		char status_flag;
 		volatile uint32_t *adc_mem;
 
-		LOGF(spam)(LOGL, "Peeking into event header {");
+		LOGF(spam)(LOGL, "Peeking into event header [%d] {", a_ch);
 		LOGF(spam)(LOGL, "a_words_to_read = %d", a_words_to_read);
 		LOGF(spam)(LOGL, "use_maw3 = %d", a_sis3316->config.use_maw3);
 
@@ -2856,11 +2834,13 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		LOGF(spam)(LOGL, "energy = 0x%08x", energy);
 
 		/* header_end */
+		header_end_ptr = outp; /* save this memory location for later */
 		header_end = *adc_mem++;
 		*outp++ = header_end;
 		LOGF(spam)(LOGL, "header_end = 0x%08x", header_end);
 		assert((header_end & 0xf0000000) == 0xa0000000);
 
+		avg_samples_ptr = outp;
 		*outp++ = *adc_mem++; /* average samples */
 		*outp++ = *adc_mem++; /* adc data */
 		*outp++ = *adc_mem++; /* adc data */
@@ -2872,26 +2852,38 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 
 		/* check the condition, if should stop reading this channel */
 		status_flag = (header_end >> 26) & 0x1;
-		if (status_flag == 1) {
-			LOGF(spam)(LOGL, "Status flag is set!");
+
+		if (a_sis3316->config.discard_threshold == 0) {
+			if (status_flag == 1) {
+				LOGF(spam)(LOGL, "Status flag is set!");
+			} else {
+				LOGF(spam)(LOGL, "Status flag is not set! SKIP!");
+
+				/* 
+				 * rewrite *header_end_ptr and *avg_samples_ptr to not confuse 
+				 * the unpacker.
+				 */
+				LOGF(spam)(LOGL, "Rewriting header_end_ptr:  %08x",
+				    *header_end_ptr);
+				LOGF(spam)(LOGL, "Rewriting avg_samples_ptr: %08x",
+				    *avg_samples_ptr);
+
+				*header_end_ptr =  0xa0000000; /* status flag always 0 here */
+				*avg_samples_ptr = 0xe0000002; /* two data words following */
+
+				goto end_readout_channel_dma;
+			}
 		} else {
-			LOGF(spam)(LOGL, "Status flag is not set! SKIP!");
-			goto end_readout_channel_dma;
+			log_error(LOGL, "Decision based on energy threshold not implemented yet!");
+			abort();
 		}
 	} else {
-		LOGF(spam)(LOGL, "This channel data is never discarded");
+		LOGF(spam)(LOGL, "[%d] This channel data is never discarded", a_ch);
 	}
-#endif
-
-	/* Add padding value to channel header */
-	filler |= (n_padding << 12);
-
-	/* Add channel header */
-	*header = filler;
 
 	offset = ADC_MEM_OFFSET * (adc + 1);
 
-	LOGF(debug)(LOGL, "DMA: target = %p, "
+	LOGF(spam)(LOGL, "DMA: target = %p, "
 	    "a_words_to_read = 0x%08x, bytes_to_read = 0x%08x, mode = %d",
 	    (void const *)outp,
 	    a_words_to_read, bytes_to_read, a_sis3316->config.blt_mode);
@@ -2903,9 +2895,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 
 	outp += a_words_to_read;
 
-#ifdef DO_DISCARD_UNWANTED_DATA
 end_readout_channel_dma:
-#endif
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
 
 	LOGF(spam)(LOGL, "After DMA: target = %p.", a_event_buffer->ptr);
@@ -3391,6 +3381,18 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    KW_USE_EXTERNAL_VETO, 0, 15);
 	LOGF(verbose)(LOGL, "use_external_veto = mask 0x%08x.",
 	    a_module->config.use_external_veto);
+
+	/* use discard data */
+	a_module->config.discard_data = config_get_bitmask(a_block,
+	    KW_DISCARD_DATA, 0, 15);
+	LOGF(verbose)(LOGL, "discard_data = mask 0x%08x",
+	    a_module->config.discard_data);
+
+	/* discard threshold */
+	a_module->config.discard_threshold = config_get_int32(a_block, KW_DISCARD_THRESHOLD,
+	    CONFIG_UNIT_NONE, INT_MIN, INT_MAX);
+	LOGF(verbose)(LOGL, "discard_threshold = %d.",
+	    a_module->config.discard_threshold);
 
 	/* DAC offset */
 	CONFIG_GET_INT_ARRAY(a_module->config.dac_offset, a_block,
