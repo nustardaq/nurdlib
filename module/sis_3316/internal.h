@@ -104,7 +104,6 @@ struct Sis3316Config {
 	uint32_t	sample_length_maw_e[N_ADCS];	/* 0,2..2048 */
 	uint32_t	async_max_events;
 	uint32_t	event_length[N_ADCS]; /* Gets set on module init() */
-	uint32_t	signal_risetime[N_CHANNELS];
 	uint32_t	signal_decaytime[N_CHANNELS];
 	uint32_t	range[N_ADCS];
 	uint8_t		do_readout;
@@ -163,7 +162,7 @@ struct Sis3316Config {
 	uint8_t		write_traces_maw_energy;
 	uint8_t		write_histograms;
 	uint8_t		use_dithering;			/* ADC dithering */
-	uint32_t	trigger_gate_window_length;	/* calculated */
+	uint32_t	trigger_gate_window_length[N_ADCS]; /* calculated */
 	uint32_t	threshold[N_CHANNELS];		/* calculated */
 	uint32_t	threshold_high_e[N_CHANNELS];	/* calculated */
 	uint8_t		has_rataclock_receiver;	/* boolean */

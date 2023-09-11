@@ -81,6 +81,8 @@ const char *g_clock_source[] =
 	"external"
 };
 
+#define MAX_TEMP_SAFE 50.0
+
 extern struct tau_entry tau_14bit_125MHz[];
 extern struct tau_entry tau_14bit_250MHz[];
 extern struct tau_entry tau_16bit_125MHz[];
@@ -566,10 +568,10 @@ sis_3316_setup_adcs(struct Sis3316Module *m)
 		adc_input_span = SPI_AD9268_INPUT_SPAN_1V5;
 		adc_output_mode = SPI_AD9268_OUTPUT_LVDS;
 	}
-	if (m->config.bit_depth != BD_14BIT
+	if (m->config.bit_depth != BD_16BIT
 	    && m->config.use_dithering == 1) {
 		log_die(LOGL,
-		    "Dithering only supported on 14 bit ADC.");
+		    "Dithering only supported on 16 bit ADC (AD9268).");
 	}
 	for (i = 0; i < N_ADCS; ++i) {
 		int adc;
@@ -590,8 +592,8 @@ sis_3316_setup_adcs(struct Sis3316Module *m)
 			    SPI_OP(SPI_OP_OUTPUT_MODE) | adc_output_mode);
 			time_sleep(20e-3);
 
-			/* Dithering (only 125 MHz ADC) */
-			if (m->config.bit_depth == BD_14BIT &&
+			/* Dithering (only 125 MHz / 16-bit ADC) */
+			if (m->config.bit_depth == BD_16BIT &&
 			    m->config.use_dithering == 1) {
 				MAP_WRITE(m->sicy_map,
 				    fpga_adc_spi_control(i),
@@ -764,7 +766,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	uint32_t max_bytes_per_channel;
 	uint32_t num_hits;
 	unsigned multi_event_max;
-	const size_t max_allowed_subevent_bytes = 0x100000;
+	const size_t max_allowed_subevent_bytes = 0x2000000;
 	uint8_t clocks_per_ns = 0;
 	int i;
 
@@ -1050,7 +1052,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			int trigger_gate_window_length = 0;
 
 			trigger_gate_window_length =
-			    m->config.trigger_gate_window_length;
+			    m->config.trigger_gate_window_length[i];
 
 			data = trigger_gate_window_length - 2;
 			MAP_WRITE(m->sicy_map,
@@ -1075,7 +1077,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			LOGF(verbose)(LOGL, "Sample Length [%d] = %d samples",
 			    i, m->config.sample_length[i]);
 			LOGF(verbose)(LOGL,
-			    "Trigger Gate Window Length [%d] = %d", i,
+			    "trigger_gate_window_length[%d] = %d", i,
 			    trigger_gate_window_length);
 		}
 	}
@@ -1085,26 +1087,26 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		for (i = 0; i < N_ADCS; ++i) {
 			int j;
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_1(i),
-			      m->config.gate[0].width +
+			      (m->config.gate[0].width << 16) +
 			      m->config.gate[0].delay);
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_2(i),
-			      m->config.gate[1].width +
+			      (m->config.gate[1].width << 16) +
 			      m->config.gate[1].delay);
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_3(i),
-			      m->config.gate[2].width +
+			      (m->config.gate[2].width << 16) +
 			      m->config.gate[2].delay);
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_4(i),
-			      m->config.gate[3].width +
+			      (m->config.gate[3].width << 16) +
 			      m->config.gate[3].delay);
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_5(i),
-			      m->config.gate[4].width +
+			      (m->config.gate[4].width << 16) +
 			      m->config.gate[4].delay);
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_6(i),
-			      m->config.gate[5].width +
+			      (m->config.gate[5].width << 16) +
 			      m->config.gate[5].delay);
 			for (j = 0; j < 6; ++j) {
 				LOGF(verbose)(LOGL, "ADC[%d] Gate%d = "
-				    "{width = %d, delay = %d}",
+				    "(width = %d, delay = %d)",
 				    i, j, m->config.gate[j].width,
 				    m->config.gate[j].delay);
 			}
@@ -1115,14 +1117,14 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		for (i = 0; i < N_ADCS; ++i) {
 			int j;
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_7(i),
-			      m->config.gate[6].width
+			      (m->config.gate[6].width << 16)
 			    + m->config.gate[6].delay);
 			MAP_WRITE(m->sicy_map, fpga_adc_acc_gate_8(i),
-			      m->config.gate[7].width
+			      (m->config.gate[7].width << 16)
 			    + m->config.gate[7].delay);
-			for (j = 7; j < N_GATES; ++j) {
+			for (j = 6; j < N_GATES; ++j) {
 				LOGF(verbose)(LOGL, "ADC[%d] Gate%d = "
-				    "{width = %d, delay = %d}",
+				    "(width = %d, delay = %d)",
 				    i, j, m->config.gate[j].width,
 				    m->config.gate[j].delay);
 			}
@@ -2710,6 +2712,21 @@ sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 	/* Add channel header with the number of hits */
 	*(outp++) = a_words_to_read / a_sis3316->config.event_length[adc];
 
+	/* Add channel header with temperature */
+	{
+		uint32_t temp = a_sis3316->map->temperature;
+		float temp_celsius = ((float)((signed short)temp)) / 4.0;
+		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
+
+		LOGF(spam)(LOGL, "Temperature: %.2f C", temp_celsius);
+
+		if (temp_celsius > MAX_TEMP_SAFE) {
+			LOGF(info)(LOGL, "sis3316 temperature is higher than "
+			    "safe limit (%.2f > %.2f)", temp_celsius,
+			    MAX_TEMP_SAFE);
+		}
+	}
+
 	LOGF(spam)(LOGL, "Before read: %08x %08x %08x %08x ...", *(start),
 	    *(start+1), *(start+2), *(start+3));
 
@@ -2766,6 +2783,21 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		    a_event_buffer->bytes);
 	}
 
+	/* Add channel header with temperature */
+	{
+		uint32_t temp = a_sis3316->map->temperature;
+		float temp_celsius = ((float)((signed short)temp)) / 4.0;
+		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
+
+		LOGF(spam)(LOGL, "Temperature: %.2f C", temp_celsius);
+
+		if (temp_celsius > MAX_TEMP_SAFE) {
+			LOGF(info)(LOGL, "sis3316 temperature is higher than "
+			    "safe limit (%.2f > %.2f)", temp_celsius,
+			    MAX_TEMP_SAFE);
+		}
+	}
+
 	/* Add appropriate padding */
 	filler = 0x33160000
 	    + (a_ch << 8)
@@ -2812,11 +2844,21 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		LOGF(spam)(LOGL, "a_words_to_read = %d", a_words_to_read);
 		LOGF(spam)(LOGL, "use_maw3 = %d", a_sis3316->config.use_maw3);
 
-		/* Have to read a multiple of 4 words in 2eSST mode to stay 
+		/* 
+		 * Have to read a multiple of 4 words in 2eSST mode to stay 
 		 * properly aligned. Settle for 8, we'll have the status flag
-		 * in there in any case. */
-		assert(a_words_to_read >= 8);
-		/* Assume that the maw3 values are not read out */
+		 * in there in any case.
+		 * If readout of the gates is enabled, then only 6+2 is
+		 * allowed. In this case we'll need to read at least 16 words
+		 * to have the gates + status flag in the data.
+		 */
+		if (a_sis3316->config.use_accumulator2 == 0) {
+			assert(a_words_to_read >= 8);
+		} else {
+			assert(a_words_to_read >= 16);
+		}
+
+		/* Assume that the maw3 values are never read out */
 		assert(a_sis3316->config.use_maw3 == 0);
 
 		adc_mem_i = 0;
@@ -2829,6 +2871,17 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
 		    adc_fifo_memory_fifo(adc), adc_mem_i);
 		++adc_mem_i;
+
+		if (a_sis3316->config.use_accumulator2 == 1 ||
+		    a_sis3316->config.use_accumulator6 == 1) {
+			int i;
+			/* both must be set! */
+			assert(a_sis3316->config.use_accumulator2 == 1);
+			assert(a_sis3316->config.use_accumulator6 == 1);
+			for (i = 0; i < 9; ++i) {
+				*outp++ = *adc_mem++; /* peak + gates */
+			}
+		}
 
 		/* baseline */
 		baseline = MAP_READ_OFS(a_sis3316->sicy_map,
@@ -2863,13 +2916,22 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
 		    adc_fifo_memory_fifo(adc), adc_mem_i);
 		++adc_mem_i;
-		/* adc data */
-		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
-		++adc_mem_i;
 
-		a_words_to_read -= 8;
-		bytes_to_read -= 8 * 4;
+		/* this need not be read, when reading gates */
+		if (a_sis3316->config.use_accumulator6 == 0) {
+			/* adc data */
+			*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+			    adc_fifo_memory_fifo(adc), adc_mem_i);
+			++adc_mem_i;
+		}
+
+		if (a_sis3316->config.use_accumulator6 == 1) {
+			a_words_to_read -= 16;
+			bytes_to_read -= 16 * 4;
+		} else {
+			a_words_to_read -= 8;
+			bytes_to_read -= 8 * 4;
+		}
 
 		LOGF(spam)(LOGL, "Peeking into event header }");
 
@@ -2892,7 +2954,11 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 				    *avg_samples_ptr);
 
 				*header_end_ptr =  0xa0000000; /* status flag always 0 here */
-				*avg_samples_ptr = 0xe0000002; /* two data words following */
+				if (a_sis3316->config.use_accumulator6 == 0) {
+					*avg_samples_ptr = 0xe0000002; /* two data words following */
+				} else {
+					*avg_samples_ptr = 0xe0000001; /* only one data word following */
+				}
 
 				goto end_readout_channel_dma;
 			}
@@ -3747,14 +3813,6 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	LOGF(verbose)(LOGL, "Invert signal = %s.",
 	    (a_module->config.invert_signal[0] == 1) ? "yes" : "no");
 
-	/* Risetime */
-	CONFIG_GET_INT_ARRAY(a_module->config.signal_risetime, a_block,
-	    KW_SIGNAL_RISETIME, CONFIG_UNIT_NS, 0, 10000);
-	for (i = 0; i < LENGTH(a_module->config.signal_risetime); ++i) {
-		LOGF(verbose)(LOGL, "Signal risetime = %d ns.",
-		    a_module->config.signal_risetime[i]);
-	}
-
 	/* CFD trigger */
 	a_module->config.use_cfd_trigger = config_get_boolean(a_block,
 	    KW_USE_CFD_TRIGGER);
@@ -3871,6 +3929,20 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
                 }
 	}
 
+	/* Pretrigger RAW */
+	CONFIG_GET_INT_ARRAY(a_module->config.pretrigger_delay,
+	    t_block, KW_PRETRIGGER_DELAY, CONFIG_UNIT_NS, 0,
+	    (1000 / a_module->config.clk_freq) * 16378);
+	for (i = 0; i < LENGTH(a_module->config.pretrigger_delay); ++i) {
+		LOGF(verbose)(LOGL, "pretrigger_delay[%d] = %d ns.",
+		    (int)i, a_module->config.pretrigger_delay[i]);
+		a_module->config.pretrigger_delay[i] =
+		    a_module->config.pretrigger_delay[i] *
+		    a_module->config.clk_freq / 1000;
+		LOGF(verbose)(LOGL, "pretrigger_delay[%d] = %d samples.",
+		    (int)i, a_module->config.pretrigger_delay[i]);
+	}
+
 	/* Sample length MAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.sample_length_maw,
 	    t_block[1], KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
@@ -3918,14 +3990,16 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 		/* Time after trigger */
 		a_module->config.gate[i].delay =
 		    config_get_int32(g_block, KW_TIME_AFTER_TRIGGER,
-			CONFIG_UNIT_NS, 0, 1024);
+			CONFIG_UNIT_NS, 0,
+			(1 << 16) * (1000 / a_module->config.clk_freq));
 		LOGF(verbose)(LOGL,
 		    "gate[%d].delay = %d ns.", (int)i,
 		    a_module->config.gate[i].delay);
 		/* Gate width */
 		a_module->config.gate[i].width =
 		    config_get_int32(g_block, KW_WIDTH,
-			CONFIG_UNIT_NS, 0, 1024);
+			CONFIG_UNIT_NS, 0,
+			(1 << 9) * (1000 / a_module->config.clk_freq));
 		LOGF(verbose)(LOGL,
 		    "gate[%d].width = %d ns.", (int)i,
 		    a_module->config.gate[i].width);
@@ -3983,12 +4057,12 @@ void
 sis_3316_calculate_settings(struct Sis3316Module *a_module)
 {
 	int i;
-	int risetime_s[N_CHANNELS];
 	int decaytime_s[N_CHANNELS];
 	int signal_length_s[N_CHANNELS];
 	int samples_per_ns;
 	int full_range;
 	unsigned int min_trigger_window_len;
+	int counts_per_V;
 
 	LOGF(verbose)(LOGL, NAME" calculate_settings {");
 
@@ -4004,15 +4078,12 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	for (i = 0; i < N_CHANNELS; ++i) {
 		decaytime_s[i] =
 		    a_module->config.signal_decaytime[i] / samples_per_ns;
-		risetime_s[i] =
-		    a_module->config.signal_risetime[i] / samples_per_ns;
 
 		/* Signal should be decayed to ~0 within 5 decay times */
-		signal_length_s[i] = risetime_s[i] + decaytime_s[i] * 5;
+		signal_length_s[i] = decaytime_s[i] * 5;
 
 		LOGF(verbose)(LOGL,
-		    "risetime_s[%d] = %d, decaytime_s[%d] = %d",
-		    i, risetime_s[i], i, decaytime_s[i]);
+		    "decaytime_s[%d] = %d", i, decaytime_s[i]);
 		LOGF(verbose)(LOGL,
 		    "signal_length_s[%d] = %d", i, signal_length_s[i]);
 	}
@@ -4021,6 +4092,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	for (i = 0; i < N_GATES; ++i) {
 		a_module->config.gate[i].delay /= samples_per_ns;
 		a_module->config.gate[i].width /= samples_per_ns;
+		a_module->config.gate[i].width -= 1;
 	}
 
 	/* Pileup length is the full signal length */
@@ -4059,6 +4131,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 		}
 	}
 
+#ifdef DO_CALCULATE_PRETRIGGER
 	/*
 	 * Pretrigger length is the rise time + baseline region
 	 * and a constant value
@@ -4067,6 +4140,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 		a_module->config.pretrigger_delay[i] =
 		    risetime_s[i*4] + a_module->config.baseline_average + 10;
 	}
+#endif
 
 	/*
 	 * TODO: This does the automatic calculation, but one can now also
@@ -4080,24 +4154,28 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	 * Trigger gate window length
 	 * Add a constant 500
 	 */
-	min_trigger_window_len = a_module->config.peak_e[0]
-		+ a_module->config.gap_e[0]
-		+ a_module->config.pretrigger_delay[0]
-		+ a_module->config.internal_trigger_delay[0]
-		+ 50;
-	if (a_module->config.sample_length[0]
-	    + a_module->config.sample_length_maw[0] < min_trigger_window_len) {
-		a_module->config.trigger_gate_window_length =
-		    min_trigger_window_len;
-	} else {
-		a_module->config.trigger_gate_window_length =
-		    a_module->config.sample_length[0]
-		    + a_module->config.sample_length_maw[0]
-		    + 50;
-	}
+	for (i = 0; i < N_ADCS; ++i) {
+		unsigned int min;
+		min = a_module->config.peak_e[0]
+			+ a_module->config.gap_e[0]
+			+ a_module->config.pretrigger_delay[0]
+			+ a_module->config.internal_trigger_delay[0]
+			+ a_module->config.gate[7].delay
+			+ a_module->config.gate[7].width
+			+ 50;
+		if (a_module->config.sample_length[0]
+		    + a_module->config.sample_length_maw[0] < min) {
+			a_module->config.trigger_gate_window_length[i] = min;
+		} else {
+			a_module->config.trigger_gate_window_length[i] =
+			    a_module->config.sample_length[0]
+			    + a_module->config.sample_length_maw[0]
+			    + 50;
+		}
 
-	LOGF(verbose)(LOGL, "trigger_gate_window_length = %d",
-	    a_module->config.trigger_gate_window_length);
+		LOGF(verbose)(LOGL, "trigger_gate_window_length[%d]=%d (calc)",
+		    i, a_module->config.trigger_gate_window_length[i]);
+	}
 
 	/*
 	 * tau_factor, tau_table
