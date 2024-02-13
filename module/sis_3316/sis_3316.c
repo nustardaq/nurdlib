@@ -581,8 +581,6 @@ sis_3316_setup_event_config(struct Sis3316Module *m)
 	    MAP_READ(m->sicy_map, fpga_adc_event_config(3)));
 }
 
-/* TODO: Add averaging mode */
-
 void
 sis_3316_setup_averaging_mode(struct Sis3316Module *m)
 {
@@ -596,8 +594,8 @@ sis_3316_setup_averaging_mode(struct Sis3316Module *m)
 		     | (m->config.average_length[i]);
 
 		LOGF(verbose)(LOGL, "Average mode setup[%d] = 0x%08x", i, data);
-		*(m->arr->fpga_adc_average_config[i]) = data;
-		CHECK_REG_SET(*(m->arr->fpga_adc_average_config[i]), data);
+		MAP_WRITE(m->sicy_map, fpga_adc_average_config(i), data);
+		CHECK_REG_SET(fpga_adc_average_config(i), data);
 	}
 }
 
@@ -665,8 +663,6 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 		}
 
 		MAP_WRITE(m->sicy_map, fpga_adc_data_format_config(i),
-		    data_format);
-		CHECK_REG_SET(*(m->arr->fpga_adc_data_format_config[i]),
 		    data_format);
 		CHECK_REG_SET(fpga_adc_data_format_config(i), data_format);
 		data = m->config.sample_length_maw[i]
@@ -3246,12 +3242,12 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 				    a_module->config.average_mode[i]);
 				abort();
 		}
-		LOGF(verbose)(LOGL, "average mode[%d]       = %d samples (0x%2x)",
+		LOGF(verbose)(LOGL, "average mode[%" PRIz "]       = %d samples (0x%2x)",
 		    i, a_module->config.average_mode[i], mode_bits);
 		a_module->config.average_mode[i] = mode_bits;
-		LOGF(verbose)(LOGL, "average pretrigger[%d] = %d samples",
+		LOGF(verbose)(LOGL, "average pretrigger[%" PRIz "] = %d samples",
 		    i, a_module->config.average_pretrigger[i]);
-		LOGF(verbose)(LOGL, "average length[%d]     = %d samples",
+		LOGF(verbose)(LOGL, "average length[%" PRIz "]     = %d samples",
 		    i, a_module->config.average_length[i]);
 		a_module->config.average_length[i] -=
 		    a_module->config.average_length[i] % 2;
