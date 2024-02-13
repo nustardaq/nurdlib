@@ -505,9 +505,8 @@ sis_3316_setup_adcs(struct Sis3316Module *m)
 	}
 	if (m->config.bit_depth != BD_14BIT
 	    && m->config.use_dithering == 1) {
-		log_error(LOGL,
+		log_die(LOGL,
 		    "Dithering only supported on 14 bit ADC.");
-		abort();
 	}
 	for (i = 0; i < N_ADCS; ++i) {
 		int adc;
@@ -532,7 +531,7 @@ sis_3316_setup_adcs(struct Sis3316Module *m)
 			if (m->config.bit_depth == BD_14BIT &&
 			    m->config.use_dithering == 1) {
 				MAP_WRITE(m->sicy_map,
-				    fpga_adc_spi_control[i],
+				    fpga_adc_spi_control(i),
 				    SPI_WRITE | SPI_ENABLE | adc
 				    | SPI_OP(SPI_OP_DITHER_ENABLE)
 				    | SPI_AD9268_DITHER_ENABLE);
@@ -783,22 +782,19 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	/* Set high energy threshold (and both edges bit). */
 	for (i = 0; i < N_CHANNELS; ++i) {
+		uint32_t thr;
+
 		if (i < N_ADCS) {
+			thr = m->config.threshold_high_e[i];
 			MAP_WRITE(m->sicy_map,
-			    fpga_adc_trigger_thr_high_e_sum(i),
-			    m->config.threshold_high_e[i]);
-			CHECK_REG_SET(fpga_adc_trigger_thr_high_e_sum(i),
-			    m->config.threshold_high_e[i]);
+			    fpga_adc_trigger_thr_high_e_sum(i), thr);
+			CHECK_REG_SET(
+			    fpga_adc_trigger_thr_high_e_sum(i), thr);
 		}
-		MAP_WRITE(m->sicy_map, channel_trigger_thr_high_e(i),
-		    (((m->config.use_dual_threshold >> i) & 1) << 31)
-		    | m->config.threshold_high_e[i]);
-		CHECK_REG_SET(channel_trigger_thr_high_e(i),
-		    m->config.threshold_high_e[i]);
-		*(m->arr->channel_trigger_thr_high_e[i]) =
-		    | m->config.threshold_high_e[i];
-		CHECK_REG_SET(*(m->arr->channel_trigger_thr_high_e[i]),
-		    m->config.threshold_high_e[i]);
+		thr = (((m->config.use_dual_threshold >> i) & 1) << 31) |
+		    m->config.threshold_high_e[i];
+		MAP_WRITE(m->sicy_map, channel_trigger_thr_high_e(i), thr);
+		CHECK_REG_SET(channel_trigger_thr_high_e(i), thr);
 	}
 
 	/* FIR trigger setup. */
