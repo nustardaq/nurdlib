@@ -1155,10 +1155,10 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 
 	/*
-	 * Enable TO as trigger OR of all channels.
+	 * Enable TO as trigger OR on selected channels.
 	 */
-	MAP_WRITE(m->sicy_map, lemo_out_to_select, 0xffff);
-	CHECK_REG_SET(lemo_out_to_select, 0xffff);
+	MAP_WRITE(m->sicy_map, lemo_out_to_select, m->config.trigger_output);
+	CHECK_REG_SET(lemo_out_to_select, m->config.trigger_output);
 	/* BL: why is this here?
          * LOGF(info)(LOGL, "Using rataclock! TO used for trigger output");
          */
@@ -3102,6 +3102,12 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    KW_USE_INTERNAL_TRIGGER, 0, 15);
 	LOGF(verbose)(LOGL, "use_internal_trigger = mask 0x%08x",
 	    a_module->config.use_internal_trigger);
+
+	/* which channels contribute to TO signal (OR-ed) */
+	a_module->config.trigger_output = config_get_bitmask(a_block,
+	    KW_TRIGGER_OUTPUT, 0, 15);
+	LOGF(verbose)(LOGL, "trigger_output = mask 0x%08x",
+	    a_module->config.trigger_output);
 
 	/* use dual threshold trigger */
 	a_module->config.use_dual_threshold = config_get_bitmask(a_block,
