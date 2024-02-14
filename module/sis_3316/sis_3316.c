@@ -44,7 +44,7 @@
 #define ADC_MEM_OFFSET 0x100000
 
 #define NAME "sis3316"
-#define REQUIRED_FIRMWARE 0x3316200F /* user counter */
+#define REQUIRED_FIRMWARE 0x3316200e /* user counter */
 
 #define ADDRESS_THR_ADC_FLAG(adc) (1 << (25 + 2 * (adc)))
 #define ADDRESS_THR_FPBUS_FLAG (1 << 21)
