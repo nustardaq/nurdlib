@@ -142,6 +142,7 @@ struct Sis3316Config {
 	uint8_t		tau_table[N_CHANNELS];		/* 0..3 */
 	uint32_t	clk_freq;			/* In MHz */
 	uint32_t	ext_clk_freq;			/* In MHz */
+	uint32_t	trigger_output;			/* A bitmask */
 	uint32_t	use_external_trigger;		/* A bitmask */
 	uint32_t	use_external_veto;		/* A bitmask */
 	uint32_t	use_internal_trigger;		/* A bitmask */
