@@ -220,6 +220,7 @@ sis_3316_post_init(struct Crate *a_crate, struct Module *a_module)
 	LOGF(verbose)(LOGL, "%d configuration complete.", m->module.id);
 
 	/* ADC status. */
+	/* TODO: Occurrence 1/4 of this dumping in the file! */
 	for (i = 0; i < N_ADCS; ++i) {
 		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
@@ -326,6 +327,7 @@ sis_3316_reset(struct Sis3316Module* m)
 	time_sleep(30e-3);
 
 	/* ADC status */
+	/* TODO: Occurrence 2/4 of this dumping in the file! */
 	for (i = 0; i < 4; ++i) {
 		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
@@ -815,6 +817,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 
 	/* ADC status. */
+	/* TODO: Occurrence 3/4 of this dumping in the file! */
 	for (i = 0; i < N_ADCS; ++i) {
 		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
@@ -1499,6 +1502,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 	}
 
 	/* ADC status. */
+	/* TODO: Occurrence 4/4 of this dumping in the file! */
 	for (i = 0; i < N_ADCS; ++i) {
 		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
