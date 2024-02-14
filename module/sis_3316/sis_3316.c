@@ -54,6 +54,16 @@
 #define SAMPLE_LOGIC_BUSY_FLAG (1 << 18)
 #define UI_AS_BANK_SWAP_FLAG (1 << 13)
 
+/* TODO: Is the following comment relevant? */
+/* Allow 1 MiB for all channels */
+const char *g_clock_source[] =
+{
+	"internal",
+	"vxs",
+	"fp_bus",
+	"external"
+};
+
 extern struct tau_entry tau_14bit_125MHz[];
 extern struct tau_entry tau_14bit_250MHz[];
 extern struct tau_entry tau_16bit_125MHz[];
@@ -121,6 +131,7 @@ void sis_3316_dump_stat_counters(struct Sis3316Module *, int);
 uint32_t sis_3316_get_event_counter(struct Sis3316Module *) FUNC_RETURNS;
 int sis_3316_post_init(struct Crate *, struct Module *);
 void sis_3316_set_iob_delay_logic(struct Sis3316Module *, int);
+void sis_3316_set_sample_clock_dist(struct Sis3316Module *);
 void sis_3316_setup_averaging_mode(struct Sis3316Module *);
 void sis_3316_setup_event_config(struct Sis3316Module *);
 void sis_3316_setup_data_format(struct Sis3316Module *);
@@ -382,6 +393,36 @@ sis_3316_set_iob_delay_logic(struct Sis3316Module *m, int i)
 	CHECK_REG_SET(fpga_adc_tap_delay(i), data);
 	LOGF(verbose)(LOGL, "Tap delay ADC %d: 0x%08x", i,
 	    MAP_READ(m->sicy_map, fpga_adc_tap_delay(i)));
+}
+
+/*
+ * Set sample_clock_distribution_control register.
+ */
+void
+sis_3316_set_sample_clock_dist(struct Sis3316Module *m)
+{
+	uint32_t data;
+
+	data = 0;
+	if (m->config.is_fpbus_master) {
+		if (m->config.ext_clk_freq == 0 &&
+		    m->config.use_rataclock == 0) {
+			data = CS_INTERNAL;
+		} else {
+			if (m->config.use_clock_from_vxs == 1) {
+				data = CS_VXS;
+			} else {
+				data = CS_EXTERNAL;
+			}
+		}
+	} else {
+		/* TODO: what, when use_rataclock = 1 ? */
+		data = CS_FP_BUS;
+	}
+	LOGF(verbose)(LOGL, "sis3316[%d]: Setting %s (%d) clock.",
+	    m->module.id, g_clock_source[data], data);
+	MAP_WRITE(m->sicy_map, sample_clock_distribution_control, data);
+	CHECK_REG_SET(sample_clock_distribution_control, data);
 }
 
 /*
@@ -732,26 +773,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
          */
 	sis_3316_calculate_settings((struct Sis3316Module *)m);
 
-	/*
-	 * Set sample_clock_distribution_control register.
-	 */
-	if (m->config.is_fpbus_master) {
-		if (m->config.ext_clk_freq == 0) {
-			MAP_WRITE(m->sicy_map, sample_clock_distribution_control, CS_INTERNAL);
-			CHECK_REG_SET(sample_clock_distribution_control,
-			    CS_INTERNAL);
-		} else {
-			MAP_WRITE(m->sicy_map, sample_clock_distribution_control, CS_EXTERNAL);
-			CHECK_REG_SET(sample_clock_distribution_control,
-			    CS_EXTERNAL);
-		}
-	} else {
-		MAP_WRITE(m->sicy_map, sample_clock_distribution_control, CS_FP_BUS);
-		CHECK_REG_SET(sample_clock_distribution_control,
-		    CS_FP_BUS);
-	}
-	LOGF(verbose)(LOGL, "sis3316[%d]: Enable %s clock", m->module.id,
-	    c_clock_source[m->map->sample_clock_distribution_control]);
+	sis_3316_set_sample_clock_dist(m);
 
 	/*
 	 * FB Bus Enable
@@ -1381,15 +1403,6 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 	uint32_t data;
 	int i;
 
-	/* Allow 1 MiB for all channels */
-	const char *c_clock_source[] =
-	{
-		"internal",
-		"vxs",
-		"fp_bus",
-		"external"
-	};
-
 	(void)a_crate;
 
 	LOGF(verbose)(LOGL, NAME" init_slow {");
@@ -1443,30 +1456,8 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 		abort();
 	}
 
-	/*
-	 * Set sample_clock_distribution_control register.
-	 */
-	data = 0;
-	if (m->config.is_fpbus_master) {
-		if (m->config.ext_clk_freq == 0
-		    && m->config.use_rataclock == 0) {
-			data = CS_INTERNAL;
-		} else {
-			if (m->config.use_clock_from_vxs == 1) {
-				data = CS_VXS;
-			} else {
-				data = CS_EXTERNAL;
-			}
-		}
-	} else {
-		/* TODO: what, when use_rataclock = 1 ? */
-		data = CS_FP_BUS;
-	}
-	MAP_WRITE(m->sicy_map, sample_clock_distribution_control, data);
-	CHECK_REG_SET(sample_clock_distribution_control, data);
-	LOGF(verbose)(LOGL, "sis3316[%d]: Enable %s clock",
-	    m->module.id, c_clock_source[
-	    MAP_READ(m->sicy_map, sample_clock_distribution_control)]);
+	/* TODO: Also set in init_fast, needed here? */
+	sis_3316_set_sample_clock_dist(m);
 
 	/*
 	 * FB Bus Enable
