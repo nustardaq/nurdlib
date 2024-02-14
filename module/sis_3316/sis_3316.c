@@ -2718,6 +2718,14 @@ sis_3316_test_addr_threshold(struct Sis3316Module *m)
 	return MAP_READ(m->sicy_map, acquisition_control) & ADDRESS_THR_FLAG;
 }
 
+/*
+ * TODO: One can also poll the previous_bank_sample_address
+ * and then compare with the expected address, i.e.
+ * (num_hits * event_length).
+ * This may be useful in case the address threshold gets
+ * set to a high value, but num_hits is limited via the
+ * config.
+ */
 int
 sis_3316_poll_sample_logic_ready(struct Sis3316Module *m)
 {
