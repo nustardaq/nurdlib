@@ -817,7 +817,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	/* ADC status. */
 	for (i = 0; i < N_ADCS; ++i) {
 		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
-		    *(m->arr->fpga_adc_status[i]));
+		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
 	}
 
 	/* Calibrate IOB _delay logic. */
