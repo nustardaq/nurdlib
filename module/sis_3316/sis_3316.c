@@ -3467,7 +3467,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 
 	/* Thresholds */
 	CONFIG_GET_INT_ARRAY(a_module->config.threshold_mV, a_block,
-	    KW_THRESHOLD, CONFIG_UNIT_MV, 0, 25500);
+	    KW_THRESHOLD, CONFIG_UNIT_MV, 0, 5000);
 	for (i = 0; i < LENGTH(a_module->config.threshold_mV); ++i) {
 		LOGF(verbose)(LOGL, "threshold_mV[%d] = %d / 100.",
 		    (int)i, a_module->config.threshold_mV[i]);
