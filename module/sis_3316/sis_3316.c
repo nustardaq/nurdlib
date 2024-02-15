@@ -1623,9 +1623,9 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 void
 sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 {
+#define ADC_FSM_N_BURSTS 64
 #define ADC_FSM_BURST_SIZE 64 /* Fixed, see manual (2.8 Memory Handling) */
-#define ADC_MEM_BLOCK_SIZE ADC_FSM_BURST_SIZE * ADC_FSM_N_BURSTS
-	struct RandomSeed seed;
+#define ADC_MEM_MAX_BLOCK_SIZE ADC_FSM_BURST_SIZE * ADC_FSM_N_BURSTS
 	/* Some old compilers don't like huge (16B...) alignments. */
 	static uint32_t *data = NULL;
 	uint32_t *data_read;
@@ -1654,10 +1654,6 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 		chunks = 100;
 	} else {
 		chunks = 1000;
-	}
-
-	for (i = 0; LENGTH(seed.seed) > i; ++i) {
-		seed.seed[i] = i;
 	}
 
 	m->config.n_memtest_bursts = 64;
@@ -1690,7 +1686,6 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 	}
 
 	for (adc = 0; adc < N_ADCS; ++adc) {
-		volatile uint32_t *mem = NULL;
 		uint32_t bytes = 0;
 
 		LOGF(spam)(LOGL, "adc[%d] {", adc);
@@ -1728,7 +1723,6 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 
 		/* Read from ADC FPGA memory */
 
-		mem = m->arr->adc_fifo_memory_fifo[adc];
 		for (chunk = 0; chunk < chunks; ++chunk) {
 			int ret = 0;
 
