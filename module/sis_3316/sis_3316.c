@@ -4051,8 +4051,6 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	int signal_length_s[N_CHANNELS];
 	int samples_per_ns;
 	int full_range;
-	unsigned int min_trigger_window_len;
-	int counts_per_V;
 
 	LOGF(verbose)(LOGL, NAME" calculate_settings {");
 
