@@ -2714,7 +2714,7 @@ sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 
 	/* Add channel header with temperature */
 	{
-		uint32_t temp = a_sis3316->map->temperature;
+		uint32_t temp = MAP_READ(a_sis3316->sicy_map, temperature);
 		float temp_celsius = ((float)((signed short)temp)) / 4.0;
 		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
 
@@ -2785,7 +2785,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 
 	/* Add channel header with temperature */
 	{
-		uint32_t temp = a_sis3316->map->temperature;
+		uint32_t temp = MAP_READ(a_sis3316->sicy_map, temperature);
 		float temp_celsius = ((float)((signed short)temp)) / 4.0;
 		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
 
@@ -2879,7 +2879,10 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 			assert(a_sis3316->config.use_accumulator2 == 1);
 			assert(a_sis3316->config.use_accumulator6 == 1);
 			for (i = 0; i < 9; ++i) {
-				*outp++ = *adc_mem++; /* peak + gates */
+				/* peak + gates */
+				*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+				    adc_fifo_memory_fifo(adc), adc_mem_i);
+				++adc_mem_i;
 			}
 		}
 
