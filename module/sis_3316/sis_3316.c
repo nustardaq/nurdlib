@@ -2806,7 +2806,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		uint32_t *avg_samples_ptr;
 		uint32_t header_end;
 		char status_flag;
-		volatile uint32_t *adc_mem;
+		size_t adc_mem_i;
 
 		LOGF(spam)(LOGL, "Peeking into event header [%d] {", a_ch);
 		LOGF(spam)(LOGL, "a_words_to_read = %d", a_words_to_read);
@@ -2819,32 +2819,54 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		/* Assume that the maw3 values are not read out */
 		assert(a_sis3316->config.use_maw3 == 0);
 
-		adc_mem = a_sis3316->arr->adc_fifo_memory_fifo[adc];
+		adc_mem_i = 0;
 
-		*outp++ = *adc_mem++; /* timestamp 1 */
-		*outp++ = *adc_mem++; /* timestamp 2 */
+		/* timestamp 1 */
+		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
+		/* timestamp 2 */
+		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
 
 		/* baseline */
-		baseline = *adc_mem++;
+		baseline = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
 		*outp++ = baseline;
 		LOGF(spam)(LOGL, "baseline = 0x%08x", baseline);
 
 		/* energy */
-		energy = *adc_mem++;
+		energy = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
 		*outp++ = energy;
 		LOGF(spam)(LOGL, "energy = 0x%08x", energy);
 
 		/* header_end */
 		header_end_ptr = outp; /* save this memory location for later */
-		header_end = *adc_mem++;
+		header_end = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
 		*outp++ = header_end;
 		LOGF(spam)(LOGL, "header_end = 0x%08x", header_end);
 		assert((header_end & 0xf0000000) == 0xa0000000);
 
 		avg_samples_ptr = outp;
-		*outp++ = *adc_mem++; /* average samples */
-		*outp++ = *adc_mem++; /* adc data */
-		*outp++ = *adc_mem++; /* adc data */
+
+		/* average samples */
+		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
+		/* adc data */
+		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
+		/* adc data */
+		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		++adc_mem_i;
 
 		a_words_to_read -= 8;
 		bytes_to_read -= 8 * 4;
