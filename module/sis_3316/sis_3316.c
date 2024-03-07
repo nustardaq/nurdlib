@@ -2262,7 +2262,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 		0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11, 15
 	};
 	struct Sis3316Module *m;
-	uint32_t *outp, *ultrastart;
+	uint32_t *ultrastart;
 	uint32_t words_to_read;
 	uint32_t total_bytes_to_read;
 	unsigned int i;
@@ -2285,8 +2285,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 		goto sis_3316_readout_done;
 	}
 
-	outp = a_event_buffer->ptr;
-	ultrastart = outp;
+	ultrastart = a_event_buffer->ptr;
 
 	LOGF(debug)(LOGL, "Current_bank = %d", m->current_bank);
 
@@ -2365,7 +2364,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 		int ch;
 		int adc;
 
-		start = outp;
+		start = a_event_buffer->ptr;
 		ch = read_seq[i];
 		adc = ch / 4;
 
@@ -2417,7 +2416,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 			struct EventConstBuffer ebuf;
 			uint32_t words_in_channel;
 
-			LOGF(spam)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
+			LOGF(debug)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
 			    "before readout.", ch, a_event_buffer->bytes);
 
 			words_in_channel = 0;
@@ -2447,11 +2446,11 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 			}
 
 sis_3316_channel_readout_done:
-			LOGF(spam)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
+			LOGF(debug)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
 			    "after readout", ch, a_event_buffer->bytes);
 
 			ebuf.ptr = start;
-			ebuf.bytes = (uintptr_t)outp - (uintptr_t)start;
+			ebuf.bytes = (uintptr_t)(a_event_buffer->ptr) - (uintptr_t)start;
 			ok += sis_3316_check_channel_data(m, ch, &ebuf);
 			/*
 			 * Reset the FSM
@@ -2468,7 +2467,7 @@ sis_3316_channel_readout_done:
 	}
 
 	if (g_log_level_spam_ == log_level_get()) {
-		sis_3316_dump_data(ultrastart, outp);
+		sis_3316_dump_data(ultrastart, a_event_buffer->ptr);
 	}
 
 	/*
@@ -2681,6 +2680,10 @@ sis_3316_test_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 	return 0;
 }
 
+/***************************************************************************/
+/* MOH: I am pretty sure this will fail (very old compared to DMA version) */
+/***************************************************************************/
+
 uint32_t
 sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
     a_words_to_read, struct EventBuffer *a_event_buffer)
@@ -2718,7 +2721,7 @@ sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 		float temp_celsius = ((float)((signed short)temp)) / 4.0;
 		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
 
-		LOGF(spam)(LOGL, "Temperature: %.2f C", temp_celsius);
+		LOGF(info)(LOGL, "Temperature: %.2f C", temp_celsius);
 
 		if (temp_celsius > MAX_TEMP_SAFE) {
 			LOGF(info)(LOGL, "sis3316 temperature is higher than "
@@ -3292,6 +3295,9 @@ sis_3316_check_channel_padding(struct Sis3316Module *a_sis3316, int a_ch,
 	num_hits = (*p & 0x3ff);
 	++p;
 
+	/* skip an additional dword because of temperature info */
+	++p;
+
 	/* Check padding */
 	if (a_sis3316->config.check_level >= CL_PARANOID) {
 		int padding_counter = expect_padding;
@@ -3321,7 +3327,7 @@ sis_3316_check_channel_padding(struct Sis3316Module *a_sis3316, int a_ch,
 err:
 	time_sleep(1);
 	/* TODO: Return error-code so crate dumps and re-inits. */
-	sis_3316_dump_data(a_event_buffer,
+	sis_3316_dump_data(a_event_buffer->ptr,
 	    (uint8_t const *)a_event_buffer->ptr + a_event_buffer->bytes);
 	log_die(LOGL, "Corrupt data.");
 }
@@ -3333,6 +3339,7 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 	uint32_t const *p;
 	uint32_t raw_buffer_words;
 	uint32_t maw_buffer_words;
+	uint32_t avg_buffer_words;
 	int adc;
 
 	LOGF(spam)(LOGL, NAME" check_channel_hit[%d] {", a_hit);
@@ -3342,13 +3349,14 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 	adc = a_ch/4;
 
 	raw_buffer_words = a_sis3316->config.sample_length[adc]/2;
+	avg_buffer_words = a_sis3316->config.average_length[adc]/2;
 	maw_buffer_words = a_sis3316->config.sample_length_maw[adc];
 
 	/* Check hit data end. */
 	if (a_sis3316->config.check_level >= CL_SLOPPY) {
 		int header_length;
 		header_length = a_sis3316->config.event_length[adc]
-			- raw_buffer_words - maw_buffer_words;
+			- raw_buffer_words - maw_buffer_words - avg_buffer_words;
 		p += (header_length - 1);
 		if (((*p >> 28) & 0xf) != 0xe) {
 			log_error(LOGL,
@@ -3370,6 +3378,18 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 		}
 	}
 	p += raw_buffer_words;
+
+	/* Skip avg sample buffer. */
+	if (a_sis3316->config.check_level >= CL_PARANOID) {
+		if (!MEMORY_CHECK(*a_event_buffer, &p[avg_buffer_words - 1]))
+		{
+			log_error(LOGL,
+			    "Expected avg data buffer, but reached end "
+			    "early.");
+			goto err;
+		}
+	}
+	p += avg_buffer_words;
 
 	/* Skip maw sample buffer. */
 	if (a_sis3316->config.check_level >= CL_PARANOID) {
