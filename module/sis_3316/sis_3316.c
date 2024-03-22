@@ -2780,12 +2780,6 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 	/* Add channel header with the number of hits */
 	*outp++ = a_words_to_read / a_sis3316->config.event_length[adc];
 
-	if (a_words_to_read * sizeof(uint32_t) > a_event_buffer->bytes) {
-		log_die(LOGL, "sis_3316_read_channel_dma words_to_read=%d "
-		    "too many for buffer bytes=%"PRIz".", a_words_to_read,
-		    a_event_buffer->bytes);
-	}
-
 	/* Add channel header with temperature */
 	{
 		uint32_t temp = MAP_READ(a_sis3316->sicy_map, temperature);
@@ -2814,16 +2808,30 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 			*(outp++) = filler;
 			++n_padding;
 		}
-		bytes_to_read =
-		    ((a_words_to_read * sizeof(uint32_t)) + 1) & ~0x7;
+		bytes_to_read = (bytes_to_read + 0x7) & ~0x7;
 	} else if (a_sis3316->config.blt_mode == KW_BLT_2ESST ||
 	           a_sis3316->config.blt_mode == KW_BLT_2EVME) {
 		while (((intptr_t) outp & 0xf) != 0) {
 			*(outp++) = filler;
 			++n_padding;
 		}
-		bytes_to_read =
-		    ((a_words_to_read * sizeof(uint32_t)) + 1) & ~0xf;
+		bytes_to_read = (bytes_to_read + 0xf) & ~0xf;
+	}
+
+	/*
+	 * Note that bytes_to_read may be longer than the data we
+	 * really want to write to the output buffer, but this is
+	 * taken care of when we advance the pointer only according to
+	 * the number of words we really care about.
+	 */
+
+	/* TODO: is this really taking into account things already added
+	 * to the output buffer, including padding? */
+	/* Check if remaining storage space in output buffer is large enough */
+	if (bytes_to_read > a_event_buffer->bytes) {
+		log_die(LOGL, "sis_3316_read_channel_dma words_to_read=%d "
+		    "too many for buffer bytes=%"PRIz".", a_words_to_read,
+		    a_event_buffer->bytes);
 	}
 
 	/* Add padding value to channel header */
