@@ -1,0 +1,10 @@
+anmb
+0x00 Threshold[16]            W 16
+0x40 Output width 0 to 7      W 16
+0x42 Output width 8 to 15     W 16
+0x48 Majority threshold       W 16
+0x4A Pattern Inhibit          W 16
+0x4C Test pulse               W 16
+0xFA Fixed code               R 16
+0xFC Manufacturer Module type R 16
+0xFE Version Serial number    R 16

@@ -1,0 +1,10 @@
+Mock headers and libraries to explore nconf mapping branches.
+
+This code is allowed to be simple and modern since these tests should be done
+on a reasonable computer.
+
+Run make, which will do the following:
+- Build all mock libraries.
+- Build one version of nurdlib for every mapping branch.
+- Each version is given paths in here.
+- When a build is done, the mapping branch is tested.

@@ -1,0 +1,9 @@
+namb
+
+trcl       0x00000000             RW 32
+prot       0x00000004             RW 32
+init       0x00000008             RW 32
+size       0x0000000c             RW 32
+sam_gtb_id 0x00000010             RW 32
+event_no   0x00000014             RW 32
+buf        0x00000018..0x000ffffc r  32

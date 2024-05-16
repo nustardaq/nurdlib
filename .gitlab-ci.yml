@@ -1,0 +1,476 @@
+# nurdlib, NUstar ReaDout LIBrary
+#
+# Copyright (C) 2016-2024
+# Bastian Löher
+# Håkan T Johansson
+# Michael Munch
+# Hans Toshihide Törnqvist
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301  USA
+
+stages:
+  - prepare
+  - build
+
+.common: &common
+  stage: build
+  tags:
+    - docker-virt-ok
+
+# The North and East virtual machines have troubles with DNS/IP 'lookup'
+# sometimes for older images.
+.common-no-virt: &common-no-virt
+  stage: build
+  tags:
+    - docker
+
+.run-clang-release: &run-clang-pic
+  script:
+    - CC=clang NTEST_VERBOSE=1 make BUILD_MODE=pic -k
+
+.run-clang-release: &run-clang-release
+  script:
+    - CC=clang NTEST_VERBOSE=1 make BUILD_MODE=release -k
+
+.run-clang-debug: &run-clang-debug
+  script:
+    - CC=clang NTEST_VERBOSE=1 make -k
+
+.run-gcc-release: &run-gcc-pic
+  script:
+    - CC=gcc NTEST_VERBOSE=1 make BUILD_MODE=pic -k
+
+.run-gcc-release: &run-gcc-release
+  script:
+    - CC=gcc NTEST_VERBOSE=1 make BUILD_MODE=release -k
+
+.run-gcc-debug: &run-gcc-debug
+  script:
+    - CC=gcc NTEST_VERBOSE=1 make -k
+
+.run-gcc-cov: &run-gcc-cov
+  script:
+    - CC=gcc NTEST_VERBOSE=1 make -k BUILD_MODE=cov
+
+.debian: &debian
+  before_script:
+    - apt-get update > /dev/null
+    - apt-get install -y bc curl build-essential flex bison > /dev/null
+    - apt-get install -y clang > /dev/null || true
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+    - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6    
+
+.debian-mbs: &debian-mbs
+  before_script:
+    - apt-get update > /dev/null
+    - apt-get install -y bc curl build-essential flex bison libncurses-dev libreadline-dev > /dev/null
+    - uname -a
+    - gcc --version
+    - flex --version
+    - bison --version
+
+.debian-python: &debian-python
+  before_script:
+    - apt-get update > /dev/null
+    - apt-get install -y bc curl build-essential flex bison python-dev > /dev/null
+    - apt-get install -y clang > /dev/null || true
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+    - python --version || true
+    - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6
+
+.debian-python3: &debian-python3
+  before_script:
+    - apt-get update > /dev/null
+    - apt-get install -y bc curl build-essential flex bison python3-dev > /dev/null
+    - apt-get install -y clang > /dev/null || true
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+    - python --version || true
+
+.suha: &suha
+  before_script:
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+  stage: build
+  tags:
+    - docker
+    - binfmt
+    - stable-binfmt
+  # retry: 2
+
+debian etch release:
+  image: munken/debian:etch
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-release
+  # retry: 2
+
+debian etch pic:
+  image: munken/debian:etch
+  <<: *common-no-virt
+  <<: *debian-python
+  <<: *run-gcc-pic
+  # retry: 2
+
+debian etch debug:
+  image: munken/debian:etch
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-debug
+  # retry: 2
+
+gcc 7 release:
+  image: gcc:7
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-release
+
+gcc 7 pic:
+  image: gcc:7
+  <<: *common-no-virt
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+gcc 7 debug:
+  image: gcc:7
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-debug
+
+gcc 8 release:
+  image: gcc:8
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-release
+
+gcc 8 pic:
+  image: gcc:8
+  <<: *common-no-virt
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+gcc 8 debug:
+  image: gcc:8
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-debug
+
+gcc latest release:
+  image: gcc:latest
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-release
+
+gcc latest pic:
+  image: gcc:latest
+  <<: *common-no-virt
+  <<: *debian-python3
+  <<: *run-gcc-pic
+
+gcc latest debug:
+  image: gcc:latest
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-debug
+
+# rimfaxe _ release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rimfaxe"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rimfaxe _ pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rimfaxe"
+  <<: *common-no-virt
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rimfaxe _ debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rimfaxe"
+  <<: *common-no-virt
+  <<: *debian
+  <<: *run-gcc-debug
+
+ubuntu trusty coverage:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-cov
+
+ubuntu trusty release:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-release
+
+ubuntu trusty pic:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+ubuntu trusty debug:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+ubuntu trusty clang release:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian
+  <<: *run-clang-release
+
+ubuntu trusty clang pic:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian-python
+  <<: *run-clang-pic
+
+ubuntu trusty clang debug:
+  image: ubuntu:trusty
+  <<: *common
+  <<: *debian
+  <<: *run-clang-debug
+
+ubuntu xenial release:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-release
+
+ubuntu xenial pic:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+ubuntu xenial debug:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+ubuntu xenial clang release:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian
+  <<: *run-clang-release
+
+ubuntu xenial clang pic:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian-python
+  <<: *run-clang-pic
+
+ubuntu xenial clang debug:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian
+  <<: *run-clang-debug
+
+ubuntu bionic release:
+  image: ubuntu:bionic
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-release
+
+ubuntu bionic pic:
+  image: ubuntu:bionic
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+ubuntu bionic debug:
+  image: ubuntu:bionic
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+ubuntu bionic clang release:
+  image: ubuntu:bionic
+  <<: *common
+  <<: *debian
+  <<: *run-clang-release
+
+ubuntu bionic clang pic:
+  image: ubuntu:bionic
+  <<: *common
+  <<: *debian-python
+  <<: *run-clang-pic
+
+ubuntu bionic clang debug:
+  image: ubuntu:bionic
+  <<: *common
+  <<: *debian
+  <<: *run-clang-debug
+
+# mvme _ release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/mvme"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+mvme _ pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/mvme"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+mvme _ debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/mvme"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+# rio4 3.2.3 release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.2.3"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rio4 3.2.3 pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.2.3"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rio4 3.2.3 debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.2.3"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+# rio4 3.3.10 release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.3.10"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rio4 3.3.10 pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.3.10"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rio4 3.3.10 debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.3.10"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+# rio4 bma release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:bma"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rio4 bma pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:bma"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rio4 bma debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:bma"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+
+# rio3 bma release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:bma"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rio3 bma pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:bma"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rio3 bma debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:bma"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+# rio3 find release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:find"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rio3 find pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:find"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rio3 find debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:find"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+# rio2 smem release:
+#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio2:smem"
+#   <<: *common
+#   <<: *debian
+#   <<: *run-gcc-release
+
+rio2 smem pic:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio2:smem"
+  <<: *common
+  <<: *debian-python
+  <<: *run-gcc-pic
+
+rio2 smem debug:
+  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio2:smem"
+  <<: *common
+  <<: *debian
+  <<: *run-gcc-debug
+
+cppcheck:
+  image: ubuntu:xenial
+  <<: *common
+  before_script:
+    - apt-get update > /dev/null
+    - apt-get install -y cppcheck > /dev/null
+  script:
+    - cppcheck --force --enable=all -I include .
+
+mock:
+  image: ubuntu:xenial
+  <<: *common
+  <<: *debian-mbs
+  script:
+    - cd mock && make -k

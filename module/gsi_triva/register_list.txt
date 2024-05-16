@@ -1,0 +1,9 @@
+nabm
+Status Register            0x0000 32 RW
+Control Register           0x0004 32 RW
+FCATIME                    0x0008 32 RW
+CTIME                      0x000C 32 RW
+Gate generator pulse delay 0x0010 32 W
+Gate generator pulse width 0x0014 32 W
+Pulse generator period     0x0018 32 W
+Pulse generator width      0x001C 32 W

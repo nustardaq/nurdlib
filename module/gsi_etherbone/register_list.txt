@@ -1,0 +1,11 @@
+anbm
+0x0000	fifo_ready	32 R
+0x0004	fifo_clear	32 W
+0x0010	trig_armset	32 W
+0x0038	chns_fifosize	32 R
+0x0058	ch_select	32 W
+0x005c	fifo_pop	32 W
+0x0064	fifo_cnt	32 R
+0x0068	fifo_ftshi	32 R
+0x006c	fifo_ftslo	32 R
+0x0070	fifo_ftssub	32 R

@@ -1,0 +1,48 @@
+namb
+Output Buffer         0x0000         r  32
+Firmware Revision     0x1000         R  16
+Geo Address           0x1002         RW 16
+MCST/CBLT Address     0x1004         RW 16
+Bit Set 1             0x1006         RW 16
+Bit Clear 1           0x1008         RW 16
+Interrupt Level       0x100A         RW 16
+Interrupt Vector      0x100C         RW 16
+Status 1              0x100E         R  16
+Control 1             0x1010         RW 16
+ADER High             0x1012         RW 16
+ADER Low              0x1014         RW 16
+Single Shot Reset     0x1016         W  16
+MCST/CBLT Ctrl        0x101A         RW 16
+Event Trigger         0x1020         RW 16
+Status 2              0x1022         R  16
+Event Counter_L       0x1024         R  16
+Event Counter_H       0x1026         R  16
+Increment Event       0x1028         W  16
+Increment Offset      0x102A         W  16
+FCLR Window           0x102E         RW 16
+Bit Set 2             0x1032         RW 16
+Bit Clear 2           0x1034         W  16
+W Memory Test Address 0x1036         W  16
+Memory Test Word_High 0x1038         W  16
+Memory Test Word_Low  0x103A         W  16
+Crate Select          0x103C         RW 16
+Test Event Write      0x103E         W  16
+Event Counter Reset   0x1040         W  16
+Iped                  0x1060         RW 16
+R Test Address        0x1064         W  16
+SW Comm               0x1068         W  16
+Slide Constant        0x106A         RW 16
+AAD                   0x1070         R  16
+BAD                   0x1072         R  16
+Thresholds            0x1080..0x10BE RW 16
+
+OUI MSB      0x8026 R 16
+OUI          0x802A R 16
+OUI LSB      0x802E R 16
+Version      0x8032 R 16
+BOARD ID MSB 0x8036 R 16
+BOARD ID     0x803A R 16
+BOARD ID LSB 0x803E R 16
+Revision     0x804E R 16
+Serial MSB   0x8F02 R 16
+Serial LSB   0x8F06 R 16

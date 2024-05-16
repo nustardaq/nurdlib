@@ -1,0 +1,196 @@
+/* sis3302 v1411 reduced address range registers */
+
+/* Name, Offset, size in bytes, access [, skip odd [, skip even [, skip third]]]*/
+
+/* Define groups with a name, that will be used as a prefix
+ * Define registers with an offset, the number of bits, and
+ * an access mode. The special name 'none' will not produce
+ * a prefix:
+ *
+ * prefix {
+ *     reg1,	0x0004,	32,	rwk;
+ * }
+ *
+ * If groups of registers appear several times, the
+ * number of appearances can be given in parentheses:
+ *
+ * prefix (12) {
+ *	reg2,	0x0008, 16,	rw;
+ * }
+ *
+ * If the registers in the group are not consecutive, but
+ * rather have some spacing, this can be given after the
+ * number of appearances:
+ *
+ * prefix (4, 0x1000) {
+ *	reg3,	0x0010,	32,	r;
+ * }
+ *
+ * Two more spacing definitions can be given to differentiate
+ * between the spacing of 'even' and 'odd' instances, and a
+ * 'third' spacing. The offset is calculated according to
+ * register_calc_offset(int, uint32_t) in register.c
+ *
+ */
+
+none {
+control_status,		0x00000000,	32,	rwk;
+module_id_firmware,	0x00000004,	32,	r;
+interrupt_config,	0x00000008,	32,	rw;
+interrupt_control,	0x0000000C,	32,	rw;
+
+access_arbitration_control,	0x00000010,	32,	rwk;
+broadcast_setup,		0x00000014,	32,	rw;
+internal_test_1,		0x00000018,	32,	rwval;
+hardware_version,		0x0000001C,	32,	rw;
+
+temperature,			0x00000020,	32,	r;
+onewire_control,		0x00000024,	32,	rw;
+serial_number,			0x00000028,	32,	r;
+internal_data_transfer_speed,	0x0000002C,	32,	rw;
+
+adc_boot_controller,		0x00000030,	32,	rw;
+spi_flash_control,		0x00000034,	32,	rw;
+spi_flash_data,			0x00000038,	32,	rw;
+reserved_2,			0x0000003C,	32,	rw;
+
+i2c_adc_clock,		0x00000040,	32,	rw;
+i2c_mgt1_clock,		0x00000044,	32,	rw;
+i2c_mgt2_clock,		0x00000048,	32,	rw;
+i2c_ddr3_clock,		0x0000004C,	32,	rw;
+
+sample_clock_distribution_control,	0x00000050,	32,	rw;
+spi_ext_nim_clock_multiplier,		0x00000054,	32,	rw;
+fpbus_control,				0x00000058,	32,	rw;
+nim_in_control,				0x0000005C,	32,	rw;
+
+acquisition_control,		0x00000060,	32,	rw;
+trigger_coinc_lut_control,	0x00000064,	32,	rw;
+trigger_coinc_lut_address,	0x00000068,	32,	rw;
+trigger_coinc_lut_data,		0x0000006C,	32,	rw;
+
+lemo_out_co_select,		0x00000070,	32,	rw;
+lemo_out_to_select,		0x00000074,	32,	rw;
+lemo_out_uo_select,		0x00000078,	32,	rw;
+internal_trigger_feedback,	0x0000007C,	32,	rw;
+}
+
+fpga_ctrl_status(4,0x4) {
+	data_transfer_control,	0x00000080,	32,	rw;
+	data_transfer_status,	0x00000090,	32,	r;
+}
+
+none {
+data_link_status,		0x000000A0,	32,	rw;
+spi_busy_status,		0x000000A4,	32,	r;
+reserved_7,			0x000000A8,	32,	rw;
+reserved_8,			0x000000AC,	32,	rw;
+
+reserved_9,			0x000000B0,	32,	rw;
+reserved_10,			0x000000B4,	32,	rw;
+prescaler_output_divider,	0x000000B8,	32,	rw;
+prescaler_output_length,	0x000000BC,	32,	rw;
+}
+
+internal_trigger(16,0x4) {
+	counter,	0x000000C0,	32,	rw;
+}
+
+none {
+register_reset,					0x400,	32,	wk;
+user_function,					0x404,	32,	wk;
+arm_sampling_logic,				0x410,	32,	wk;
+disarm_sampling_logic,				0x414,	32,	wk;
+trigger,					0x418,	32,	wk;
+timestamp_clear,				0x41C,	32,	wk;
+disarm_and_arm_bank1,				0x420,	32,	wk;
+disarm_and_arm_bank2,				0x424,	32,	wk;
+enable_sample_bank_swap_control_with_nim_input,	0x428,	32,	wk;
+disable_prescaler_output_pulse_divider_logic,	0x42C,	32,	wk;
+pps_latch_bit_clear,				0x430,	32,	wk;
+reset_adc_fpga,					0x434,	32,	wk;
+reset_adc_clock,				0x438,	32,	wk;
+trigger_out_pulse,				0x43C,	32,	wk;
+}
+
+/* Per ADC group, 4 groups */
+/* ADC FPGA Offset: 0x00001000 */
+fpga_adc(4,0x1000) {
+	tap_delay,		0x1000,	32,	rw;
+	gain_termination,	0x1004,	32,	rw;
+	offset_dac_control,	0x1008,	32,	rw;
+	spi_control,		0x100C,	32,	rw;
+	event_config,		0x1010,	32,	rw;
+	header_id,		0x1014,	32,	rw;
+	end_addr_threshold,	0x1018,	32,	rw;
+	trigger_gate_length,	0x101C,	32,	rw;
+	raw_data_buffer_config,	0x1020,	32,	rw;
+	pileup_config,		0x1024,	32,	rw;
+	pretrigger_delay,	0x1028,	32,	rw;
+	average_config,		0x102C,	32,	rw;
+	data_format_config,	0x1030,	32,	rw;
+	maw_test_config,	0x1034,	32,	rw;
+	int_trigger_delay,	0x1038,	32,	rw;
+	int_gate_length,	0x103C,	32,	rw;
+	trigger_setup_sum,	0x1080,	32,	rw;
+	trigger_threshold_sum,	0x1084,	32,	rw;
+	trigger_thr_high_e_sum,	0x1088,	32,	rw;
+	trigger_counter_mode,	0x1090,	32,	rw;
+	peak_charge_config,	0x1094, 32,	rw;
+	ext_raw_data_buffer,	0x1098, 32,	rw;
+	ext_event_config,	0x109C, 32,	rw;
+	acc_gate_1,		0x10A0,	32,	rw;
+	acc_gate_2,		0x10A4,	32,	rw;
+	acc_gate_3,		0x10A8,	32,	rw;
+	acc_gate_4,		0x10AC,	32,	rw;
+	acc_gate_5,		0x10B0,	32,	rw;
+	acc_gate_6,		0x10B4,	32,	rw;
+	acc_gate_7,		0x10B8,	32,	rw;
+	acc_gate_8,		0x10BC,	32,	rw;
+	rataser_mux_sel,	0x10F4,	32,	rw;
+	rataser_control1,	0x10F8, 32,	rw;
+	rataser_control2,	0x10FC,	32,	rw;
+	version,		0x1100,	32,	r;
+	status,			0x1104,	32,	r;
+	offset_readback,	0x1108,	32,	r;
+	spi_readback,		0x110C,	32,	r;
+	rataser_status1,	0x1130,	32,	r;
+	rataser_status2,	0x1134,	32,	r;
+	rataser_status3,	0x1138,	32,	r;
+	rataser_status4,	0x113C,	32,	r;
+/*
+ *	these are not available in the rataclock firmware 0xB
+	pps_timestamp_high,	0x1130,	32,	r;
+	pps_timestamp_low,	0x1134,	32,	r;
+	test_1,			0x1138,	32,	r;
+	test_2,			0x113C,	32,	r;
+*/
+}
+
+/* Per ADC, 16 ADCs */
+/* Channel offset: 0x10 */
+channel_trigger(16,0x10,0x20,0x1000) {
+	setup,		0x1040,	32,	rw;
+	threshold,	0x1044,	32,	rw;
+	thr_high_e,	0x1048,	32,	rw;
+}
+
+channel(16,0x4,0x8,0x1000) {
+	fir_energy_setup,	0x10C0, 32,     rw;
+	energy_hist,		0x10D0, 32,     rw;
+	energy_pickup_config,	0x10E0, 32,	rw;
+	actual_sample_address,	0x1110,	32,	r;
+	previous_bank_address,	0x1120,	32,	r;
+}
+
+/* ADC MEMORY Offset: 0x00100000 */
+adc_fifo(4,0x100000) {
+	memory_fifo,	0x100000,	32,	rw;
+}
+
+/*
+group(channel_memory,16,0x10000000,nomap) {
+	bank_1,	0x80000000,	32,	r,	0x200000,	0x10000000;
+	bank_2,	0x80100000,	32,	r,	0x200000,	0x10000000;
+}
+ */

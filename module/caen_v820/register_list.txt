@@ -1,0 +1,39 @@
+nabm
+Counter            0x1000..0x107E 32 R
+Testreg            0x1080 32 RW
+Testlcntl          0x1090 16 RW
+Testlcnth          0x1094 16 RW
+Testhcntl          0x10A0 16 RW
+Testhcnth          0x10A4 16 RW
+Dwell Time         0x1104 32 RW
+Control            0x1108 16 RW
+Bit Set            0x110A 16 W
+Bit Clear          0x110C 16 W
+Status             0x110E 16 RW
+GEO                0x1110 16 RW
+Interrupt Level    0x1112 16 RW
+Interrupt Vector   0x1114 16 RW
+ADER_32            0x1116 16 RW
+ADER_24            0x1118 16 RW
+Enable ADER        0x111A 16 RW
+MCST Base Address  0x111C 16 RW
+MCST Control       0x111E 16 RW
+Module Reset       0x1120 16 RW
+Software Clear     0x1122 16 W
+Software Trigger   0x1124 16 W
+BLT event number   0x1130 16 RW
+Firmware           0x1132 16 R
+Dummy32            0x1200 32 RW
+Dummy16            0x1204 16 RW
+Configuration ROM  0x4000 16 R
+
+OUI MSB      0x4026 16 R
+OUI          0x402A 16 R
+OUI LSB      0x402E 16 R
+Version      0x4032 16 R
+BOARD ID MSB 0x4036 16 R
+BOARD ID     0x403A 16 R
+BOARD ID LSB 0x403E 16 R
+Revision     0x404E 16 R
+Serial MSB   0x4F02 16 R
+Serial LSB   0x4F06 16 R

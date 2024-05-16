@@ -1,0 +1,20 @@
+nabm
+
+Interrupt Vector   0x0004 16 RW
+Interrupt Level    0x0006 16 RW
+Enable Interrupt   0x0008 16 RW
+Disable Interrupt 0x000A 16 RW
+Clear Interrupt    0x000C 16 RW
+Request            0x000E 16 RW
+
+Counter            0x0010..0x004C 32 R
+
+Scale clear        0x0050 16 RW
+VME VETO set       0x0052 16 RW
+VME VETO reset     0x0054 16 RW
+Scale Increase     0x0056 16 RW
+Scale Status       0x0058 16 R
+
+Fixed code                0x00FA 16 R
+Manufacturer Module Type  0x00FC 16 R
+Version Serial Number     0x00FE 16 R

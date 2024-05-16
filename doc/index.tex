@@ -1,0 +1,826 @@
+% nurdlib, NUstar ReaDout LIBrary
+%
+% Copyright (C) 2015-2017, 2020-2022, 2024
+% Bastian Löher
+% Hans Toshihide Törnqvist
+%
+% This library is free software; you can redistribute it and/or
+% modify it under the terms of the GNU Lesser General Public
+% License as published by the Free Software Foundation; either
+% version 2.1 of the License, or (at your option) any later version.
+%
+% This library is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+% Lesser General Public License for more details.
+%
+% You should have received a copy of the GNU Lesser General Public
+% License along with this library; if not, write to the Free Software
+% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+% MA  02110-1301  USA
+
+\documentclass{article}
+
+\usepackage{fancyvrb}
+
+\author{Hans T\"ornqvist (h.toernqvist@gsi.de)}
+\title{nurdlib - the NUstar ReaDout LIBrary}
+
+\begin{document}
+
+\maketitle
+
+
+
+
+\begin{Verbatim}[frame=single,numbers=left]
+git clone http://???/nurdlib.git
+make -C nurdlib
+make -C nurdlib fuser_drasi
+echo 'CRATE("test") {}' > main.cfg
+./nurdlib/build_*/m_read_meb.drasi ...
+\end{Verbatim}
+
+The above snippet is a loose minimal example of running a DAQ using
+\emph{nurdlib} and \emph{drasi}~\cite{bib:drasi}.
+
+This document will first introduce the basics, then cover common use cases and
+questions, and at last delve deeper into the inner workings of this library.
+
+
+
+\section{Introduction}
+
+If you are in dire need to read out some commonly used data acquiring hardware
+for nuclear physics or similar, there is a chance that this piece of software
+could help.
+
+Rather than being another repository of code for copy-n-pasting, nurdlib was
+conceptualised to carefully configure, initialize, read, and verify a set of
+modules in run-time. Due to the wide range of modules and use-cases in this
+field it will probably not cover all bases, but it will most probably save
+time and work in the pursuit of good data integrity.
+
+From a user's point of view, there are two big interfaces: the glue to a DAQ
+backend, and the run-time configuration.
+
+Let's first look at a minimal pseudo code example of glue code between nurdlib
+and a single-event non-buffering DAQ backend. Comments are left out for visual
+clarity, but explanations follow below.
+
+\begin{Verbatim}[frame=single,numbers=left]
+#include <nurdlib.h>
+
+struct Crate *g_crate;
+struct CrateTag *g_tag;
+
+void
+backend_setup(void)
+{
+  g_crate = nurdlib_setup(NULL, "main.cfg");
+  g_tag = crate_get_tag_by_name(g_crate, NULL);
+}
+
+void
+backend_shutdown(void)
+{
+  nurdlib_shutdown(&g_crate);
+}
+
+void
+backend_readout(void *a_buf, size_t a_buf_bytes)
+{
+  struct EventBuffer eb;
+  uint32_t ret;
+
+  eb.ptr = a_buf;
+  eb.bytes = a_buf_bytes;
+
+  crate_tag_counter_increase(g_crate, g_tag, 1);
+
+  ret = crate_readout_dt(g_crate);
+  if (0 != ret) log("crate_readout_dt failed with 0x%x.", ret);
+
+  ret = crate_readout(g_crate, &event_buffer);
+  if (0 != ret) log("crate_readout failed with 0x%x.", ret);
+
+  crate_readout_finalize(g_crate);
+}
+\end{Verbatim}
+
+\begin{description}
+\item[1] nurdlib master include file for the most common functionality.
+\item[3] The crate type contains the state of the read-out above the level of
+modules. Typically, only a single crate is necessary per process.
+\item[4] Module tagging is used to group modules into different read-out
+conditions, in order to accurately keep track of module counters in complex
+configurations. For a simple configuration, the automatic tag named "Default"
+will suffice.
+\item[6--11] This represents the setup function called by the DAQ backend.
+\item[9] nurdlib does nothing before this function is called, except for
+initialisation of internal global variables. The first argument may be a
+logging callback with a specific signature, but a null value will default to
+standard stdio calls to stdout and stderr. The second argument is the filename
+from which to read the high-level run-time configuration.
+\item[10] A null value will grab the module tag named "Default" from the crate
+created on the previous line.
+\item[13--17] This represents the shutdown function called by the DAQ backend,
+if available.
+\item[16] This cleans up all resources taken by the crate. This call is mostly
+optional, depending on the DAQ backend and automatic resource cleanup by the
+system.
+\item[19--37] This represents the readout function called by the DAQ backend.
+The readout condition depends on the backend, and could fire on any trigger,
+or some groups of triggers etc.
+\item[22] An event-buffer is a description of the memory provided by the DAQ
+backend for event data readout.
+\item[23] The return value of several nurdlib readout functions.
+\item[25--26] Sets up the event-buffer.
+\item[28] Increments the event-counter for all modules with the specified tag.
+A tag event-counter can eventually be linked with a scaler channel to support
+multi-event readout.
+\item[30] At this point, nurdlib expects the DAQ to be in dead-time. This
+function will read the minimal set of data from all modules in order to verify
+synchronisation, for example event counters and event data sizes. Eventually,
+a dead-time release callback can be provided, which nurdlib will call at the
+end of this function if the user configuration has enabled this feature.
+\item[33] Performs readout of the event payloads of all modules that reported
+having data during dead-time.
+\item[36] Finalises the readout of the full crate by checking and updating the
+state to be ready for the next readout. Most importantly, a failed readout may
+require immediate reinitialisation of hardware in order to lift hard busy
+conditions before a new readout is allowed.
+\end{description}
+
+The high-level configuration, which is read from ASCII-based configuration
+files during library setup, may look like:
+
+\begin{Verbatim}[frame=single,numbers=left]
+CRATE("MyCrate") {
+  CAEN_V775(0x00400000) {}
+}
+\end{Verbatim}
+
+\begin{description}
+\item[1] Crate name for pretty print-outs.
+\item[2] This will instantiate the state required for a CAEN V775 TDC.
+\end{description}
+
+And that's all for a simple single event Caen TDC crate setup! Default
+configurations can be found in the default configuration directory
+(\emph{nurdlib/cfg/default/}), which are instantiated for each configured
+module and user configurations are patched on top.
+
+Would you like to have multi-event readout with a \emph{TRIDI} module with the
+\emph{TRLO II} firmware, a configured time-range for a Mesytec QDC with
+adaptive conversion time between an accepted event and readout, more verbose
+logging, and disable the online configuration server? That should not be too
+difficult:
+
+\begin{Verbatim}[frame=single,numbers=left]
+# Available levels (subsequent levels include previous logs):
+#  info    - the most basic logs.
+#  verbose - a lot more information for run-time debugging.
+#  debug   - even more information for nurdlib debugging.
+#  spam    - use with care! Prints during readout for the
+#            and may fill up log-files very fast.
+log_level = verbose
+# The online server is a rather light path for changing the
+# configuration while the DAQ is running, during dead-time
+# after readout. It should have negligible impact on
+# performance, but famous last words and all.
+control_port = 0
+CRATE("MyTrickyCrate") {
+  # ACVT will poll until complete events have been read out
+  # or timeout occurs, the exact behaviour depends on module
+  # support and implementation. If the user code has supplied
+  # a CVT-set callback, a floating CVT value will be adjusted
+  # in run-time to reduce polling in the hope to reduce
+  # dead-time.
+  acvt = true
+
+  # Tags are used to group modules for accurate event counting
+  # in complex module set configurations. Generally, the value
+  # of a scaler channel can be stored for a given set of tags,
+  # and all modules touched by the set will be checked against
+  # this value. In this specific case, we want to compare the
+  # TRIDI master start scaler to the MQDC32 event counter.
+  # There is always a "Default" tag that is reused here to leave
+  # the glue code unchanged.
+  TAGS("Default") {
+    scaler_name = "tridi_master_start"
+  }
+
+  GSI_TRIDI(0x02000000) {
+    # This lets nurdlib set the TRLO II multi-event limit in
+    # this module based on the event buffers of all modules
+    # tagged "Default".
+    multi_event = "Default"
+
+    # TRLO II master start scaler channel referenced in TAGS
+    # above. This feature is only available in modules which
+    # implement this feature.
+    SCALER("tridi_master_start") {
+      type = master_start
+    }
+  }
+
+  MESYTEC_MQDC32(0x00400000) {
+  }
+}
+\end{Verbatim}
+
+
+
+\section{Common features and issues}
+
+This section will cover the most common features and issues that arise when
+building and using nurdlib.
+
+\subsection{Make targets}
+
+\begin{Verbatim}[frame=single,numbers=left]
+make help
+\end{Verbatim}
+Prints and explains available targets.
+
+\subsection{Environment variables}
+
+Many environment variables control the build process, but a few also control
+the run-time behaviour.
+
+\subsubsection{Run-time variables}
+
+\begin{description}
+\item[NURDLIB\_DEF\_PATH] Points to the directory where default configuration
+files reside. This variable will override the default
+\emph{../nurdlib/cfg/default/} path.
+\item[NTEST\_COLOR] The tests output by ntest prints ANSI color escape codes
+by default. Setting NTEST\_COLOR=0 exactly will disable these codes.
+\end{description}
+
+The configuration files can also use environment variables when including
+files:
+
+\begin{Verbatim}[frame=single,numbers=left]
+CRATE("MyCrate") {
+  include "$CFG_PATH/my_config.cfg"
+}
+\end{Verbatim}
+
+\subsubsection{Build variables}
+
+The typical compilation and linking flags are:
+\begin{description}
+\item[CPPFLAGS] Pre-compiler flags, such as -I and -D. These are prepended to
+the nurdlib pre-compiler flags to override search paths, e.g.
+\emph{-Iuser\_header\_path}.
+\item[CFLAGS] Compilation flags, such as -W*. These are appended to the
+nurdlib compilation flags to override compilation switches, e.g.
+\emph{-Wno-crazy-warning}.
+\item[LDFLAGS] Linking flags, such as -L. These are prepended to the nurdlib
+pre-compiler flags to override search paths, e.g.
+\emph{-Luser\_library\_path}.
+\item[LIBS] Libraries, such as -l and direct paths to static and dynamic
+libraries. These are appended to the nurdlib libraries to cover for missing
+libraries, e.g. \emph{-luser\_library} or directly
+\emph{/path/extlib.so.1.2.3}.
+\end{description}
+
+Build modes, set with \emph{BUILD\_MODE}, and implications:
+\begin{description}
+\item[cov] Coverage compiled and linked in. This will insert instrumentation
+into the code to track code paths that execute, and the final binaries will
+run much slower.
+\item[gprof] gprof support for profiling.
+\item[pic] Position independent code. This is necessary to build the Python
+online configuration support.
+\item[release] Optimized build.
+\end{description}
+
+Several programs can be overridden:
+\begin{description}
+\item[AR] Static linker.
+\item[BISON] Bison-like parser generator.
+\item[CCACHE] Ccache for fast recompilations.
+\item[CPPCHECK] Static analysis tool for C code.
+\item[FLEX] Lexical analyser generator for Bison input.
+\item[LATEX] Latex to dvi converter.
+\item[PYTHON] Python support for live configuration.
+\item[SED] GNU sed.
+\end{description}
+
+Drasi related flags:
+\begin{description}
+\item[DRASI\_PATH] Path to drasi, where \$DRASI\_PATH/bin/drasi-config.sh is
+expected to exist.
+\end{description}
+
+TRLO II related flags:
+\begin{description}
+\item[TRLOII\_PATH] Path to trloii directory.
+\item[{TRIDI,VULOM4,RFX1}\_FW] By default, nurdlib chooses the TRLO II
+firmware versions by looking at the directories
+\emph{\$TRLOII\_PATH/trloctrl/fw\_*}. This decision can be overridden with
+these env-vars.
+\end{description}
+
+
+
+\section{A deeper dive}
+
+
+
+\subsection{Tags}
+
+Tags allow modules to be grouped together in several ways while still
+supporting correct event counting. The "Default" tag is always created first.
+For example:
+\begin{Verbatim}[frame=single,numbers=left]
+CRATE("Tags") {
+  CAEN_V775(0x00010000) {} # Let's call this module A.
+  TAGS("1")
+  CAEN_V775(0x00020000) {} # Module B.
+  TAGS("2")
+  CAEN_V775(0x00030000) {} # Module C.
+  TAGS("1", "2")
+  CAEN_V775(0x00040000) {} # Module D.
+\end{Verbatim}
+This will put tag "Default" on module A, tag "1" on modules B and D, and tag
+"2" on C and D. Every combination of tags creates a unique event counter, and
+the progression of this counter must exactly match that of the event counters
+of all modules with the same combination of tags. Table \ref{tab_tags} shows
+an example of counter progression for the above configuration, where the tag
+name relates to a trigger number.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{c|ccccc}
+Trigger & Counter & Default & 1 & 2 & 1,2 \\
+\hline
+      - &         &       0 & 0 & 0 &   0 \\
+      1 &         &       0 & 1 & 0 &   1 \\
+      1 &         &       0 & 2 & 0 &   2 \\
+      1 &         &       0 & 3 & 0 &   3 \\
+      2 &         &       0 & 3 & 1 &   4 \\
+      1 &         &       0 & 4 & 1 &   5 \\
+      2 &         &       0 & 4 & 2 &   6 \\
+      2 &         &       0 & 4 & 3 &   7 \\
+\end{tabular}
+\end{center}
+\caption{Example of tags and split event-counting. Internally nurdlib does not
+store a counter per tag, but per used combination of tags. This way some
+modules can fire only on single triggers while other modules fire on all
+triggers.}
+\label{tab_tags}
+\end{table}
+
+Tags can be fetched for advancing the event counters:
+\begin{Verbatim}[frame=single,numbers=left]
+  /* The NULL tag means "Default". */
+  g_tag[0] = crate_get_tag_by_name(g_crate, NULL);
+  g_tag[1] = crate_get_tag_by_name(g_crate, "1");
+  g_tag[2] = crate_get_tag_by_name(g_crate, "Timestamp");
+
+  crate_tag_counter_increase(g_crate, g_tag[0], 1);
+  if (1 == trigger)
+    crate_tag_counter_increase(g_crate, g_tag[1], 1);
+  if (10 == trigger)
+    crate_tag_counter_increase(g_crate, g_tag[2], 1);
+
+  crate_readout_dt(g_crate);
+  crate_readout(g_crate, ...);
+  crate_readout_finalize(g_crate);
+}
+\end{Verbatim}
+
+It is also possible to link a scaler channel to a tag counter, in which case
+the tag does not need to be increased by the user code:
+\begin{Verbatim}[frame=single,numbers=left]
+CRATE("Tags") {
+  TAGS("1") {
+    scaler_name = "my_scaler"
+  }
+  CAEN_V775(0x00020000) {}
+  TAGS("2")
+  CAEN_V830(0x00030000) {
+    SCALER("my_scaler") {
+      channel = 0
+    }
+  }
+\end{Verbatim}
+The first tag-combo will listen to the first channel of the V830 scaler module
+to count the number of triggers sent to the V775.
+
+Exactly how a module type defines a scaler channel depends on its
+implementation. Below follows the available options as of writing.
+\begin{Verbatim}[frame=single,numbers=left]
+CAEN_V8{2,3}0:
+  SCALER("my_scaler") { channel = 0..31 }
+GSI_{TRIDI,VULOM4,RFX1}:
+  SCALER("my_scaler") { type = accept_pulse                 }
+  SCALER("my_scaler") { type = accept_trig  channel = 0..31 }
+  SCALER("my_scaler") { type = ecl          channel = 0..31 }
+  SCALER("my_scaler") { type = master_start                 }
+  SCALER("my_scaler") { type = nim          channel = 0..31 }
+\end{Verbatim}
+
+
+
+
+\section{Building}
+
+The nurdlib makefile is compatible with rather old versions of GNU make.
+\begin{Verbatim}[frame=single,numbers=left]
+make
+\end{Verbatim}
+This will produce a debug version of the static library \emph{libnurdlib.a}
+and some binaries. All generated files are placed in a build directory inside
+nurdlib named according to the compiler and build mode. The name of the build
+directory is printed by the Makefile.
+
+Early in the build process, an \emph{MD5} sum is calculated from source files
+which have an impact on the online communication. The sum stored in the
+library and the client must match at runtime to be sure that the data handling
+in both processes are compatible.
+
+Auto-configuration of flags and libraries is carried out with \emph{nconf}.
+This step is performed early in the build, following the usual make dependency
+rules.
+
+To build a \emph{TRLO II}-enabled version, the \emph{TRLO II} library and the
+appropriate firmware (http://fy.chalmers.se/~f96hajo/trloii/) must be fetched
+and built, and the following environment variable must be set:
+\begin{description}
+  \item[\emph{TRLOII\_PATH}] Root directory of your \emph{trloii/} repository.
+\end{description}
+The master makefile will try to figure out the firmware provided by that TRLO
+II installation, but it can also be set explicitly with the following
+environment variables:
+\begin{description}
+  \item[\emph{TRIDI\_FW}] The TRIDI TRLO II firmware version.
+  \item[\emph{VULOM4\_FW}] The VULOM4(b) TRLO II firmware version.
+\end{description}
+
+If you would like to build only a sub-set of all available module types, you
+can specify them in this file. There is a list of modules near the top of the
+main makefile which can be copied and modified.
+\begin{Verbatim}[frame=single,numbers=left]
+$ echo "MODULE_LIST=caen_v775" > local.mk
+\end{Verbatim}
+
+
+
+\subsection{nconf}
+
+nconf scans through a file looking for \emph{if NCONF\_m<module>\_b<branch>},
+groups all switches with the same \emph{module}, tries to build, link, and
+execute a test program for every \emph{branch}, and whichever branch succeeds
+first within a module is chosen.
+
+To only use the results of nconf of another project, for example to use
+nurdlib decisions in your own DAQ build:
+\begin{verbatim}
+NCONF\_ARGS = $(NURDLIB_PATH)/$(BUILD_DIR)/nconf.args
+\end{verbatim}
+If you access the four variables \emph{NCONF\_CPPFLAGS}, \emph{NCONF\_CFLAGS},
+\emph{NCONF\_LDFLAGS}, \emph{NCONF\_LIBS}, you will get the flags that were
+chosen during the nurdlib build process.
+
+If you'd like to use nconf yourself, first:
+\begin{verbatim}
+NCONF\_H = all files to be nconfed
+NCONF\_ARGS = $(BUILD_DIR)/nconf.args
+NCONF\_PREV = $(NURDLIB_PATH)/$(BUILD_DIR)/nconf.args
+include $(NURDLIB_PATH)/nconf/nconf.mk
+\end{verbatim}
+This will create files in \emph{\$(BUILD\_DIR)/nconf*}.
+
+\emph{\$(BUILD\_DIR)/nconfing/} will contain intermediary files used when
+nconf is running its tests.
+
+\emph{\$(BUILD\_DIR)/nconf/} will contain the header, arguments, and log
+files. The header defines the branch for each module and the arguments file
+contains the accumulation of the previous nconf:ed arguments and those for the
+current file.
+
+\emph{\$(BUILD\_DIR)/nconf.args} will contain all the arguments from all
+files.
+
+
+
+\subsection{ntest}
+
+\emph{nurdlib} has a rigorous set of unit tests that anybody can run to verify
+a large fraction of the code. New features and critical bugs should spawn
+testing code. This way, new code should not break existing tested code, and
+old bugs should be detected to the extent of the tests, just the typical
+testing approach. Note that this testing only applies to internal logic and
+utilities, and can not test hardware or external user implementations!
+\begin{Verbatim}[frame=single,numbers=left]
+$ make test
+\end{Verbatim}
+The build system can also report the coverage from testing with \emph{gcov}.
+Code built with coverage analysis runs very slowly so it is enabled only for
+the build type \emph{cov}. The full routine to create coverage information
+from tests is:
+\begin{Verbatim}[frame=single,numbers=left]
+$ make BUILD_TYPE=cov test      # Testing with coverage (much slow!).
+$ make BUILD_TYPE=cov cov       # Terse summary.
+$ make BUILD_TYPE=cov cov_files # Summary per file.
+$ make BUILD_TYPE=cov cov_funcs # Summary per function.
+$ make BUILD_TYPE=cov cov_anno  # Annotates files in $(BUILD_DIR)/cov/.
+\end{Verbatim}
+
+
+
+
+\section{Big features}
+
+
+
+\subsection{Control interface}
+
+While running, \emph{nurdlib} can provide information on crate and module
+configuration and allow the user to talk to configured modules. This control
+interface is served by a UDP server inside the library. Since it does eat some
+resources it can be easily disabled (see the global \emph{control\_port}
+config in \emph{cfg/default/global.cfg}).
+
+In order to talk to this control server, use \emph{bin/nurdctrl}; this . The
+help text should explain this program sufficiently well, but here are two
+examples for fun and games:
+\begin{Verbatim}[frame=single,numbers=left]
+./nurdctrl -c
+\end{Verbatim}
+Lists configured crates in the nurdlib running on localhost on the default
+port.
+\begin{Verbatim}[frame=single,numbers=left]
+./nurdctrl -a192.168.0.100:10000 -i0 -j 1 -d
+\end{Verbatim}
+This will dump the hardware registers in module 1 (zero-based indexing) in
+crate 0, with \emph{nurdlib} running on the host 192.168.0.100 on port 10000.
+
+
+
+
+\section{Configuration}
+
+The config parser was implemented by hand to save memory for systems with
+limited resources, so there's no handy list of grammar rules for the parsing.
+This section aims to explain most of the grammar.
+
+\begin{Verbatim}[frame=single,numbers=left]
+top: item_list
+
+item_list: item_list item
+
+item: block OR config
+
+block: block_header { item_list }
+
+block_header: name OR name(block_param_list)
+
+block_param_list: block_param_list block_param
+
+block_param: scalar
+
+config: name = value
+
+value: scalar OR vector
+
+vector: ( scalar_list )
+
+scalar_list: scalar_list scalar
+
+scalar: literal_string OR range OR value unit
+
+range: integer .. integer
+
+value: integer OR double
+
+unit: mV OR uV etc...
+\end{Verbatim}
+
+
+
+
+\section{Miscellaneous}
+
+This section aims to touch upon a few obscure points in the \emph{nurdlib}
+build system and source code, for those interested in understanding all
+constructs.
+
+
+
+\subsection{Build system}
+
+The build system is based on GNU make, and has been tested with at least
+version 3.75. There is a single non-recursive makefile, which means there is
+one huge dependency DAG. Invocation of make can therefore be slow because a
+lot of dependencies are checked, but spurious cleans should be less prevalent.
+
+Each sub-directory contains a makefile fragment named \emph{rules.mk}, and
+each such file should define a unique name and the list of sources in a
+name-referenced variable \emph{\$(SRC\_\$(NAME))}. A root-level makefile
+snippet \emph{make.mk} is then included which provides common rules to build
+output files for the given sources. At last, the master \emph{Makefile} binds
+it all together.
+
+Some modules need to access hardware via reading from and writing to certain
+memory addresses. Rather than hard coding the addresses by eye and hand from
+manuals into large lists of pointers, structs with appropriately offset
+members are generated from ASCII based register list files which can be
+created by copying and pasting. This also allows error checking and generating
+introspection capable source code. This is provided by other makefile snippets
+and register generating programs. Depending on the complexity of the module,
+two such setups have been implemented (simply put, it's Struck SIS3316 vs the
+rest).
+
+Due to the strict compilation flags used in \emph{nurdlib}, sloppy system
+headers can wreak havok during building. The selected solution was to make
+local copies of such headers and modify the offending text. These replacements
+can be found near the end of \emph{Makefile}.
+
+
+
+\subsection{nconf}
+
+Nurdlib uses a custom small auto-configuration tool called ''nconf''. Let's
+start with an example:
+\begin{Verbatim}[frame=single,numbers=left]
+dir/bananas.h:
+  #include <nconf/dir/myheader.h>
+  #if NCONF_mBANANAS_bSTRAIGHT
+  #  define NCONF_SRC bananas.c
+  #  define NCONF_NOEXEC
+  #  define BANANAS_BE_STRAIGHT 1
+  #elif NCONF_mBANANAS_bBENT
+  #  define NCONF_CPPFLAGS -I.
+  #  define NCONF_CFLAGS -Wextra
+  #  define NCONF_LDFLAGS -L.
+  #  define NCONF_LIBS -lbent
+  #  define NCONF_SRC bananas.c
+  #  define NCONF_NOLINK
+  #  define BANANAS_BE_BENT 1
+  #elif NCONF_mBANANAS_bTWISTED
+  #  define NCONF_SRC bananas.c
+  #  define BANANAS_BE_TWISTED 1
+  #endif
+  #if NCONFING_mBANANAS
+  #  define NCONF_TEST success == bananas_init()
+  #  define NCONF_TEST_VOID bananas_volatile()
+  #endif
+\end{Verbatim}
+''nconf'' parses the header and looks for module-branch macros which follow
+the pattern ''NCONF\_m<module>\_b<branch>'', in this example
+''BANANAS:STRAIGHT'' and ''BANANAS:BENT''. Every branch of every module is
+tested until a branch compiles, links, and executes, after which no more
+branches of that module is considered. Only one branch of each module is
+active at any time, and while nconf:ing, only a single branch in the whole
+file is active.
+
+''NCONFING\_mBANANAS'' is active only while nconf:ing the ''BANANAS'' module.
+
+''NCONF\_TEST'', if defined, is executed and the value is used for the exit
+code of the test program. ''NCONF\_TEST\_VOID'', if defined, is executed. Note
+that a void statement can be optimized away if it's not for example volatile!
+
+The nconf:ing can be controlled per branch with extra macros:
+\begin{Verbatim}[frame=single,numbers=left]
+  NCONF\_CPPFLAGS -- added to CPPFLAGS
+  NCONF\_CFLAGS   -- added to CFLAGS
+  NCONF\_LDFLAGS  -- added to LDFLAGS
+  NCONF\_LIBS     -- added to LIBS
+  NCONF\_SRC      -- compiled and linked in one step with the main object
+  NCONF\_NOEXEC   -- skips the execution step of the test-code
+  NCONF\_NOLINK   -- skips the linking step
+\end{Verbatim}
+
+While nconf:ing, files are written to ''output\_dir/nconfing/nconf/filename*'',
+for example ''mybuild/nconfing/nconf/dir/bananas.h''. When nconf finishes, it
+writes the final files at ''mybuild/nconf/dir/bananas.h''.
+
+The files produced during nconf:ing are:
+\begin{Verbatim}[frame=single,numbers=left]
+  filename     -- module-branch pair macro
+  filename.c   -- test code
+  filename.log -- log of compilation, linking, and execution
+  filename.o   -- compiled test code
+\end{Verbatim}
+
+And the final files are:
+\begin{Verbatim}[frame=single,numbers=left]
+  filename      -- module-branch pair macro
+  filename.args -- compilation and linking flags
+\end{Verbatim}
+
+The args file looks like:
+\begin{Verbatim}[frame=single,numbers=left]
+  CPPFLAGS
+  CFLAGS
+  LDFLAGS
+  LIBS
+\end{Verbatim}
+Such a file can also be used as an input to ''nconf'', which will then be used
+together with ''NCONF\_'' flags, and will also be included in the final args
+file. This way flags can be accumulated among all nconf:ed files in a project.
+Be vigilant! Certain flags override others (e.g. search path order matters,
+and -D flag duplicates are removed lexicographically), and unfortunately it's
+incredibly complicated to make the computer resolve such things!
+
+So the following might happen in this example:
+\begin{Verbatim}[frame=single,numbers=left]
+  Command: nconf -cgcc-2.95 -ibananas.h -obuild -ainit.args
+  nconf reads init.args and will use flags when compiling/linking
+  nconf parses bananas.h
+  nconf finds BANANAS:STRAIGHT
+    Let's say base=build/nconfing/nconf/bananas.h
+    NCONF_mBANANAS_bSTRAIGHT is defined to 1 in base
+    Test code is written to base.c
+    base.c is compiled with gcc-2.95 into base.o
+    base.o is linked together with bananas.c, let's assume this fails
+    Even if base.o linked, it would not have been executed because of NOEXEC
+  nconf finds BANANAS:BENT
+    NCONF_mBANANAS_bBENT is defined to 1 in base
+    Test code is written to base.c
+    base.c is compiled into base.o
+    base.o is not linked because of NOLINK
+    Success, the module BANANAS will not be tested any more
+  nconf finds no new module
+    Let's say base=build/nconf/bananas.h
+    NCONF_mBANANAS_bBENT is defined to 1 in base
+    The compilation and linking flags from init.args and the branch are written to base.args
+\end{Verbatim}
+
+
+
+\subsection{Coding style}
+
+We try to follow the OpenBSD KNF style for all code, but there are for sure
+always some exceptions...
+
+
+
+
+\section{Features}
+
+
+
+\subsection{Crate-level}
+
+
+\subsubsection{Adaptive Conversion Time, ACVT}
+
+ACVT is a potential readout optimization, due to the conversion time in data
+acquiring modules. Polling modules is time-consuming, which together with low
+resolution sleeping in the readout processor makes it undesirable. Some
+systems solve this using a fixed Conversion Time, CVT, in hardware with a high
+resolution sleep function. For optimal performance, the CVT should be as small
+as possible while still.
+
+It is possible in some instances to adjust the CVT. If a module can always
+report data on any event, e.g. empty events even with data suppression,
+\emph{nurdlib} can reduce the CVT while polling. If a poll fails, the CVT is
+bumped up, and the process continues.
+
+Note that this only works for modules which delive data on \emph{every} event,
+no matter what. If you're experiencing data timeout errors, you will have to
+disable ACVT and use a fixed value.
+
+
+\subsubsection{Multi-event readout}
+
+Multi-event readout is almost always a faster way of reading out a DAQ, and
+should be used when possible. Nurdlib supports reading any amount of data from
+its configured modules.
+
+
+\subsubsection{Early dead-time release}
+
+Modules in which conversion and slow readout from storage are decoupled can
+make use of early dead-time release to reduce the per-event-pair dead-time.
+
+
+\subsubsection{Shadow readout}
+
+Shadow readout could also be called mutl-event live-time readout, where the
+module conversion and buffer readout can execute in parallel. It's a slightly
+more advanced version of early dead-time release readout.
+
+\subsection{American versus British}
+
+The source code has been written in American s,
+whereas this document was written in British English. The main purpose to
+point this out is to still the minds of observant and inquisitive readers.
+
+
+
+\begin{thebibliography}{100}
+\bibitem{bib:drasi} http://fy.chalmers.se/~f96hajo/drasi/doc/
+\end{thebibliography}
+
+
+
+
+\end{document}

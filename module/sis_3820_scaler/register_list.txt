@@ -1,0 +1,49 @@
+anbm
+0x000 control_status           32 RW
+0x004 id_and_firmware          32 R
+0x008 irq_conf                 32 RW
+0x00c irq_control_status       32 RW
+
+0x010 acq_preset               32 RW
+0x014 acq_count                32 R
+0x018 lne_prescale_factor      32 RW
+
+0x020 preset_val_group1        32 RW
+0x024 preset_val_group2        32 RW
+0x028 preset_enable_hit        32 RW
+
+0x030 cblt_broadcast_setup     32 RW
+0x034 sdram_page               32 RW
+0x038 fifo_word_count          32 R
+0x03c fifo_word_count_thrs     32 RW
+
+0x040 hiscal_start_preset      32 RW
+0x044 hiscal_start_counter     32 R
+0x048 hiscal_last_acq_counter  32 R
+
+0x100 op_mode                  32 RW
+0x104 copy_disable             32 RW
+0x108 lne_ch_select            32 RW
+0x10c preset_ch_select         32 RW
+0x110 mux_out_ch_select        32 RW
+
+0x200 inhibit_count_disable    32 RW
+0x204 counter_clear            32 W
+0x208 counter_ov_read_clear    32 RW
+0x210 ch_1_17_bits_33_48       32 R
+0x214 veto_ext_count_inh       32 RW
+0x218 test_pulse_mask          32 RW
+
+0x400 key_reset                32 W
+0x404 key_sdram_fifo_reset     32 W
+0x408 key_test_pulse           32 W
+0x40c key_counter_clear        32 W
+
+0x410 key_VME_shadow           32 W
+0x414 key_op_arm               32 W
+0x418 key_op_enable            32 W
+0x41c key_op_disable           32 W
+
+0x800 shadow_register[32]      32 r
+0xa00 counter_register[32]     32 r
+0x800000 fifo                  32 rW

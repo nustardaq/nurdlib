@@ -1,0 +1,262 @@
+/*
+ * nurdlib, NUstar ReaDout LIBrary
+ *
+ * Copyright (C) 2015-2021, 2023-2024
+ * Bastian Löher
+ * Michael Munch
+ * Hans Toshihide Törnqvist
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA  02110-1301  USA
+ */
+
+#include <module/caen_v792/caen_v792.h>
+#include <module/caen_v792/internal.h>
+#include <module/caen_v792/offsets.h>
+#include <module/map/map.h>
+#include <nurdlib/config.h>
+
+#define NAME "Caen v792"
+
+struct IPED {
+	unsigned	iped;
+	float	current;
+};
+
+MODULE_PROTOTYPES(caen_v792);
+static void	caen_v792_use_pedestals(struct Module *);
+static void	caen_v792_zero_suppress(struct Module *, int);
+
+static struct IPED c_iped[] =
+{
+	{ 60,  1.94},
+	{ 65,  3.77},
+	{ 70,  5.79},
+	{ 75,  7.77},
+	{ 80,  9.84},
+	{ 90, 13.93},
+	{100, 18.04},
+	{115, 24.26},
+	{130, 30.58},
+	{145, 36.83},
+	{160, 43.07},
+	{175, 49.34},
+	{190, 55.60},
+	{205, 61.83},
+	{220, 68.06},
+	{235, 74.36},
+	{250, 80.58},
+	{255, 82.69}
+};
+
+uint32_t
+caen_v792_check_empty(struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+	uint32_t result;
+
+	LOGF(spam)(LOGL, NAME" check_empty {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	result = caen_v7nn_check_empty(&v792->v7nn);
+	LOGF(spam)(LOGL, NAME" check_empty(0x%08x) }", result);
+	return result;
+}
+
+struct Module *
+caen_v792_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
+{
+	struct CaenV792Module *v792;
+
+	(void)a_crate;
+	LOGF(verbose)(LOGL, NAME" create {");
+	MODULE_CREATE(v792);
+	/* 34 words/event, 32 events, manual p. 21. */
+	v792->v7nn.module.event_max = 32;
+	caen_v7nn_create(a_block, &v792->v7nn, KW_CAEN_V792);
+	MODULE_CREATE_PEDESTALS(v792, caen_v792, 32);
+	LOGF(verbose)(LOGL, NAME" create }");
+
+	return &v792->v7nn.module;
+}
+
+void
+caen_v792_deinit(struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+
+	LOGF(verbose)(LOGL, NAME" deinit {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_deinit(&v792->v7nn);
+	LOGF(verbose)(LOGL, NAME" deinit }");
+}
+
+void
+caen_v792_destroy(struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+
+	LOGF(verbose)(LOGL, NAME" destroy {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_destroy(&v792->v7nn);
+	LOGF(verbose)(LOGL, NAME" destroy }");
+}
+
+struct Map *
+caen_v792_get_map(struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	return caen_v7nn_get_map(&v792->v7nn);
+}
+
+void
+caen_v792_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
+{
+	caen_v7nn_get_signature(a_array, a_num);
+}
+
+int
+caen_v792_init_fast(struct Crate *a_crate, struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+	unsigned iped;
+
+	LOGF(verbose)(LOGL, NAME" init_fast {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_init_fast(a_crate, &v792->v7nn);
+
+	iped = config_get_int32(a_module->config, KW_IPED, CONFIG_UNIT_NONE,
+	    0, 255);
+	LOGF(verbose)(LOGL, "IPED=%d ~= %f uA.", iped,
+	    caen_v792_iped_to_current(iped));
+	MAP_WRITE(v792->v7nn.sicy_map, iped, iped);
+
+	LOGF(verbose)(LOGL, NAME" init_fast }");
+	return 1;
+}
+
+int
+caen_v792_init_slow(struct Crate *a_crate, struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+
+	LOGF(verbose)(LOGL, NAME" init_slow {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_init_slow(a_crate, &v792->v7nn);
+	LOGF(verbose)(LOGL, NAME" init_slow }");
+	return 1;
+}
+
+float
+caen_v792_iped_to_current(unsigned a_iped)
+{
+	size_t cur, prev;
+
+	if (a_iped < c_iped[0].iped) {
+		return c_iped[0].current;
+	}
+	prev = 0;
+	for (cur = 1; LENGTH(c_iped) > cur; ++cur) {
+		if (a_iped < c_iped[cur].iped) {
+			return ((a_iped - c_iped[prev].iped) *
+			 (c_iped[cur].current - c_iped[prev].current)) /
+			    (c_iped[cur].iped - c_iped[prev].iped) +
+			    c_iped[prev].current;
+		}
+		prev = cur;
+	}
+	return c_iped[prev].current;
+}
+
+void
+caen_v792_memtest(struct Module *a_module, enum Keyword a_mode)
+{
+	(void)a_module;
+	(void)a_mode;
+}
+
+uint32_t
+caen_v792_parse_data(struct Crate *a_crate, struct Module *a_module, struct
+    EventConstBuffer const *a_event_buffer, int a_do_pedestals)
+{
+	struct CaenV792Module *v792;
+	uint32_t result;
+
+	(void)a_crate;
+	LOGF(spam)(LOGL, NAME" parse_data {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	result = caen_v7nn_parse_data(&v792->v7nn, a_event_buffer,
+	    a_do_pedestals);
+	LOGF(spam)(LOGL, NAME" parse_data }");
+	return result;
+}
+
+uint32_t
+caen_v792_readout(struct Crate *a_crate, struct Module *a_module, struct
+    EventBuffer *a_event_buffer)
+{
+	struct CaenV792Module *v792;
+	uint32_t result;
+
+	LOGF(spam)(LOGL, NAME" readout {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	result = caen_v7nn_readout(a_crate, &v792->v7nn, a_event_buffer);
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
+	return result;
+}
+
+uint32_t
+caen_v792_readout_dt(struct Crate *a_crate, struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+
+	(void)a_crate;
+	LOGF(spam)(LOGL, NAME" readout {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_readout_dt(&v792->v7nn);
+	LOGF(spam)(LOGL, NAME" readout }");
+	return 0;
+}
+
+void
+caen_v792_setup_(void)
+{
+	MODULE_SETUP(caen_v792, 0);
+	MODULE_CALLBACK_BIND(caen_v792, use_pedestals);
+	MODULE_CALLBACK_BIND(caen_v792, zero_suppress);
+}
+
+void
+caen_v792_use_pedestals(struct Module *a_module)
+{
+	struct CaenV792Module *v792;
+
+	LOGF(spam)(LOGL, NAME" use_pedestals {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_use_pedestals(&v792->v7nn);
+	LOGF(spam)(LOGL, NAME" use_pedestals }");
+}
+
+void
+caen_v792_zero_suppress(struct Module *a_module, int a_yes)
+{
+	struct CaenV792Module *v792;
+
+	LOGF(spam)(LOGL, NAME" zero_suppress {");
+	MODULE_CAST(KW_CAEN_V792, v792, a_module);
+	caen_v7nn_zero_suppress(&v792->v7nn, a_yes);
+	LOGF(spam)(LOGL, NAME" zero_suppress }");
+}

@@ -1,0 +1,11 @@
+anbm
+0x0000   channel_enable    32 RW
+0x0004   trigger_enable    32 RW
+0x000c   allow_new_trigger 32 rW
+0x0010   channel_reset     32 rW
+0x0014   fifo_status       32 R
+0x0018   trigger_window    32 RW
+0x001c   data_fifo         32 r
+0x0030   start_reset       32 rW
+0x0038   channel_invert    32 rW
+0x800008 cpld              32 RW

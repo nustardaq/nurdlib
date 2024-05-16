@@ -1,0 +1,57 @@
+anbm
+0x0000 Output Buffer        32 r
+0x1000 Control              16 RW
+0x1002 Status               16 R
+0x100A Interrupt Level      16 RW
+0x100C Interrupt Vector     16 RW
+0x100E Geo Address          16 RW
+0x1010 MCST Base Address    16 RW
+0x1012 MCST Control         16 RW
+0x1014 Module Reset         16 W
+0x1016 Software Clear       16 W
+0x1018 Software Event Reset 16 W
+0x101A Software Trigger     16 W
+0x101C Event Counter        32 R
+0x1020 Event Stored         16 R
+0x1022 Almost Full Level    16 RW
+0x1024 BLT event number     16 RW
+0x1026 Firmware revision    16 R
+0x1028 Testreg              32 RW
+0x102C Output prog control  16 RW
+0x102E Micro                16 RW
+0x1030 Micro Handshake      16 R
+0x1032 Select Flash         16 RW
+0x1034 Flash memory         16 RW
+0x1036 Sram Page            16 RW
+0x1038 Event FIFO           32 r
+0x103C Event FIFO Stored    16 R
+0x103E Event FIFO Status    16 R
+0x1200 Dummy32              32 RW
+0x1204 Dummy16              16 RW
+0x8000 Compensation Sram    16 R
+0x1004 ADER_32              16 RW
+0x1006 ADER_24              16 RW
+0x1008 Enable ADER          16 RW
+
+0x4000 rom_checksum         16 R
+0x4004 rom_checksum_length2 16 R
+0x4008 rom_checksum_length1 16 R
+0x400C rom_checksum_length0 16 R
+0x4010 rom_constant2        16 R
+0x4014 rom_constant1        16 R
+0x4018 rom_constant0        16 R
+0x401C rom_c_code           16 R
+0x4020 rom_r_code           16 R
+0x4024 rom_oui2             16 R
+0x4028 rom_oui1             16 R
+0x402C rom_oui0             16 R
+0x4030 rom_vers             16 R
+0x4034 rom_board2           16 R
+0x4038 rom_board1           16 R
+0x403C rom_board0           16 R
+0x4040 rom_revis3           16 R
+0x4044 rom_revis2           16 R
+0x4048 rom_revis1           16 R
+0x404C rom_revis0           16 R
+0x4080 rom_sernum1          16 R
+0x4084 rom_sernum0          16 R

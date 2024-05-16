@@ -1,0 +1,9 @@
+anbm
+0x0000 control_status		32 RW
+0x0004 module_id_firmware	32 RW
+0x0010 clock_source		32 RW
+0x0014 clock_frequency		32 RW
+0x0060 reset			32 W
+0x0064 clock_test		32 W
+0x0068 strobe_1			32 W
+0x006C strobe_2			32 W

@@ -1,0 +1,37 @@
+# nurdlib, NUstar ReaDout LIBrary
+#
+# Copyright (C) 2015, 2024
+# Hans Toshihide Törnqvist
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301  USA
+
+log_level = info # verbose, debug, or spam.
+
+# Name and crate ID number.
+CRATE("MY_VME", 7) {
+	GSI_TRIDI(0x02000000) {
+		trlo2_timestamper = true
+	}
+	GSI_VFTX2(32, 0x08000000) {
+		channel_enable = 0..19
+	}
+	GSI_VFTX2(16, 0x09000000) {
+		GATE {
+			time_after_trigger = -2us
+			width = 1us
+		}
+	}
+}

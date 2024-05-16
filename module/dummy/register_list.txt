@@ -1,0 +1,8 @@
+nabm
+buffer[8192]    0x0000 8 rW
+clear           0x4000 32 W
+multi_event     0x4004 32 RW
+counter         0x4008 32 RW
+read_only       0x4010 32 R
+write_only      0x4014 16 W
+threshold[32]   0x4100 32 RW
