@@ -118,6 +118,31 @@ NTEST(Pex)
 }
 #endif
 
+NTEST(IdSkip)
+{
+	struct Module *dummy[5];
+	struct Crate *crate;
+	unsigned i;
+
+	config_load("tests/crate_id_skips.cfg");
+	crate = crate_create();
+	NTRY_STR("IdSkips", ==, crate_get_name(crate));
+	for (i = 0; i < LENGTH(dummy); ++i) {
+		dummy[i] = crate_module_find(crate, KW_DUMMY, i);
+	}
+	i = 0;
+	NTRY_I(0, ==, dummy[i]->id);
+	++i;
+	NTRY_I(1, ==, dummy[i]->id);
+	++i;
+	NTRY_I(3, ==, dummy[i]->id);
+	++i;
+	NTRY_I(5, ==, dummy[i]->id);
+	++i;
+	NTRY_I(8, ==, dummy[i]->id);
+	crate_free(&crate);
+}
+
 NTEST_SUITE(Crate)
 {
 	crate_setup();
@@ -131,6 +156,7 @@ NTEST_SUITE(Crate)
 #if NCONF_mGSI_PEX_bYES
 	NTEST_ADD(Pex);
 #endif
+	NTEST_ADD(IdSkip);
 
 	config_shutdown();
 }
