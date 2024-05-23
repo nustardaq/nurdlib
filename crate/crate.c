@@ -370,6 +370,7 @@ crate_create(void)
 	struct CrateCounter *counter;
 	struct ConfigBlock *crate_block;
 	struct ConfigBlock *module_block;
+	unsigned module_id;
 	int crate_needs_pex = 0;
 
 	LOGF(info)(LOGL, "crate_create {");
@@ -450,6 +451,7 @@ crate_create(void)
 	int line_no;\
 	config_get_source(module_block, &path, &line_no, NULL)
 
+	module_id = 0;
 	for (module_block = config_get_block(crate_block, KW_NONE);
 	    NULL != module_block;
 	    module_block = config_get_block_next(module_block, KW_NONE)) {
@@ -518,6 +520,17 @@ crate_create(void)
 				}
 			}
 			continue;
+		} else if (KW_ID_SKIP == module_type) {
+			unsigned num;
+
+			if (config_get_block_param_exists(module_block, 0)) {
+				num = config_get_block_param_int32(
+				    module_block, 0);
+			} else {
+				num = 1;
+			}
+			module_id += num;
+			continue;
 		} else if (KW_BARRIER == module_type) {
 			module = module_create_base(sizeof *module, NULL);
 			module->type = KW_BARRIER;
@@ -544,8 +557,9 @@ crate_create(void)
 			crate->gsi_pex.config = module_block;
 			continue;
 		}
+		++crate->module_num;
 		module = module_create(crate, module_type, module_block);
-		module->id = crate->module_num++;
+		module->id = module_id++;
 		module->crate_counter = &counter->cur;
 		LOGF(verbose)(LOGL, "module[%u]=%s.", module->id,
 		    keyword_get_string(module_type));

@@ -75,6 +75,7 @@ static char const g_keyword_array[][52] = {
 	"GSI_VFTX2",
 	"GSI_VULOM",
 	"GSI_VUPROM",
+	"ID_SKIP",
 	"MESYTEC_MADC32",
 	"MESYTEC_MDPP16QDC",
 	"MESYTEC_MDPP16SCP",

@@ -1620,22 +1620,6 @@ parser_prepare_block(enum Keyword a_name, char const *a_path, int a_line_no,
 }
 
 /*
- * Pushes a barrier pseudo-block without any duplicate checks, because
- * barriers are all the same but need to be separate, all other non-unique
- * blocks are merged.
- */
-void
-parser_push_barrier(char const *a_path, int a_line_no, int a_col_no)
-{
-	struct ItemList *item_list;
-
-	parser_prepare_block(KW_BARRIER, a_path, a_line_no, a_col_no);
-	item_list = item_list_get();
-	TAILQ_INSERT_TAIL(item_list, g_temp_block, next);
-	g_temp_block = NULL;
-}
-
-/*
  * Match a block + params against already parsed blocks, in case different
  * files should overwrite configs, BUT, do not allow matching of configs in
  * one file, that's typically a copy-paste error.
@@ -1761,6 +1745,21 @@ parser_push_range(struct ScalarList *a_scalar_list, unsigned a_vector_index,
 	scalar->value.r.first = a_first;
 	scalar->value.r.last = a_last;
 	scalar->unit = CONFIG_UNIT_NONE;
+}
+
+/*
+ * Pushes a barrier/id_skip pseudo-block without any duplicate checks, because
+ * these are all the same but need to be separate, all other non-unique blocks
+ * are merged.
+ */
+void
+parser_push_simple_block(void)
+{
+	struct ItemList *item_list;
+
+	item_list = item_list_get();
+	TAILQ_INSERT_TAIL(item_list, g_temp_block, next);
+	g_temp_block = NULL;
 }
 
 void

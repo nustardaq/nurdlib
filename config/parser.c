@@ -228,9 +228,22 @@ parse_block(struct File *a_file, int a_is_root)
 			parser_include_file(path, 1);
 			continue;
 		}
+		if (KW_ID_SKIP == identifier) {
+			scalar_list = parser_prepare_block(KW_ID_SKIP,
+			    a_file->filename, src_line_no, src_col_no);
+			skip_whitespace(a_file);
+			c = peekc(a_file, 0);
+			if ('(' == c) {
+				advancec(a_file, 1);
+				parse_vector(a_file, scalar_list);
+			}
+			parser_push_simple_block();
+			continue;
+		}
 		if (KW_BARRIER == identifier) {
-			parser_push_barrier(a_file->filename, src_line_no,
-			    src_col_no);
+			parser_prepare_block(KW_BARRIER, a_file->filename,
+			    src_line_no, src_col_no);
+			parser_push_simple_block();
 			continue;
 		}
 		skip_whitespace(a_file);

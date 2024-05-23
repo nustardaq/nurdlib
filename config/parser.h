@@ -43,7 +43,6 @@ void			parser_include_file(char const *, int);
 void			parser_pop_block(void);
 struct ScalarList	*parser_prepare_block(enum Keyword, char const *,
     int, int);
-void			parser_push_barrier(char const *, int, int);
 void			parser_push_block(void);
 struct ScalarList	*parser_push_config(enum Keyword, int, char const *,
     int, int) FUNC_RETURNS;
@@ -55,6 +54,7 @@ void			parser_push_keyword(struct ScalarList *, unsigned,
     enum Keyword);
 void			parser_push_range(struct ScalarList *, unsigned,
     unsigned, unsigned);
+void			parser_push_simple_block(void);
 void			parser_push_string(struct ScalarList *, unsigned, char
     const *);
 void			parser_push_unit(struct ScalarList *, unsigned, struct
