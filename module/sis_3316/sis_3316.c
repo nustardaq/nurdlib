@@ -25,6 +25,7 @@
 #include <module/sis_3316/sis_3316.h>
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <module/map/map.h>
 #include <module/sis_3316/sis_3316_i2c.h>
 #include <module/sis_3316/internal.h>
