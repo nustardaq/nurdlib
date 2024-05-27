@@ -32,6 +32,7 @@
 #	include <nurdlib/crate.h>
 #	include <nurdlib/log.h>
 #	include <util/string.h>
+#	include <util/time.h>
 
 #	define NAME "Gsi Pex"
 
@@ -132,7 +133,7 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 			log_die(LOGL, "ioctl("PEX_DEV"): %s",
 			    strerror(errno));
 		}
-		usleep(0.1e6);
+		time_sleep(0.1);
 		close(fd);
 	}
 
@@ -247,7 +248,7 @@ gsi_pex_slave_init(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_num)
 		rx_clear_ch(a_pex, a_sfp_i);
 		tx(a_pex, PEX_INI_REQ | (0x10000 << a_sfp_i), 0,
 		    a_slave_num - 1);
-		usleep(1000);
+		time_sleep(1e-3);
 		if (rx(a_pex, a_sfp_i, &comm, &addr, &data) &&
 		    a_slave_num == addr) {
 			break;

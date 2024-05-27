@@ -26,6 +26,7 @@
 #include <module/gsi_mppc_rob/internal.h>
 #include <nurdlib/config.h>
 #include <nurdlib/crate.h>
+#include <util/time.h>
 
 #define NAME "Gsi Mppc-Rob"
 
@@ -301,7 +302,7 @@ threshold_set(struct ConfigBlock *a_block, struct GsiPex *a_pex, unsigned
 		MPPC_ROB_WR(REG_PADI_SPI_CTRL, value | 1, threshold_set_fail);
 		MPPC_ROB_WR(REG_PADI_SPI_CTRL, value | 0, threshold_set_fail);
 		/* More magic. */
-		usleep(500);
+		time_sleep(500e-6);
 	}
 	if (config_get_boolean(a_block, KW_INVERT_SIGNAL)) {
 		MPPC_ROB_WR(0x200100, 1, threshold_set_fail);

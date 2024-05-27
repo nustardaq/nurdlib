@@ -26,6 +26,7 @@
 #include <module/gsi_pex/internal.h>
 #include <module/gsi_ctdc/internal.h>
 #include <nurdlib/config.h>
+#include <util/time.h>
 
 #define NAME "Gsi CTDC"
 
@@ -285,7 +286,7 @@ threshold_set_bjt(struct ConfigBlock const *a_block, struct GsiPex *a_pex,
 		off = on & ~1;
 		CTDC_INIT_WR(REG_PADI_SPI_CTRL, off, threshold_set_fail);
 		/* More magic. */
-		usleep(500);
+		time_sleep(500e-6);
 		LOGF(debug)(LOGL, "thr[%u]=0x%08x,0x%08x,0x%08x.",
 		    ch_i, thr, on, off);
 	}
@@ -347,7 +348,7 @@ threshold_set_padi(struct ConfigBlock const *a_block, struct GsiPex *a_pex,
 			CTDC_INIT_WR(REG_PADI_SPI_CTRL, 1 << padi_i,
 			    threshold_set_fail);
 			/* More magic. */
-			usleep(500);
+			time_sleep(500e-6);
 		}
 	}
 	ret = 1;

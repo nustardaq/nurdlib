@@ -27,6 +27,7 @@
 #include <module/gsi_tamex/internal.h>
 #include <util/bits.h>
 #include <util/fmtmod.h>
+#include <util/time.h>
 
 #define NAME "Gsi Tamex"
 
@@ -878,16 +879,16 @@ padi_set_threshold(struct GsiPex *a_pex, unsigned a_sfp_i, unsigned a_card_i,
 			    (ch_i << 26) |
 			    (a_threshold_array[ofs8] << 16),
 			    padi_set_threshold_done);
-			usleep(500);
+			time_sleep(500e-6);
 			/* Magic. */
 			TAMEX_INIT_WR(REG_TAM_PADI_CTL, 1,
 			    padi_set_threshold_done);
 			/* More magic. */
-			usleep(500);
+			time_sleep(500e-6);
 			/* Cannot have enough magic. */
 			TAMEX_INIT_WR(REG_TAM_PADI_CTL, 0,
 			    padi_set_threshold_done);
-			usleep(500);
+			time_sleep(500e-6);
 		}
 	} else {
 		uint32_t value;
@@ -896,13 +897,13 @@ padi_set_threshold(struct GsiPex *a_pex, unsigned a_sfp_i, unsigned a_card_i,
 		value |= value << 16;
 		TAMEX_INIT_WR(REG_TAM_PADI_DAT, value,
 		    padi_set_threshold_done);
-		usleep(500);
+		time_sleep(500e-6);
 		TAMEX_INIT_WR(REG_TAM_PADI_CTL, 1,
 		    padi_set_threshold_done);
-		usleep(500);
+		time_sleep(500e-6);
 		TAMEX_INIT_WR(REG_TAM_PADI_CTL, 0,
 		    padi_set_threshold_done);
-		usleep(500);
+		time_sleep(500e-6);
 	}
 	return 1;
 padi_set_threshold_done:

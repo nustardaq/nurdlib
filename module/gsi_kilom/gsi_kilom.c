@@ -27,6 +27,7 @@
 #include <nurdlib/gsi_kilom.h>
 #include <nurdlib/config.h>
 #include <nurdlib/crate.h>
+#include <util/time.h>
 
 #define NAME "Gsi Kilom"
 
@@ -317,7 +318,7 @@ threshold_set(struct ConfigBlock *a_block, struct GsiPex *a_pex, unsigned
 		KILOM_INIT_WR(REG_PADI_SPI_CTRL, 1, threshold_set_fail);
 		KILOM_INIT_WR(REG_PADI_SPI_CTRL, 0, threshold_set_fail);
 		/* More magic. */
-		usleep(500);
+		time_sleep(500e-6);
 	}
 	if (config_get_boolean(a_block, KW_INVERT_SIGNAL)) {
 		/* One-time polarity switch, needed for Kilom1. */
