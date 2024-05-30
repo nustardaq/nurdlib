@@ -24,7 +24,6 @@
 
 #include <module/sis_3316/sis_3316.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <limits.h>
 #include <module/map/map.h>
