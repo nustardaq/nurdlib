@@ -24,6 +24,7 @@
 
 #include <module/sis_3316/sis_3316.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <limits.h>
 #include <module/map/map.h>
@@ -161,6 +162,7 @@ void sis_3316_clear_timestamp(struct Sis3316Module *);
 void sis_3316_disarm(struct Sis3316Module *);
 void sis_3316_adjust_address_threshold(struct Sis3316Module *, double);
 void sis_3316_configure_external_clock_input(struct Sis3316Module *);
+uint32_t sis_rataclock_firmware_check(uint32_t firmware);
 
 #define CHECK_REG_SET_MASK(reg, val, mask) do { \
 		uint32_t reg_; \
@@ -1494,10 +1496,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 			LOGF(verbose)(LOGL, "adc[%u] has 16 bits.", i);
 		}
 	}
-	if (firmware == 0x33165010 || firmware == 0x3316b011
-	    || firmware == 0x3316a012 || firmware == 0x3316b012) {
-		m->config.has_rataclock_receiver = 1;
-	}
+	m->config.has_rataclock_receiver = sis_rataclock_firmware_check(firmware);
 	if (m->config.has_rataclock_receiver == 0
 	    && m->config.use_rataclock == 1) {
 		log_error(LOGL, NAME"Cannot use rataclock! No receiver!\n");
@@ -1593,6 +1592,18 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
+}
+
+uint32_t
+sis_rataclock_firmware_check(uint32_t firmware)
+{
+	if (firmware == 0x33165010 || firmware == 0x3316b011
+	    || firmware == 0x3316a012 || firmware == 0x3316b012) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 void
@@ -2505,7 +2516,7 @@ void
 sis_3316_test_clock_sync(struct Sis3316Module *self)
 {
 	/* test, if all clocks are still synced */
-	if (self->config.has_rataclock_receiver == 1) {
+	if (self->config.use_rataclock == 1) {
 		int tries_left = 3;
 		int ok = 1;
 
