@@ -28,7 +28,7 @@
 #include <config/kwenum.h>
 #include <util/funcattr.h>
 
-enum Keyword	keyword_get_id(char const *) FUNC_RETURNS;
+enum Keyword	keyword_get_id(char const *) FUNC_NONNULL(()) FUNC_RETURNS;
 char const	*keyword_get_string(enum Keyword) FUNC_RETURNS;
 
 #endif
