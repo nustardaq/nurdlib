@@ -53,11 +53,12 @@ LOG_LEVEL_DECLARE_(debug);
 LOG_LEVEL_DECLARE_(spam);
 
 void			log_callback_set(LogCallback);
-void			log_die(LOGL_ARGS, char const *, ...) FUNC_NORETURN
-FUNC_PRINTF(3, 4);
-void			log_dump(LOGL_ARGS, void const *, size_t);
-void			log_error(LOGL_ARGS, char const *, ...) FUNC_PRINTF(3,
-    4);
+void			log_die(LOGL_ARGS, char const *, ...)
+	FUNC_PRINTF(3, 4) FUNC_NORETURN;
+void			log_dump(LOGL_ARGS, void const *, size_t)
+	FUNC_NONNULL(());
+void			log_error(LOGL_ARGS, char const *, ...)
+	FUNC_PRINTF(3, 4);
 void			log_errorv(LOGL_ARGS, char const *, va_list)
 	FUNC_PRINTF(3, 0);
 void			log_level_clear(void);
@@ -65,9 +66,10 @@ struct LogLevel const	*log_level_get(void) FUNC_RETURNS;
 struct LogLevel const	*log_level_get_from_keyword(enum Keyword)
 	FUNC_RETURNS;
 int			log_level_is_visible(struct LogLevel const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 void			log_level_pop(void);
-void			log_level_push(struct LogLevel const *);
+void			log_level_push(struct LogLevel const *)
+	FUNC_NONNULL(());
 int			log_printerv(char const *, va_list) FUNC_PRINTF(1, 0)
 	FUNC_RETURNS;
 void			log_suppress_all_levels(int);
