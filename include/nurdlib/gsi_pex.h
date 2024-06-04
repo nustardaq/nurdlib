@@ -23,6 +23,7 @@
 #ifndef NURDLIB_GSI_PEX_H
 #define NURDLIB_GSI_PEX_H
 
-void	gsi_pex_physical_minus_virtual_set(struct GsiPex *, uintptr_t);
+void	gsi_pex_physical_minus_virtual_set(struct GsiPex *, uintptr_t)
+	FUNC_NONNULL(());
 
 #endif
