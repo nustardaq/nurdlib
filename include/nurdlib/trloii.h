@@ -127,24 +127,24 @@ typedef struct rfx1_opaque_t {
 struct Module;
 
 char const			*trloii_get_multi_event_tag_name(struct Module
-    *) FUNC_RETURNS;
+    *) FUNC_NONNULL(()) FUNC_RETURNS;
 struct rfx1_readout_control	*trloii_get_rfx1_ctrl(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 rfx1_opaque volatile		*trloii_get_rfx1_map(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 struct tridi_readout_control	*trloii_get_tridi_ctrl(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 tridi_opaque volatile		*trloii_get_tridi_map(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 struct trlo_readout_control	*trloii_get_trlo_ctrl(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 trlo_opaque volatile		*trloii_get_trlo_map(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 int				trloii_has_master_start(struct Module const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 int				trloii_is_timestamper(struct Module *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 void				trloii_multi_event_set_limit(struct Module *,
-    unsigned);
+    unsigned) FUNC_NONNULL(());
 
 #endif
