@@ -86,17 +86,21 @@ enum ConfigType {
 struct PackerList;
 
 /* Big cheese configuration. */
-void			config_auto_register(enum Keyword, char const *);
+void			config_auto_register(enum Keyword, char const *)
+	FUNC_NONNULL(());
 char const		*config_default_path_get(void) FUNC_RETURNS;
-void			config_default_path_set(char const *);
+void			config_default_path_set(char const *)
+	FUNC_NONNULL(());
 void			config_dump(struct ConfigBlock const *);
-void			config_load(char const *);
+void			config_load(char const *) FUNC_NONNULL(());
 int			config_merge(struct ConfigBlock *, struct Packer *)
-	FUNC_RETURNS;
+	FUNC_NONNULL((2)) FUNC_RETURNS;
 void			config_pack_children(struct PackerList *, struct
-    ConfigBlock const *);
-void			config_snippet_free(struct ConfigBlock **);
-struct ConfigBlock	*config_snippet_parse(char const *) FUNC_RETURNS;
+    ConfigBlock const *) FUNC_NONNULL((1));
+void			config_snippet_free(struct ConfigBlock **)
+	FUNC_NONNULL(());
+struct ConfigBlock	*config_snippet_parse(char const *) FUNC_NONNULL(())
+	FUNC_RETURNS;
 void			config_shutdown(void);
 void			config_touched_assert(struct ConfigBlock *, int);
 
@@ -104,49 +108,52 @@ void			config_touched_assert(struct ConfigBlock *, int);
 struct ConfigBlock		*config_get_block(struct ConfigBlock *, enum
     Keyword) FUNC_RETURNS;
 enum Keyword			config_get_block_name(struct ConfigBlock const
-    *) FUNC_RETURNS;
+    *) FUNC_NONNULL(()) FUNC_RETURNS;
 struct ConfigBlock		*config_get_block_next(struct ConfigBlock *,
-    enum Keyword) FUNC_RETURNS;
-struct ConfigBlock		*config_get_block_by_param_keyword(struct
-    ConfigBlock *, enum Keyword, enum Keyword) FUNC_RETURNS;
+    enum Keyword) FUNC_NONNULL(()) FUNC_RETURNS;
 
 int				config_get_block_param_exists(struct
-    ConfigBlock const *, unsigned) FUNC_RETURNS;
+    ConfigBlock const *, unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 int32_t				config_get_block_param_int32(struct
-    ConfigBlock const *, unsigned) FUNC_RETURNS;
+    ConfigBlock const *, unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 enum Keyword			config_get_block_param_keyword_(struct
-    ConfigBlock *, unsigned, size_t, enum Keyword const *) FUNC_RETURNS;
+    ConfigBlock *, unsigned, size_t, enum Keyword const *) FUNC_NONNULL(())
+FUNC_RETURNS;
 char const			*config_get_block_param_string(struct
-    ConfigBlock const *, unsigned) FUNC_RETURNS;
+    ConfigBlock const *, unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 
 uint32_t			config_get_bitmask(struct ConfigBlock *, enum
     Keyword, unsigned, unsigned) FUNC_RETURNS;
 int				config_get_boolean(struct ConfigBlock *, enum
     Keyword) FUNC_RETURNS;
 double				config_get_double(struct ConfigBlock *, enum
-    Keyword, struct ConfigUnit const *, double, double) FUNC_RETURNS;
+    Keyword, struct ConfigUnit const *, double, double) FUNC_NONNULL((3))
+FUNC_RETURNS;
 void				config_get_double_array(double *, size_t,
     struct ConfigBlock *, enum Keyword, struct ConfigUnit const *, double,
-    double);
+    double) FUNC_NONNULL((1, 5));
 int32_t				config_get_int32(struct ConfigBlock *, enum
-    Keyword, struct ConfigUnit const *, int32_t, int32_t) FUNC_RETURNS;
+    Keyword, struct ConfigUnit const *, int32_t, int32_t) FUNC_NONNULL((3))
+FUNC_RETURNS;
 void				config_get_int_array(void *, size_t, size_t,
     struct ConfigBlock *, enum Keyword, struct ConfigUnit const *, int32_t,
-    int32_t);
+    int32_t) FUNC_NONNULL((1, 6));
 enum Keyword			config_get_keyword_(struct ConfigBlock *, enum
-    Keyword, size_t, enum Keyword const *) FUNC_RETURNS;
+    Keyword, size_t, enum Keyword const *) FUNC_NONNULL((4)) FUNC_RETURNS;
 void				config_get_keyword_array_(enum Keyword *,
-    size_t, struct ConfigBlock *, enum Keyword, size_t, enum Keyword const *);
+    size_t, struct ConfigBlock *, enum Keyword, size_t, enum Keyword const *)
+	FUNC_NONNULL((1, 6));
 void				config_get_source(struct ConfigBlock const *,
     char const **, int *, int *);
 char const			*config_get_string(struct ConfigBlock *, enum
     Keyword) FUNC_RETURNS;
 
 void				config_set_bool(struct ConfigBlock *, enum
-    Keyword, int);
+    Keyword, int) FUNC_NONNULL(());
 void				config_set_int32(struct ConfigBlock *, enum
-    Keyword, struct ConfigUnit const *, int32_t);
+    Keyword, struct ConfigUnit const *, int32_t) FUNC_NONNULL(());
 void				config_set_int_array_(struct ConfigBlock *,
-    enum Keyword, struct ConfigUnit const *, void const *, size_t, size_t);
+    enum Keyword, struct ConfigUnit const *, void const *, size_t, size_t)
+	FUNC_NONNULL(());
 
 #endif

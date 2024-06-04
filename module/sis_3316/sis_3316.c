@@ -3004,8 +3004,7 @@ void
 sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
     *a_block)
 {
-	struct ConfigBlock *g_block, *t_block;
-	enum Keyword const true_false[] = {KW_TRUE, KW_FALSE};
+	struct ConfigBlock *g_block, *t_block[3];
 	enum Keyword const c_blt_mode[] = {
 		KW_BLT_2ESST,
 		KW_BLT_2EVME,
@@ -3016,7 +3015,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	enum Keyword const check_level[] = {KW_OFF, KW_SLOPPY, KW_PARANOID};
 	int signal_polarity[N_CHANNELS];
 	enum Keyword kw_check_level;
-	size_t i;
+	size_t i, t_block_i;
 
 	LOGF(verbose)(LOGL, NAME" get_config {");
 
@@ -3098,8 +3097,8 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    a_module->config.use_user_counter ? "yes" : "no");
 
 	/* Automatic switching */
-	a_module->config.use_auto_bank_switch = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_USE_AUTO_BANK_SWITCH, true_false);
+	a_module->config.use_auto_bank_switch = config_get_boolean(a_block,
+	    KW_USE_AUTO_BANK_SWITCH);
 	LOGF(verbose)(LOGL, "use auto bank switch = %s.",
 	    a_module->config.use_auto_bank_switch ? "yes" : "no");
 
@@ -3173,8 +3172,8 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 		? "EXTERNAL_GATE" : "(simple)");
 
 	/* Termination */
-	a_module->config.use_termination = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_USE_TERMINATION, true_false);
+	a_module->config.use_termination = config_get_boolean(a_block,
+	    KW_USE_TERMINATION);
 	LOGF(verbose)(LOGL, "use termination = %s.",
 	    a_module->config.use_termination ? "yes" : "no");
 
@@ -3233,62 +3232,60 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	}
 
 	/* Accumulator 2 */
-	a_module->config.use_accumulator2 = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_USE_ACCUMULATOR2, true_false);
+	a_module->config.use_accumulator2 = config_get_boolean(a_block,
+	    KW_USE_ACCUMULATOR2);
 	LOGF(verbose)(LOGL, "use accumulator 2 = %s.",
 	    a_module->config.use_accumulator2 ? "yes" : "no");
 
 	/* Accumulator 6 */
-	a_module->config.use_accumulator6 = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_USE_ACCUMULATOR6, true_false);
+	a_module->config.use_accumulator6 = config_get_boolean(a_block,
+	    KW_USE_ACCUMULATOR6);
 	LOGF(verbose)(LOGL, "use accumulator 6 = %s.",
 	    a_module->config.use_accumulator6 ? "yes" : "no");
 
 	/* Read 3 MAW words for better timing */
-	a_module->config.use_maw3 = KW_TRUE == CONFIG_GET_KEYWORD(a_block,
-	    KW_USE_MAW3, true_false);
+	a_module->config.use_maw3 = config_get_boolean(a_block, KW_USE_MAW3);
 	LOGF(verbose)(LOGL, "Use MAW data = %s.",
 	    a_module->config.use_maw3 ? "yes" : "no");
 
 	/* Max E */
-	a_module->config.use_maxe = KW_TRUE == CONFIG_GET_KEYWORD(a_block,
-	    KW_USE_MAXE, true_false);
+	a_module->config.use_maxe = config_get_boolean(a_block, KW_USE_MAXE);
 	LOGF(verbose)(LOGL, "Use max energy = %s.",
 	    a_module->config.use_maxe ? "yes" : "no");
 
 	/* Peak / Charge */
-	a_module->config.use_peak_charge = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_USE_PEAK_CHARGE, true_false);
+	a_module->config.use_peak_charge = config_get_boolean(a_block,
+	    KW_USE_PEAK_CHARGE);
 	LOGF(verbose)(LOGL, "use_peak_charge = %s.",
 	    a_module->config.use_peak_charge ? "yes" : "no");
 
 	/* Write traces raw */
-	a_module->config.write_traces_raw = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_WRITE_TRACES_RAW, true_false);
+	a_module->config.write_traces_raw = config_get_boolean(a_block,
+	    KW_WRITE_TRACES_RAW);
 	LOGF(verbose)(LOGL, "write traces raw = %s.",
 	    a_module->config.write_traces_raw ? "yes" : "no");
 
 	/* Write traces MAW */
-	a_module->config.write_traces_maw = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_WRITE_TRACES_MAW, true_false);
+	a_module->config.write_traces_maw = config_get_boolean(a_block,
+	    KW_WRITE_TRACES_MAW);
 	LOGF(verbose)(LOGL, "write traces maw = %s.",
 	    a_module->config.write_traces_maw ? "yes" : "no");
 
 	/* Write traces MAW energy */
-	a_module->config.write_traces_maw_energy = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_WRITE_TRACES_MAW_ENERGY, true_false);
+	a_module->config.write_traces_maw_energy = config_get_boolean(a_block,
+	    KW_WRITE_TRACES_MAW_ENERGY);
 	LOGF(verbose)(LOGL, "write traces maw energy = %s.",
 	    a_module->config.write_traces_maw_energy ? "yes" : "no");
 
 	/* Write histograms */
-	a_module->config.write_histograms = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_WRITE_HISTOGRAMS, true_false);
+	a_module->config.write_histograms = config_get_boolean(a_block,
+	    KW_WRITE_HISTOGRAMS);
 	LOGF(verbose)(LOGL, "write histograms = %s.",
 	    a_module->config.write_histograms ? "yes" : "no");
 
 	/* FP bus master */
-	a_module->config.is_fpbus_master = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_IS_FPBUS_MASTER, true_false);
+	a_module->config.is_fpbus_master = config_get_boolean(a_block,
+	    KW_IS_FPBUS_MASTER);
 	LOGF(verbose)(LOGL, "is FP bus master = %s.",
 	    a_module->config.is_fpbus_master ? "yes" : "no");
 
@@ -3349,8 +3346,8 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	}
 
 	/* CFD trigger */
-	a_module->config.use_cfd_trigger = KW_TRUE ==
-	    CONFIG_GET_KEYWORD(a_block, KW_USE_CFD_TRIGGER, true_false);
+	a_module->config.use_cfd_trigger = config_get_boolean(a_block,
+	    KW_USE_CFD_TRIGGER);
 	LOGF(verbose)(LOGL, "use_cfd_trigger = %s.",
 	    a_module->config.use_cfd_trigger ? "yes" : "no");
 
@@ -3403,14 +3400,41 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	}
 
 	/* Get TRACES settings */
-	t_block = config_get_block_by_param_keyword(a_block,
-	    KW_TRACES, KW_RAW);
-	if (t_block == 0) {
-		log_die(LOGL, "Missing TRACES(raw) block");
+	{
+		struct ConfigBlock *block;
+
+		for (t_block_i = 0; t_block_i < 3; ++t_block_i) {
+			enum Keyword const kw[] = {
+				KW_RAW, KW_MAW, KW_MAW_ENERGY
+			};
+			enum Keyword name;
+
+			block = 0 == t_block_i ?
+			    config_get_block(a_block, KW_TRACES) :
+			    config_get_block_next(block, KW_TRACES);
+			if (NULL == block) {
+				break;
+			}
+
+			name = CONFIG_GET_BLOCK_PARAM_KEYWORD(block, 0, kw);
+			if (KW_RAW == name) {
+				t_block[0] = block;
+				assert(t_block[0]);
+			} else if (KW_MAW == name) {
+				t_block[1] = block;
+				assert(t_block[1]);
+			} else if (KW_MAW_ENERGY == name) {
+				t_block[2] = block;
+				assert(t_block[2]);
+			} else {
+				log_die(LOGL, "TRACES weird argument=%s.",
+				    keyword_get_string(name));
+			}
+		}
 	}
 
 	/* Sample length RAW */
-	CONFIG_GET_INT_ARRAY(a_module->config.sample_length, t_block,
+	CONFIG_GET_INT_ARRAY(a_module->config.sample_length, t_block[0],
 	    KW_SAMPLE_LENGTH, CONFIG_UNIT_NS, 0,
 	    (1000 / a_module->config.clk_freq) * 33554430);
 	for (i = 0; i < LENGTH(a_module->config.sample_length); ++i) {
@@ -3437,16 +3461,9 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
                 }
 	}
 
-	/* Get TRACES settings */
-	t_block = config_get_block_by_param_keyword(a_block,
-	    KW_TRACES, KW_MAW);
-	if (t_block == 0) {
-		log_die(LOGL, "Missing TRACES(maw) block");
-	}
-
 	/* Sample length MAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.sample_length_maw,
-	    t_block, KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
+	    t_block[1], KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
 	for (i = 0; i < LENGTH(a_module->config.sample_length_maw); ++i) {
 		LOGF(verbose)(LOGL,
 		    "sample_length_maw[%d] = %d.",
@@ -3455,23 +3472,16 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 
 	/* Pretrigger MAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.pretrigger_delay_maw,
-	    t_block, KW_PRETRIGGER_DELAY, CONFIG_UNIT_NONE, 0, 1022);
+	    t_block[1], KW_PRETRIGGER_DELAY, CONFIG_UNIT_NONE, 0, 1022);
 	for (i = 0; i < LENGTH(a_module->config.pretrigger_delay_maw); ++i) {
 		LOGF(verbose)(LOGL,
 		    "pretrigger_delay_maw[%d] = %d.",
 		    (int)i, a_module->config.pretrigger_delay_maw[i]);
 	}
 
-	/* Get TRACES settings */
-	t_block = config_get_block_by_param_keyword(a_block,
-	    KW_TRACES, KW_MAW_ENERGY);
-	if (t_block == 0) {
-		log_die(LOGL, "Missing TRACES(maw_energy) block");
-	}
-
 	/* Sample length MAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.sample_length_maw_e,
-	    t_block, KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
+	    t_block[2], KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
 	for (i = 0; i < LENGTH(a_module->config.sample_length_maw_e); ++i) {
 		LOGF(verbose)(LOGL,
 		    "sample_length_maw_e[%d] = %d.", (int)i,
@@ -3480,7 +3490,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 
 	/* Pretrigger MAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.pretrigger_delay_maw_e,
-	    t_block, KW_PRETRIGGER_DELAY, CONFIG_UNIT_NONE, 0, 1022);
+	    t_block[2], KW_PRETRIGGER_DELAY, CONFIG_UNIT_NONE, 0, 1022);
 	for (i = 0; i < LENGTH(a_module->config.pretrigger_delay_maw_e); ++i) {
 		LOGF(verbose)(LOGL,
 		    "pretrigger_delay_maw_e[%d] = %d.", (int)i,

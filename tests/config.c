@@ -348,6 +348,7 @@ NTEST(IntegerFromDoubleNotOk)
 
 NTEST(UndefinedConfigsShouldSignalButBlockNot)
 {
+	enum Keyword const c_list[] = {KW_WIDTH};
 	int dum;
 
 	(void)dum;
@@ -357,7 +358,7 @@ NTEST(UndefinedConfigsShouldSignalButBlockNot)
 	    0.0, 0.0));
 	NTRY_SIGNAL(dum = config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
 	    0, 0));
-	NTRY_SIGNAL(dum = config_get_keyword_(NULL, KW_WIDTH, 0, NULL));
+	NTRY_SIGNAL(dum = CONFIG_GET_KEYWORD(NULL, KW_WIDTH, c_list));
 	NTRY_SIGNAL(dum = (intptr_t)config_get_string(NULL, KW_WIDTH));
 
 	NTRY_PTR(NULL, ==, config_get_block(NULL, KW_CRATE));

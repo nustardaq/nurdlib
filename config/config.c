@@ -330,26 +330,6 @@ config_get_block_next(struct ConfigBlock *a_current, enum Keyword a_name)
 	return NULL;
 }
 
-struct ConfigBlock *
-config_get_block_by_param_keyword(struct ConfigBlock *a_current, enum Keyword
-    a_name, enum Keyword a_param_keyword)
-{
-	struct ConfigBlock *result;
-
-	for (result = config_get_block(a_current, a_name); NULL != result;
-	    result = config_get_block_next(result, a_name)) {
-		enum Keyword param_keyword;
-
-		param_keyword = config_get_block_param_keyword_(result, 0, 0,
-		    NULL);
-		if (a_param_keyword == param_keyword) {
-			return result;
-		}
-	}
-	log_die(LOGL, "Couldn't find block with parameter keyword '%s'.",
-	    keyword_get_string(a_param_keyword));
-}
-
 int
 config_get_block_param_exists(struct ConfigBlock const *a_parent, unsigned
     a_index)
