@@ -27,6 +27,6 @@ struct Crate;
 struct EventBuffer;
 
 uint32_t	gsi_kilom_temp_read(struct Crate *, struct EventBuffer *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 
 #endif
