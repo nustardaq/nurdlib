@@ -32,8 +32,8 @@ static struct {
 static size_t	g_num;
 
 void
-log_intercept(char const *a_file, unsigned a_line_no, unsigned a_level, char
-    const *a_str)
+log_intercept(char const *a_file, int a_line_no, unsigned a_level, char const
+    *a_str)
 {
 	(void)a_file;
 	(void)a_line_no;

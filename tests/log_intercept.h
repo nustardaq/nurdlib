@@ -25,7 +25,7 @@
 
 #include <stdlib.h>
 
-void		log_intercept(char const *, unsigned, unsigned, char const *);
+void		log_intercept(char const *, int, unsigned, char const *);
 void		log_intercept_clear(void);
 unsigned	log_intercept_get_level(size_t);
 char const	*log_intercept_get_str(size_t);

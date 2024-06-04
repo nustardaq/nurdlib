@@ -93,7 +93,7 @@ int		f_user_readout(unsigned char, unsigned char, register long *,
 int		f_user_trig_clear(unsigned char);
 
 static void	dt_release(void *);
-static void	log_callback(char const *, unsigned, unsigned, char const *);
+static void	log_callback(char const *, int, unsigned, char const *);
 
 /* Nurdlib crate context. */
 static struct Crate *g_crate;
@@ -424,8 +424,8 @@ untriggered_loop(int *start_no_stop)
 #endif
 
 void
-log_callback(char const *a_file, unsigned a_line_no, unsigned a_level, char
-    const *a_str)
+log_callback(char const *a_file, int a_line_no, unsigned a_level, char const
+    *a_str)
 {
 #if FUSER_DRASI
 	int lwroc_log_lvl;
@@ -465,6 +465,6 @@ log_callback(char const *a_file, unsigned a_line_no, unsigned a_level, char
 		str_l = "????";
 		break;
 	}
-	printm("%s:%s: %s (%s:%u)", str_t, str_l, a_str, a_file, a_line_no);
+	printm("%s:%s: %s (%s:%d)", str_t, str_l, a_str, a_file, a_line_no);
 #endif
 }

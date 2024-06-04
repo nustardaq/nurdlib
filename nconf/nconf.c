@@ -87,7 +87,7 @@ static char *g_dst_path;
 static char *g_nconfing_path;
 static char *g_nconfing_nconf_path;
 static char *g_log_path;
-static unsigned g_line_no;
+static int g_line_no;
 static char *g_module;
 static char *g_branch;
 static struct VarArray g_vars[VAR_SRC + 1];
@@ -649,7 +649,7 @@ try_module_branch(char const *a_line)
 
 	for (start = p;; ++p) {
 		if ('\0' == *p) {
-			fprintf(stderr, "%s:%u: Missing branch.\n",
+			fprintf(stderr, "%s:%d: Missing branch.\n",
 			    g_input_path, g_line_no);
 			exit(EXIT_FAILURE);
 		}
@@ -728,14 +728,14 @@ try_var(char const *a_line)
 		g_noexec = 1;
 		return 1;
 	} else {
-		fprintf(stderr, "%s:%u: Invalid NCONF_var.\n", g_input_path,
+		fprintf(stderr, "%s:%d: Invalid NCONF_var.\n", g_input_path,
 		    g_line_no);
 		exit(EXIT_FAILURE);
 	}
 	for (; isspace(*p); ++p)
 		;
 	if ('=' != *p) {
-		fprintf(stderr, "%s:%u: Missing '='.\n", g_input_path,
+		fprintf(stderr, "%s:%d: Missing '='.\n", g_input_path,
 		    g_line_no);
 		exit(EXIT_FAILURE);
 	}
@@ -743,7 +743,7 @@ try_var(char const *a_line)
 		;
 	p = extract_args(&g_vars[var_i], p);
 	if ('\0' == *p) {
-		fprintf(stderr, "%s:%u: EOL.\n", g_input_path, g_line_no);
+		fprintf(stderr, "%s:%d: EOL.\n", g_input_path, g_line_no);
 		exit(EXIT_FAILURE);
 	}
 	return 1;
@@ -999,7 +999,7 @@ main(int argc, char **argv)
 
 		if (NULL == fgets(line, sizeof line, file)) {
 			if (ferror(file)) {
-				err_("%s:%u: fgets", g_input_path, g_line_no);
+				err_("%s:%d: fgets", g_input_path, g_line_no);
 			}
 			break;
 		}

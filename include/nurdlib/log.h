@@ -32,12 +32,12 @@
 #define LOGF(level)\
     if (log_level_is_visible(g_log_level_##level##_)) log_##level##_printf_
 #define LOGL (void *)__FILE__, __LINE__
-#define LOGL_ARGS struct LogFile const *, unsigned
+#define LOGL_ARGS struct LogFile const *, int
 
 struct LogFile;
 struct LogLevel;
 
-typedef void (*LogCallback)(char const *, unsigned, unsigned, char const *);
+typedef void (*LogCallback)(char const *, int, unsigned, char const *);
 
 #define LOG_LEVEL_DECLARE_(name)\
 extern struct LogLevel const *const g_log_level_##name##_;\

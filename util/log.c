@@ -42,10 +42,9 @@ struct LogLevel {
 	unsigned	index;
 };
 
-static void	callback_stdio(char const *, unsigned, unsigned, char const
-    *);
-static void	print(struct LogFile const *, unsigned, enum Keyword, char
-    const *, va_list) FUNC_PRINTF(4, 0);
+static void	callback_stdio(char const *, int, unsigned, char const *);
+static void	print(struct LogFile const *, int, enum Keyword, char const *,
+    va_list) FUNC_PRINTF(4, 0);
 
 #define LOG_LEVEL_DEFINE(name, index)\
     static struct LogLevel const g_##name##_ = {index};\
@@ -61,8 +60,8 @@ static LogCallback g_callback = callback_stdio;
 static enum SuppressState g_suppress_state;
 
 void
-callback_stdio(char const *a_file, unsigned a_line_no, unsigned a_level, char
-    const *a_str)
+callback_stdio(char const *a_file, int a_line_no, unsigned a_level, char const
+    *a_str)
 {
 	struct tm tm;
 	time_t t_now;
@@ -94,8 +93,7 @@ log_callback_set(LogCallback a_callback)
 }
 
 void
-log_die(struct LogFile const *a_file, unsigned a_line_no, char const *a_fmt,
-    ...)
+log_die(struct LogFile const *a_file, int a_line_no, char const *a_fmt, ...)
 {
 	va_list args;
 
@@ -107,8 +105,8 @@ log_die(struct LogFile const *a_file, unsigned a_line_no, char const *a_fmt,
 }
 
 void
-log_dump(struct LogFile const *a_file, unsigned a_line_no, void const
-    *a_start, size_t a_bytes)
+log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
+    size_t a_bytes)
 {
 	char line[80];
 	void const *p;
@@ -183,8 +181,7 @@ log_dump(struct LogFile const *a_file, unsigned a_line_no, void const
 }
 
 void
-log_error(struct LogFile const *a_file, unsigned a_line_no, char const *a_fmt,
-    ...)
+log_error(struct LogFile const *a_file, int a_line_no, char const *a_fmt, ...)
 {
 	va_list args;
 
@@ -194,8 +191,8 @@ log_error(struct LogFile const *a_file, unsigned a_line_no, char const *a_fmt,
 }
 
 void
-log_errorv(struct LogFile const *a_file, unsigned a_line_no, char const
-    *a_fmt, va_list a_args)
+log_errorv(struct LogFile const *a_file, int a_line_no, char const *a_fmt,
+    va_list a_args)
 {
 	print(a_file, a_line_no, KW_ERROR, a_fmt, a_args);
 }
@@ -268,8 +265,8 @@ log_printerv(char const *a_fmt, va_list a_args)
 
 #define LOG_PRINTF_DEFINE(name, level)\
 void \
-log_##name##_printf_(struct LogFile const *a_file, unsigned a_line_no, char \
-    const *a_fmt, ...)\
+log_##name##_printf_(struct LogFile const *a_file, int a_line_no, char const \
+    *a_fmt, ...)\
 {\
 	va_list args;\
 \
@@ -288,7 +285,7 @@ log_##name##_printf_(struct LogFile const *a_file, unsigned a_line_no, char \
 	}\
 	va_end(args);\
 }\
-void log_##name##_printf_(struct LogFile const *, unsigned, char const *, ...)
+void log_##name##_printf_(struct LogFile const *, int, char const *, ...)
 LOG_PRINTF_DEFINE(info, KW_INFO);
 LOG_PRINTF_DEFINE(verbose, KW_VERBOSE);
 LOG_PRINTF_DEFINE(debug, KW_DEBUG);
@@ -317,8 +314,8 @@ log_suppress_all_levels(int a_yes)
  * If the last character is a '}', indent is decreased.
  */
 void
-print(struct LogFile const *a_file, unsigned a_line_no, enum Keyword a_level,
-    char const *a_fmt, va_list a_args)
+print(struct LogFile const *a_file, int a_line_no, enum Keyword a_level, char
+    const *a_fmt, va_list a_args)
 {
 	char buf[1024];
 	size_t ofs;

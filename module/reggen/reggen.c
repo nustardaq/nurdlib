@@ -233,8 +233,8 @@ main(int argc, char **argv)
 	size_t name_len, len;
 	ssize_t idx_addr, idx_bits, idx_mod, idx_name, idx_step;
 	size_t idx_ofs[5];
-	unsigned line_no, idx_num, i;
-	int camel_up;
+	unsigned idx_num, i;
+	int camel_up, line_no;
 
 	if (3 != argc) {
 		usage();
@@ -366,7 +366,7 @@ main(int argc, char **argv)
 				break;
 			}
 			if (LENGTH(token) == token_num) {
-				die("%s:%u: Too many tokens.",
+				die("%s:%d: Too many tokens.",
 				    g_path_in, line_no);
 			}
 			token[token_num++] = p;
@@ -379,7 +379,7 @@ main(int argc, char **argv)
 			continue;
 		}
 		if (token_num < idx_num) {
-			die("%s:%u: Expected at least %u tokens, got %u.",
+			die("%s:%d: Expected at least %u tokens, got %u.",
 			    g_path_in, line_no, idx_num, token_num);
 		}
 
@@ -394,7 +394,7 @@ main(int argc, char **argv)
 		/* Address. */
 		addr = strtol(token[idx_ofs[idx_addr]], &p, 0);
 		if (p == token[idx_ofs[idx_addr]]) {
-			die("%s:%u: Invalid address.", g_path_in, line_no);
+			die("%s:%d: Invalid address.", g_path_in, line_no);
 		}
 		is_range = 0;
 		addr_end = 0;
@@ -411,7 +411,7 @@ main(int argc, char **argv)
 		} else if (bits <= 32) {
 			bits = 32;
 		} else {
-			die("%s:%u: Cannot handle bitsizes > 32!",
+			die("%s:%d: Cannot handle bitsizes > 32!",
 			    g_path_in, line_no);
 		}
 
@@ -423,7 +423,7 @@ main(int argc, char **argv)
 		}
 		if (strstr(p, "r")) {
 			if (MAP_MOD_R & mod) {
-				die("%s:%u: Cannot have both 'R' and 'r' "
+				die("%s:%d: Cannot have both 'R' and 'r' "
 				    " register modifiers.",
 				    g_path_in, line_no);
 			}
@@ -462,13 +462,13 @@ main(int argc, char **argv)
 					break;
 				case '[':
 					if (is_range) {
-						die("%s:%u: Both length and "
+						die("%s:%d: Both length and "
 						    "range.",
 						    g_path_in, line_no);
 					}
 					length = strtol(rp, &end, 10);
 					if (rp == end || ']' != *end) {
-						die("%s:%u: Invalid array.",
+						die("%s:%d: Invalid array.",
 						    g_path_in, line_no);
 					}
 					rp = end + 1;

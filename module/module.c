@@ -127,7 +127,7 @@ module_get_type(struct Module const *a_module)
 }
 
 void
-module_parse_error(struct LogFile const *a_file, unsigned a_line, struct
+module_parse_error(struct LogFile const *a_file, int a_line, struct
     EventConstBuffer const *a_event_buffer, void const *a_p, char const
     *a_fmt, ...)
 {
