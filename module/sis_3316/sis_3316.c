@@ -3004,7 +3004,7 @@ void
 sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
     *a_block)
 {
-	struct ConfigBlock *g_block, *t_block[3];
+	struct ConfigBlock *g_block, *t_block[3] = {0};
 	enum Keyword const c_blt_mode[] = {
 		KW_BLT_2ESST,
 		KW_BLT_2EVME,
