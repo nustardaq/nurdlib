@@ -50,94 +50,115 @@ typedef void		(*CvtSetCallback)(struct Module *, unsigned);
 typedef uint32_t	(*ScalerGetCallback)(struct Module *, void *, struct
     Counter *) FUNC_RETURNS;
 
-unsigned		crate_acvt_get_ns(struct Crate const *) FUNC_RETURNS;
-void			crate_acvt_grow(struct Crate *);
-int			crate_acvt_has(struct Crate const *) FUNC_RETURNS;
+unsigned		crate_acvt_get_ns(struct Crate const *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+void			crate_acvt_grow(struct Crate *) FUNC_NONNULL(());
+int			crate_acvt_has(struct Crate const *) FUNC_NONNULL(())
+	FUNC_RETURNS;
 void			crate_acvt_set(struct Crate *, struct Module *,
-    CvtSetCallback);
+    CvtSetCallback) FUNC_NONNULL(());
 
 struct Crate		*crate_create(void) FUNC_RETURNS;
-void			crate_deinit(struct Crate *);
-void			crate_free(struct Crate **);
+void			crate_deinit(struct Crate *) FUNC_NONNULL(());
+void			crate_free(struct Crate **) FUNC_NONNULL(());
 
 struct CrateCounter	*crate_counter_get(struct Crate *, char const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 uint32_t		crate_counter_get_diff(struct CrateCounter const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 
-int			crate_dt_is_on(struct Crate const *);
-void			crate_dt_release_inhibit_once(struct Crate *);
+int			crate_dt_is_on(struct Crate const *) FUNC_NONNULL(());
+void			crate_dt_release_inhibit_once(struct Crate *)
+	FUNC_NONNULL(());
 void			crate_dt_release_set_func(struct Crate *, void
-    (*)(void *), void *);
+    (*)(void *), void *) FUNC_NONNULL(());
 
-int			crate_free_running_get(struct Crate *) FUNC_RETURNS;
-void			crate_free_running_set(struct Crate *, int);
+int			crate_free_running_get(struct Crate *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+void			crate_free_running_set(struct Crate *, int)
+	FUNC_NONNULL(());
 
 int			crate_get_do_shadow(struct Crate const *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+char const		*crate_get_name(struct Crate const *) FUNC_NONNULL(())
 	FUNC_RETURNS;
-char const		*crate_get_name(struct Crate const *) FUNC_RETURNS;
 struct CrateTag		*crate_get_tag_by_name(struct Crate *, char const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL((1)) FUNC_RETURNS;
 
-struct PnpiCros3Crate	*crate_get_cros3_crate(struct Crate *) FUNC_RETURNS;
-struct GsiCTDCCrate	*crate_get_ctdc_crate(struct Crate *) FUNC_RETURNS;
-struct GsiFebexCrate	*crate_get_febex_crate(struct Crate *) FUNC_RETURNS;
-struct GsiKilomCrate	*crate_get_kilom_crate(struct Crate *) FUNC_RETURNS;
+struct PnpiCros3Crate	*crate_get_cros3_crate(struct Crate *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+struct GsiCTDCCrate	*crate_get_ctdc_crate(struct Crate *) FUNC_NONNULL(())
+	FUNC_RETURNS;
+struct GsiFebexCrate	*crate_get_febex_crate(struct Crate *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+struct GsiKilomCrate	*crate_get_kilom_crate(struct Crate *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
 struct GsiMppcRobCrate	*crate_get_mppc_rob_crate(struct Crate *)
-	FUNC_RETURNS;
-struct GsiSideremCrate	*crate_get_siderem_crate(struct Crate *) FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
+struct GsiSideremCrate	*crate_get_siderem_crate(struct Crate *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
 struct GsiTacquilaCrate	*crate_get_tacquila_crate(struct Crate *)
-	FUNC_RETURNS;
-struct GsiTamexCrate	*crate_get_tamex_crate(struct Crate *) FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
+struct GsiTamexCrate	*crate_get_tamex_crate(struct Crate *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
 
 /* GSI MBS information sharing. */
-unsigned		crate_gsi_mbs_trigger_get(struct Crate const *);
-void			crate_gsi_mbs_trigger_set(struct Crate *, unsigned);
-struct GsiPex		*crate_gsi_pex_get(struct Crate const *) FUNC_RETURNS;
+unsigned		crate_gsi_mbs_trigger_get(struct Crate const *)
+	FUNC_NONNULL(());
+void			crate_gsi_mbs_trigger_set(struct Crate *, unsigned)
+	FUNC_NONNULL(());
+struct GsiPex		*crate_gsi_pex_get(struct Crate const *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
 
-void			crate_init(struct Crate *);
-void			crate_memtest(struct Crate const *const, const int);
+void			crate_init(struct Crate *) FUNC_NONNULL(());
+void			crate_memtest(struct Crate const *const, const int)
+	FUNC_NONNULL(());
 
 /* Finds the n:th (0-based) module of a specific type. */
 struct Module		*crate_module_find(struct Crate const *, enum Keyword,
-    unsigned) FUNC_RETURNS;
+    unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 /* Puts the last read out data range into the event-buffer. */
 void			crate_module_get_event_buffer(struct EventConstBuffer
-    *, struct Module const *);
+    *, struct Module const *) FUNC_NONNULL(());
 /* Returns the total number of modules. */
 size_t			crate_module_get_num(struct Crate const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 void			crate_module_remap_id(struct Crate *, unsigned,
-    unsigned);
+    unsigned) FUNC_NONNULL(());
 
 /* Crate-wide readout and verification inside dead-time. */
-uint32_t		crate_readout_dt(struct Crate *) FUNC_RETURNS;
+uint32_t		crate_readout_dt(struct Crate *) FUNC_NONNULL(())
+	FUNC_RETURNS;
 /* Readout that may happen outside dead-time. */
 uint32_t		crate_readout(struct Crate *, struct EventBuffer *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 /* Modules read out, do some final touches before the next event. */
-void			crate_readout_finalize(struct Crate *);
+void			crate_readout_finalize(struct Crate *)
+	FUNC_NONNULL(());
 
 void			crate_scaler_add(struct Crate *, char const *, struct
-    Module *, void *, ScalerGetCallback);
+    Module *, void *, ScalerGetCallback) FUNC_NONNULL(());
 
 void			crate_setup(void);
 
 /* Sync channels. */
-int			crate_sync_get(struct Crate *, unsigned, int *);
-void			crate_sync_push(struct Crate *, int);
+int			crate_sync_get(struct Crate *, unsigned, int *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+void			crate_sync_push(struct Crate *, int) FUNC_NONNULL(());
 
 void			crate_tag_counter_increase(struct Crate *, struct
-    CrateTag *, unsigned);
+    CrateTag *, unsigned) FUNC_NONNULL(());
 unsigned		crate_tag_get_event_max(struct CrateTag const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 size_t			crate_tag_get_module_num(struct CrateTag const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 char const		*crate_tag_get_name(struct CrateTag const *)
-	FUNC_RETURNS;
+	FUNC_NONNULL(()) FUNC_RETURNS;
 
 /* Pedestal readout and update. */
-void			crate_tag_pedestal_prepare(struct CrateTag *);
-void			crate_tag_pedestal_update(struct CrateTag *);
+void			crate_tag_pedestal_prepare(struct CrateTag *)
+	FUNC_NONNULL(());
+void			crate_tag_pedestal_update(struct CrateTag *)
+	FUNC_NONNULL(());
 
 #endif

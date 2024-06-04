@@ -355,9 +355,6 @@ crate_counter_get(struct Crate *a_crate, char const *a_name)
 uint32_t
 crate_counter_get_diff(struct CrateCounter const *a_counter)
 {
-	if (NULL == a_counter) {
-		return 0;
-	}
 	return COUNTER_DIFF_RAW(a_counter->cur, a_counter->prev);
 }
 
