@@ -103,6 +103,7 @@ struct Sis3316Config {
 	uint32_t	sample_length_maw[N_ADCS];	/* 0,2..2048 */
 	uint32_t	sample_length_maw_e[N_ADCS];	/* 0,2..2048 */
 	uint32_t	async_max_events;
+	uint32_t	header_length[N_ADCS]; /* Gets set on module init() */
 	uint32_t	event_length[N_ADCS]; /* Gets set on module init() */
 	uint32_t	signal_decaytime[N_CHANNELS];
 	uint32_t	range[N_ADCS];

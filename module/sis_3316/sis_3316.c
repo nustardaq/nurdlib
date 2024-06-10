@@ -24,7 +24,6 @@
 
 #include <module/sis_3316/sis_3316.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <limits.h>
 #include <module/map/map.h>
@@ -40,6 +39,7 @@
 #include <util/bits.h>
 #include <util/fmtmod.h>
 #include <util/time.h>
+#include <math.h>
 
 /*
  * Options
@@ -163,6 +163,7 @@ void sis_3316_disarm(struct Sis3316Module *);
 void sis_3316_adjust_address_threshold(struct Sis3316Module *, double);
 void sis_3316_configure_external_clock_input(struct Sis3316Module *);
 uint32_t sis_rataclock_firmware_check(uint32_t firmware);
+uint32_t extract_bit_range(uint32_t word, uint32_t first_bit, uint32_t last_bit); /* if deemed useful, this function should to general utilities - whereever this is */
 
 #define CHECK_REG_SET_MASK(reg, val, mask) do { \
 		uint32_t reg_; \
@@ -732,21 +733,22 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 
 	for (i = 0; i < N_ADCS; ++i) {
 		uint32_t data;
+		m->config.header_length[i] = header_length;
+		/* additional header for averaging mode */
+		if (m->config.average_mode[i] != 0) {
+			m->config.header_length[i] += 1;
+		}
 		/* Length of a single event */
-		m->config.event_length[i] = header_length
+		m->config.event_length[i] = m->config.header_length[i]
 		    + m->config.sample_length[i] / 2
 		    + m->config.average_length[i] / 2
 		    + m->config.sample_length_maw[i];
-		LOGF(verbose)(LOGL, "Event length %d = %d (raw=%d,avg=%d,maw=%d)",
+		LOGF(verbose)(LOGL, "Event length %d = %d (header=%d,raw=%d,avg=%d,maw=%d)",
 		    i, m->config.event_length[i],
+			m->config.header_length[i],
 		    m->config.sample_length[i] / 2,
 		    m->config.average_length[i] / 2,
 		    m->config.sample_length_maw[i]);
-
-		/* additional header for averaging mode */
-		if (m->config.average_mode[i] != 0) {
-			m->config.event_length[i] += 1;
-		}
 
 		MAP_WRITE(m->sicy_map, fpga_adc_data_format_config(i),
 		    data_format);
@@ -2887,11 +2889,11 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 
 		/* timestamp 1 */
 		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		/* timestamp 2 */
 		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 
 		if (a_sis3316->config.use_accumulator2 == 1 ||
@@ -2903,21 +2905,21 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 			for (i = 0; i < 9; ++i) {
 				/* peak + gates */
 				*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-				    adc_fifo_memory_fifo(adc), adc_mem_i);
+				    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 				++adc_mem_i;
 			}
 		}
 
 		/* baseline */
 		baseline = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		*outp++ = baseline;
 		LOGF(spam)(LOGL, "baseline = 0x%08x", baseline);
 
 		/* energy */
 		energy = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		*outp++ = energy;
 		LOGF(spam)(LOGL, "energy = 0x%08x", energy);
@@ -2925,7 +2927,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		/* header_end */
 		header_end_ptr = outp; /* save this memory location for later */
 		header_end = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		*outp++ = header_end;
 		LOGF(spam)(LOGL, "header_end = 0x%08x", header_end);
@@ -2935,18 +2937,18 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 
 		/* average samples */
 		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		/* adc data */
 		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i);
+		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 
 		/* this need not be read, when reading gates */
 		if (a_sis3316->config.use_accumulator6 == 0) {
 			/* adc data */
 			*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-			    adc_fifo_memory_fifo(adc), adc_mem_i);
+			    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 			++adc_mem_i;
 		}
 
@@ -2978,7 +2980,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 				LOGF(spam)(LOGL, "Rewriting avg_samples_ptr: %08x",
 				    *avg_samples_ptr);
 
-				*header_end_ptr =  0xa0000000; /* status flag always 0 here */
+				*header_end_ptr =  0xa2000000; /* status flag always 0 here */
 				if (a_sis3316->config.use_accumulator6 == 0) {
 					*avg_samples_ptr = 0xe0000002; /* two data words following */
 				} else {
@@ -3351,15 +3353,29 @@ err:
 	log_die(LOGL, "Corrupt data.");
 }
 
+/* if deemed useful, this function should to general utilities - whereever this is */
+uint32_t extract_bit_range(uint32_t word, uint32_t first_bit, uint32_t last_bit) {
+	return (uint32_t)((word & BITS_MASK(first_bit, last_bit)) / (uint32_t)pow(2, first_bit));
+}
+
 void
 sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
     struct EventConstBuffer *a_event_buffer)
 {
 	uint32_t const *p;
-	uint32_t raw_buffer_words;
-	uint32_t maw_buffer_words;
-	uint32_t avg_buffer_words;
+
+	uint32_t header_words;
+	uint32_t buffer_words_raw;
+	uint32_t buffer_words_maw;
+	uint32_t buffer_words_avg;
 	int adc;
+
+	uint32_t header_word;
+	uint32_t payload_raw = 0;
+	uint32_t payload_avg = 0;
+	uint32_t payload_maw = 0;
+	uint32_t discarded_event = 0;
+	uint32_t total_event_length = 0;
 
 	LOGF(spam)(LOGL, NAME" check_channel_hit[%d] {", a_hit);
 
@@ -3367,61 +3383,97 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 
 	adc = a_ch/4;
 
-	raw_buffer_words = a_sis3316->config.sample_length[adc]/2;
-	avg_buffer_words = a_sis3316->config.average_length[adc]/2;
-	maw_buffer_words = a_sis3316->config.sample_length_maw[adc];
+	header_words = a_sis3316->config.header_length[adc];
+	buffer_words_raw = a_sis3316->config.sample_length[adc]/2;
+	buffer_words_avg = a_sis3316->config.average_length[adc]/2;
+	buffer_words_maw = a_sis3316->config.sample_length_maw[adc];
 
-	/* Check hit data end. */
+	/* check header */
 	if (a_sis3316->config.check_level >= CL_SLOPPY) {
-		int header_length;
-		header_length = a_sis3316->config.event_length[adc]
-			- raw_buffer_words - maw_buffer_words - avg_buffer_words;
-		p += (header_length - 1);
-		if (((*p >> 28) & 0xf) != 0xe) {
+		header_word = *p;
+		if (extract_bit_range(header_word, 4, 7) != (uint32_t)a_ch) {
 			log_error(LOGL,
-			    " header end not found, instead 0x%08x", *p);
-			log_error(LOGL, " header length = %d", header_length);
+			    " first header word has wrong channel number, expected: %u, instead: %u, header word: 0x%08x", a_ch, extract_bit_range(header_word, 4, 7), header_word);
 			goto err;
 		}
-		++p;
+		header_word = *(p + header_words - 1);
+		if (extract_bit_range(header_word, 28, 31) != 0xe) {
+			log_error(LOGL,
+			    " last header word has wrong content, expected: 0x%01x, instead: 0x%01x, header word: 0x%08x", 0xe, extract_bit_range(header_word, 28, 31), header_word);
+			goto err;
+		}
+		if (buffer_words_avg > 0) {
+			header_word = *(p + header_words - 2);
+			if (extract_bit_range(header_word, 28, 31) != 0xa) {
+				log_error(LOGL,
+			    	" average mode set, but not found in header, expected: 0x%08x, instead: 0x%08x, header word: 0x%08x", 0xa, extract_bit_range(header_word, 28, 31), header_word);
+				goto err;
+			}
+		}
 	}
 
-	/* Skip raw sample buffer. */
+	/* check for possible discarded event */
+	if (((a_sis3316->config.discard_data >> a_ch) & 1) == 1) {
+		if (buffer_words_avg > 0) {
+			header_word = *(p + header_words - 2);
+			discarded_event = extract_bit_range(header_word, 25, 25); /* using one of the two overhead bits to flag a discarded event */
+		}
+		else {
+			header_word = *(p + header_words - 1);
+			discarded_event = extract_bit_range(header_word, 25, 25); /* using one of the two overhead bits to flag a discarded event */			
+		}
+	}
+
+	if (discarded_event == 0) {
+		/* event payload (raw and avg) according to header */
+		uint32_t header_word_raw = 0;
+		uint32_t header_word_avg = 0;
+		if (buffer_words_avg > 0) {
+			header_word_raw = *(p + header_words - 2);
+			payload_raw = extract_bit_range(header_word_raw, 0, 23); /* manual p. 160/193: maximum avg sample length is 33.554.430 -> maximum word length -> 2^24 -> only bits 0 to 23 do matter, bit 24 and 25 are overhead */
+			header_word_avg = *(p + header_words - 1);
+			payload_avg = extract_bit_range(header_word_avg, 0, 14); /* manual p. 146/193: maximum avg sample length is 65534 -> maximum word length -> 2^15 -> only bits 0 to 14 do matter, bit 15 is overhead */
+		}
+		else {
+			header_word_raw = *(p + header_words - 1);
+			payload_raw = extract_bit_range(header_word_raw, 0, 23); /* manual p. 160/193: maximum avg sample length is 33.554.430 -> maximum word length -> 2^24 -> only bits 0 to 23 do matter, bit 24 and 25 are overhead */
+		}
+		payload_maw = buffer_words_maw;
+		/* Check paranoid (also payload in buffer) */
+		if (a_sis3316->config.check_level >= CL_PARANOID) {			
+			if (payload_raw != buffer_words_raw) {
+				{
+					log_error(LOGL,
+			    	" raw payload in header looks fishy, expected: %u, instead: %u, header word: 0x%08x", payload_raw, buffer_words_raw, header_word_raw);
+					goto err;
+				}				
+			}
+			if (payload_avg != buffer_words_avg) {
+				{
+					log_error(LOGL,
+			    	" avg payload in header looks fishy, expected: %u, instead: %u, header word: 0x%08x", payload_avg, buffer_words_avg, header_word_avg);
+					goto err;
+				}				
+			}
+
+		}
+		total_event_length = header_words + payload_maw + payload_avg + payload_raw;
+	}
+	else {
+		header_word = *(p + header_words - 1);
+		total_event_length = header_words + extract_bit_range(header_word, 0, 14); /* if discarded event, some samples might be attached just for padding */
+		printf("discarded event: a_ch, a_hit, adc %u %u %u , header word: 0x%08x \n", a_ch, a_hit, adc, header_word);
+	}
+
 	if (a_sis3316->config.check_level >= CL_PARANOID) {
-		if (!MEMORY_CHECK(*a_event_buffer, &p[raw_buffer_words - 1]))
+		if (!MEMORY_CHECK(*a_event_buffer, &p[total_event_length - 1]))
 		{
 			log_error(LOGL,
-			    "Expected raw data buffer, but reached end "
-			    "early.");
+			    	" event length in buffer shorter than expected, expected total length: %u, of which %u header and %u payload ", total_event_length, header_words, total_event_length - header_words);
 			goto err;
 		}
 	}
-	p += raw_buffer_words;
-
-	/* Skip avg sample buffer. */
-	if (a_sis3316->config.check_level >= CL_PARANOID) {
-		if (!MEMORY_CHECK(*a_event_buffer, &p[avg_buffer_words - 1]))
-		{
-			log_error(LOGL,
-			    "Expected avg data buffer, but reached end "
-			    "early.");
-			goto err;
-		}
-	}
-	p += avg_buffer_words;
-
-	/* Skip maw sample buffer. */
-	if (a_sis3316->config.check_level >= CL_PARANOID) {
-		if (!MEMORY_CHECK(*a_event_buffer, &p[maw_buffer_words - 1]))
-		{
-			log_error(LOGL,
-			    "Expected maw data buffer, but reached end "
-			    "early.");
-			goto err;
-		}
-	}
-	p += maw_buffer_words;
-
+	p += total_event_length;
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p);
 	LOGF(spam)(LOGL, NAME" check_channel_hit }");
 	return;
