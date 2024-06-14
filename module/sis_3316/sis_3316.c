@@ -4025,7 +4025,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 
 	/* Pretrigger RAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.pretrigger_delay,
-	    t_block, KW_PRETRIGGER_DELAY, CONFIG_UNIT_NS, 0,
+	    t_block[0], KW_PRETRIGGER_DELAY, CONFIG_UNIT_NS, 0,
 	    (1000 / a_module->config.clk_freq) * 16378);
 	for (i = 0; i < LENGTH(a_module->config.pretrigger_delay); ++i) {
 		LOGF(verbose)(LOGL, "pretrigger_delay[%d] = %d ns.",
