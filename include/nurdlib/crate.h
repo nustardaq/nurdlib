@@ -71,7 +71,7 @@ int			crate_dt_is_on(struct Crate const *) FUNC_NONNULL(());
 void			crate_dt_release_inhibit_once(struct Crate *)
 	FUNC_NONNULL(());
 void			crate_dt_release_set_func(struct Crate *, void
-    (*)(void *), void *) FUNC_NONNULL(());
+    (*)(void *), void *) FUNC_NONNULL((1,2));
 
 int			crate_free_running_get(struct Crate *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
