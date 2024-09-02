@@ -39,6 +39,7 @@
 #include <util/err.h>
 #include <util/fmtmod.h>
 #include <util/math.h>
+#include <util/memcpy.h>
 #include <util/pack.h>
 #include <util/string.h>
 
@@ -245,7 +246,7 @@ main(int argc, char **argv)
 
 				len = p - str;
 				g_host = malloc(len + 1);
-				memcpy(g_host, str, len);
+				memcpy_(g_host, str, len);
 				g_host[len] = '\0';
 				g_port = strtol(p + 1, &end, 10);
 				if (p + 1 == end) {
@@ -425,7 +426,7 @@ main(int argc, char **argv)
 				if (sizeof buf <= len) {
 					usage("Weird goc arguments.");
 				}
-				memcpy(buf, p, len);
+				memcpy_(buf, p, len);
 				buf[len] = '\0';
 				args[argn++] = strtol(buf, &end, 0);
 				if ('\0' != *end) {

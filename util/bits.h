@@ -43,8 +43,10 @@
 
 int	bits_get_count(uint32_t) FUNC_PURE FUNC_RETURNS;
 
+#ifdef htonl
+#	undef htonl
+#endif
 #define htonl PLEASE_USE_htonl_
-
 uint32_t	htonl_(uint32_t);
 
 #endif

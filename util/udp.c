@@ -332,13 +332,13 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 		addri.ai_family = get_family(a_flags);
 		addri.ai_socktype = SOCK_DGRAM;
 		addri.ai_protocol = IPPROTO_UDP;
-		snprintf(port_str, sizeof port_str, "%d", a_port);
+		snprintf_(port_str, sizeof port_str, "%d", a_port);
 		ret = getaddrinfo(a_hostname, port_str, &addri, &result);
 		if (0 != ret) {
 			gaif(ret, "%s:%s", a_hostname, port_str);
 			goto udp_address_create_fail;
 		}
-		memcpy(&addr->addr, result->ai_addr, result->ai_addrlen);
+		memcpy_(&addr->addr, result->ai_addr, result->ai_addrlen);
 		addr->len = result->ai_addrlen;
 		freeaddrinfo(result);
 	}
@@ -443,7 +443,7 @@ udp_client_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 		addri.ai_family = get_family(a_flags);
 		addri.ai_socktype = SOCK_DGRAM;
 		addri.ai_protocol = IPPROTO_UDP;
-		snprintf(port_str, sizeof port_str, "%d", a_port);
+		snprintf_(port_str, sizeof port_str, "%d", a_port);
 		ret = getaddrinfo(a_hostname, port_str, &addri, &result);
 		if (0 != ret) {
 			gaif(ret, "%s:%s", a_hostname, port_str);
@@ -575,7 +575,7 @@ udp_server_create(unsigned a_flags, uint16_t a_port)
 		char port_str[10];
 		struct addrinfo *result, *p;
 
-		snprintf(port_str, sizeof port_str, "%d", a_port);
+		snprintf_(port_str, sizeof port_str, "%d", a_port);
 		ZERO(addri);
 		addri.ai_family = get_family(a_flags);
 		addri.ai_socktype = SOCK_DGRAM;

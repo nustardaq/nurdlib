@@ -33,6 +33,7 @@
 #include <util/md5sum.h>
 #include <util/fmtmod.h>
 #include <util/math.h>
+#include <util/memcpy.h>
 #include <util/pack.h>
 #include <util/queue.h>
 #include <util/string.h>
@@ -1429,7 +1430,7 @@ unpack_scalar_list(struct DatagramArray *a_dgram_array, size_t
 				struct CtrlConfigScalar *next;
 
 				CALLOC(next, 1);
-				memcpy(next, scalar, sizeof *next);
+				memcpy_(next, scalar, sizeof *next);
 				next->vector_index = vector_index++;
 				/* Gotta dup allocated stuff! */
 				if (CONFIG_SCALAR_STRING == next->type) {

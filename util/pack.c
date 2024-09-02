@@ -41,6 +41,7 @@
 #include <nurdlib/log.h>
 #include <util/endian.h>
 #include <util/md5sum.h>
+#include <util/memcpy.h>
 
 int
 pack_is_empty(struct Packer const *a_packer)
@@ -165,7 +166,7 @@ unpack_strdup(struct Packer *a_packer)
 	}
 	++i;
 	str = malloc(i);
-	memcpy(str, p, i);
+	memcpy_(str, p, i);
 	a_packer->ofs += i;
 	return str;
 }

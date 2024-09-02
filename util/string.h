@@ -28,6 +28,12 @@
 #include <util/funcattr.h>
 #include <util/stdint.h>
 
+#ifdef snprintf
+#	undef snprintf
+#endif
+#ifdef vsnprintf
+#	undef vsnprintf
+#endif
 #define snprintf PLEASE_USE_snprintf_
 #define vsnprintf PLEASE_USE_vsnprintf_
 int	snprintf_(char *, size_t, char const *, ...) FUNC_PRINTF(3, 4);
@@ -38,6 +44,12 @@ int	vsnprintf_(char *, size_t, char const *, va_list) FUNC_PRINTF(3, 0);
 char	*strdup_(char const *);
 char	*strndup_(char const *, size_t);
 
+#ifdef strlcat
+#	undef strlcat
+#endif
+#ifdef strlcpy
+#	undef strlcpy
+#endif
 #define strlcat PLEASE_USE_strlcat_
 #define strlcpy PLEASE_USE_strlcpy_
 size_t	strlcat_(char *, const char *, size_t);

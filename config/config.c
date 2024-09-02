@@ -32,6 +32,7 @@
 #include <util/assert.h>
 #include <util/fmtmod.h>
 #include <util/math.h>
+#include <util/memcpy.h>
 #include <util/path.h>
 #include <util/queue.h>
 #include <util/string.h>
@@ -1402,7 +1403,7 @@ parser_copy_scalar(struct ScalarList *a_scalar_list, unsigned a_src_index,
 		/* TODO: This is needlessly _very_ slow... */
 		cur = scalar_get(a_scalar_list, a_src_index + 1 + i);
 		cur->type = src->type;
-		memcpy(&cur->value, &src->value, sizeof cur->value);
+		memcpy_(&cur->value, &src->value, sizeof cur->value);
 		cur->unit = src->unit;
 		cur->has_bitmask = src->has_bitmask;
 		cur->bitmask = src->bitmask;
@@ -1513,7 +1514,7 @@ parser_include_file(char const *a_path, int a_do_user_file)
 			}
 			len = end - start;
 			name = malloc(len + 1);
-			memcpy(name, start, len);
+			memcpy_(name, start, len);
 			name[len] = '\0';
 			value = getenv(name);
 			if (NULL == value) {
@@ -1526,7 +1527,7 @@ parser_include_file(char const *a_path, int a_do_user_file)
 				log_die(LOGL, "%s: Expansion of \"$%s\" too"
 				    " big, I die.", a_path, name);
 			}
-			memcpy(dst, value, len);
+			memcpy_(dst, value, len);
 			dst += len;
 		} else {
 			*dst++ = *src++;
@@ -2203,7 +2204,7 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 						    next);
 					}
 					CALLOC(next, 1);
-					memcpy(next, src, sizeof *next);
+					memcpy_(next, src, sizeof *next);
 					next->vector_index = vector_index++;
 					/* Gotta dup allocated stuff! */
 					if (CONFIG_SCALAR_STRING ==

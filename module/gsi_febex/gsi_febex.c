@@ -27,6 +27,7 @@
 #include <module/gsi_febex/internal.h>
 #include <util/bits.h>
 #include <util/fmtmod.h>
+#include <util/memcpy.h>
 
 #define NAME "Gsi Febex"
 
@@ -307,7 +308,7 @@ gsi_febex_init_fast(struct Crate *a_crate, struct Module *a_module)
 		LOGF(verbose)(LOGL, "Card=%"PRIz"<%"PRIz"", card_i, card_num);
 		card_block = feb->card_array[card_i].config;
 
-		memcpy(&card_setting, &setting, sizeof card_setting);
+		memcpy_(&card_setting, &setting, sizeof card_setting);
 		setting_override(&card_setting, card_block);
 
 		/*

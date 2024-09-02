@@ -695,7 +695,7 @@ usage(int a_code)
 {
 	FILE *str;
 
-	str == EXIT_SUCCESS == a_code ? stdout : stderr;
+	str = EXIT_SUCCESS == a_code ? stdout : stderr;
 	fprintf(str, "Usage: %s [-h] -i: -o: [-c:] [-a:]\n", g_arg0);
 	fprintf(str, " -h  Help!\n");
 	fprintf(str, " -c  Compiler command.\n");

@@ -22,6 +22,7 @@
 
 #include <util/path.h>
 #include <stdlib.h>
+#include <util/memcpy.h>
 #include <util/string.h>
 
 char *

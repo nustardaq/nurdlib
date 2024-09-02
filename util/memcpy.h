@@ -26,6 +26,9 @@
 
 #include <stdlib.h>
 
+#ifdef memcpy
+#	undef memcpy
+#endif
 #define memcpy PLEASE_USE_memcpy_
 void *memcpy_(void *, void const *, size_t);
 
