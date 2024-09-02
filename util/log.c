@@ -24,12 +24,12 @@
 #include <nurdlib/log.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <nurdlib/base.h>
 #include <util/assert.h>
 #include <util/fmtmod.h>
 #include <util/stdint.h>
 #include <util/string.h>
+#include <util/time.h>
 
 #define INDENT_MAX 10
 
@@ -68,7 +68,7 @@ callback_stdio(char const *a_file, int a_line_no, unsigned a_level, char const
 	char buf[26];
 
 	time(&t_now);
-	gmtime_r(&t_now, &tm);
+	gmtime_r_(&t_now, &tm);
 	strftime(buf, sizeof buf, "%Y-%m-%d,%H:%M:%S:", &tm);
 	printf("%s", buf);
 	if (KW_INFO == a_level) {

@@ -24,7 +24,16 @@
 #define UTIL_TIME_H
 
 #include <util/funcattr.h>
+#include <time.h>
 
+#ifndef KEEP_GMTIME_R
+#	ifdef gmtime_r
+#		undef gmtime_r
+#	endif
+#	define gmtime_r PLEASE_USE_gmtime_r_
+#endif
+
+struct	tm *gmtime_r_(time_t const *, struct tm *);
 double	time_getd(void) FUNC_RETURNS;
 char	*time_gets(void) FUNC_RETURNS;
 int	time_sleep(double);

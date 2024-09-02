@@ -22,17 +22,14 @@
  */
 
 #include <module/map/internal.h>
-#include <assert.h>
-#include <nurdlib/base.h>
-#include <nurdlib/log.h>
-#include <util/err.h>
-#include <util/sigbus.h>
 
 #define BLT_ERROR_MASK 0xffff
 #define BLT_ERR_BERR 0x1b
 
 /* Common declarations. */
 #if defined(SICY_XPC_3_3_10) || defined(BLT_XPC_3_3_10)
+#	define _POSIX_C_SOURCE 199506L
+
 #	include <ces/CesXpcBridge.h>
 #	include <ces/CesXpcBridge_Vme.h>
 
@@ -40,7 +37,14 @@
 #	include <sys/mman.h>
 #	include <sys/stat.h>
 #	include <sys/types.h>
+#	include <assert.h>
 #	include <unistd.h>
+
+#	include <nurdlib/base.h>
+#	include <nurdlib/log.h>
+#	include <util/err.h>
+#	include <util/fs.h>
+#	include <util/sigbus.h>
 
 static void	sicy_init(void);
 static void	blt_init(void);
@@ -333,7 +337,7 @@ map_blt_dst_alloc(size_t a_bytes)
 	if (-1 == dst->fd) {
 		err_(EXIT_FAILURE, "open");
 	}
-	if (-1 == ftruncate(dst->fd, a_bytes)) {
+	if (-1 == ftruncate_(dst->fd, a_bytes)) {
 		err_(EXIT_FAILURE, "ftruncate");
 	}
 	dst->ptr = mmap(NULL, a_bytes, PROT_READ | PROT_WRITE, MAP_SHARED,

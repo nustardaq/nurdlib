@@ -20,6 +20,8 @@
  * MA  02110-1301  USA
  */
 
+#define _POSIX_C_SOURCE 199309L
+
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdio.h>

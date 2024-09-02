@@ -24,6 +24,7 @@
 #ifndef NTEST_NTEST_H
 #define NTEST_NTEST_H
 
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <limits.h>
 #include <stdio.h>

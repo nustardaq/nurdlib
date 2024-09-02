@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2017, 2021, 2024
+ * Copyright (C) 2024
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -20,47 +20,27 @@
  * MA  02110-1301  USA
  */
 
-#include <util/path.h>
-#include <stdlib.h>
-#include <util/memcpy.h>
-#include <util/string.h>
+#include <nconf/util/fs.c>
 
-char *
-basename_dup(char const *a_path)
+#if NCONF_mFTRUNCATE_bNONE
+/* NCONF_NOEXEC */
+#elif NCONF_mFTRUNCATE_bBSD_SOURCE
+/* NCONF_NOEXEC */
+#	define _BSD_SOURCE 1
+#elif NCONF_mFTRUNCATE_bDEFAULT_SOURCE
+/* NCONF_NOEXEC */
+#	define _DEFAULT_SOURCE 1
+#endif
+#if NCONFING_mFTRUNCATE
+#	define NCONF_TEST ftruncate(0, 0)
+#endif
+
+#include <util/fs.h>
+
+#undef ftruncate
+
+int
+ftruncate_(int a_fildes, off_t a_len)
 {
-	char *base;
-	int i, len;
-
-	len = strlen(a_path);
-	i = len - 1;
-	if (0 == len || '/' == a_path[i]) {
-		return strdup_("");
-	}
-	for (; '/' != a_path[i]; --i) {
-		if (0 == i) {
-			return strdup_(a_path);
-		}
-	}
-	len -= i;
-	base = malloc(len);
-	strlcpy_(base, a_path + i + 1, len);
-	return base;
-}
-
-char *
-dirname_dup(char const *a_path)
-{
-	char *dir;
-	int i, len;
-
-	len = strlen(a_path);
-	for (i = len - 1; '/' != a_path[i]; --i) {
-		if (0 >= i) {
-			return strdup_(".");
-		}
-	}
-	dir = malloc(i + 1);
-	memcpy_(dir, a_path, i);
-	dir[i] = '\0';
-	return dir;
+	return ftruncate(a_fildes, a_len);
 }

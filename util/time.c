@@ -23,11 +23,11 @@
 #include <nconf/util/time.c>
 
 #if NCONF_mTIME_GET_bCLOCK_GETTIME
-#	define _POSIX_C_SOURCE 199309
+#	define _POSIX_C_SOURCE 199309L
 #	define TIME_CLOCK_GETTIME 1
 #elif NCONF_mTIME_GET_bCLOCK_GETTIME_LRT
 /* NCONF_LIBS=-lrt */
-#	define _POSIX_C_SOURCE 199309
+#	define _POSIX_C_SOURCE 199309L
 #	define TIME_CLOCK_GETTIME 1
 #elif NCONF_mTIME_GET_bMACH
 #	if NCONFING_mTIME_GET
@@ -57,8 +57,10 @@ static int nconf_test_(void) {
 
 #if NCONF_mTIME_DRAFT9_bNO
 /* NCONF_NOEXEC */
+#	include <time.h>
+#	define ASCTIME_R(tm, buf) asctime_r(tm, buf)
+#	define GMTIME_R(tt, tm) gmtime_r(tt, tm)
 #	if NCONFING_mTIME_DRAFT9
-#		include <time.h>
 #		define NCONF_TEST nconf_test_()
 static int nconf_test_(void) {
 	time_t tt;
@@ -69,8 +71,10 @@ static int nconf_test_(void) {
 #	endif
 #elif NCONF_mTIME_DRAFT9_bYES
 /* NCONF_NOEXEC */
+#	include <time.h>
+#	define ASCTIME_R(tm, buf) asctime_r(tm, buf, 26)
+#	define GMTIME_R(tt, tm) gmtime_r(tm, tt)
 #	if NCONFING_mTIME_DRAFT9
-#		include <time.h>
 #		define NCONF_TEST nconf_test_()
 static int nconf_test_(void) {
 	time_t tt;
@@ -83,11 +87,9 @@ static int nconf_test_(void) {
 
 #if !NCONFING
 
-#include <util/time.h>
-
+#include <time.h>
 #if TIME_CLOCK_GETTIME
 #	include <stdlib.h>
-#	include <time.h>
 #	include <util/err.h>
 #	include <util/thread.h>
 #elif NCONF_mTIME_GET_bMACH
@@ -96,13 +98,14 @@ static int nconf_test_(void) {
 #	include <util/err.h>
 #endif
 
-#if defined(NCONF_mTIME_DRAFT9_bNO)
-#	define ASCTIME_R(tm, buf) asctime_r(tm, buf)
-#	define GMTIME_R(tt, tm) gmtime_r(tt, tm)
-#elif defined(NCONF_mTIME_DRAFT9_bYES)
-#	define ASCTIME_R(tm, buf) asctime_r(tm, buf, 26)
-#	define GMTIME_R(tt, tm) gmtime_r(tm, tt)
-#endif
+#define KEEP_GMTIME_R
+#include <util/time.h>
+
+struct tm *
+gmtime_r_(time_t const *a_tt, struct tm *a_tm)
+{
+	return GMTIME_R(a_tt, a_tm);
+}
 
 double
 time_getd(void)

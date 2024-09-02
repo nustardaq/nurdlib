@@ -52,7 +52,7 @@ NCONFER:=$(NCONF_PATH)$(BUILD_DIR)/nconfer
 $(NCONF_ARGS): $(NCONF_H) $(NCONFER) $(NCONF_PREV)
 	$(QUIET)$(MKDIR) && \
 	echo "NCONF $@"; \
-	echo "For nconf results and logs, see also $(BUILD_DIR)/nconf*."; \
+	echo "For nconf results and logs, see $(BUILD_DIR)/nconf*."; \
 	export CPPFLAGS="$(CPPFLAGS_)"; \
 	export CFLAGS="$(CFLAGS_)"; \
 	export LDFLAGS="$(LDFLAGS_)"; \

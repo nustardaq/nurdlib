@@ -300,6 +300,7 @@ NCONF_H:=\
 	util/stdint.h \
 	util/fmtmod.h \
 	util/funcattr.h \
+	util/fs.c \
 	util/limits.h \
 	util/memcpy.c \
 	util/thread.h \
