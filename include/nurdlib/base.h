@@ -60,6 +60,8 @@
 		    num_, size_); \
 	} \
 } while (0)
+#define STRINGIFY(x) #x
+#define STRINGIFY_VALUE(x) STRINGIFY(x)
 
 /* Advance the data pointer and reduce the # of bytes. */
 #define EVENT_BUFFER_ADVANCE(a_eb, a_ptr) do {\

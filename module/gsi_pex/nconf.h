@@ -32,7 +32,7 @@
 #	include <stdlib.h>
 #	include <string.h>
 #	include <unistd.h>
-#	include <util/fmtmod.h>
+#	include <nurdlib/base.h>
 #	include <util/stdint.h>
 #	ifndef PEX_DEV_PREFIX
 #		define PEX_DEV_PREFIX

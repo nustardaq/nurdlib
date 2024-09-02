@@ -60,7 +60,4 @@
     printf("%"PRIp" %"PRIpx, (uintptr_t)argc, (uintptr_t)argc)
 #endif
 
-#define STRINGIFY(x) #x
-#define STRINGIFY_VALUE(x) STRINGIFY(x)
-
 #endif
