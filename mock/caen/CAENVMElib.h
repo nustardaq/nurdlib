@@ -89,4 +89,4 @@ CVErrorCodes CAENVME_WriteCycle(int32_t, uint32_t, void const *, int, int);
 CVErrorCodes CAENVME_BLTReadCycle(int32_t, uint32_t, void *, int, int, int,
     int *);
 
-#endif
+#endif // C++ comment... Yuk.

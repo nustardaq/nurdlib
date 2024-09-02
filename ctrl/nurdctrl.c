@@ -198,7 +198,7 @@ main(int argc, char **argv)
 	g_client = NULL;
 	atexit(my_exit);
 
-	g_host = strdup("127.0.0.1");
+	g_host = strdup_("127.0.0.1");
 	g_port = CTRL_DEFAULT_PORT;
 
 	log_level_push(g_log_level_info_);
@@ -238,7 +238,7 @@ main(int argc, char **argv)
 			p = strchr(str, ':');
 			FREE(g_host);
 			if (NULL == p) {
-				g_host = strdup(str);
+				g_host = strdup_(str);
 				g_port = CTRL_DEFAULT_PORT;
 			} else {
 				unsigned len;

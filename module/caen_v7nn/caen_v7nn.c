@@ -206,10 +206,10 @@ caen_v7nn_init_fast(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 	ofs = 0;
 	for (i = 0; a_v7nn->number_of_channels > i;) {
 		if (0 == ((1 << i) & a_v7nn->channel_enable)) {
-			ofs += snprintf(str + ofs, sizeof str - ofs,
+			ofs += snprintf_(str + ofs, sizeof str - ofs,
 			    " -off-");
 		} else {
-			ofs += snprintf(str + ofs, sizeof str - ofs,
+			ofs += snprintf_(str + ofs, sizeof str - ofs,
 			    " 0x%03x", threshold_array[i]);
 		}
 		++i;

@@ -24,6 +24,7 @@
 #define UTIL_STDINT_H
 
 #include <nconf/util/stdint.h>
+#include <sys/types.h>
 #include <stdint.h>
 #include <stdlib.h>
 

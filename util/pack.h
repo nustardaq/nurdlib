@@ -24,22 +24,8 @@
 #ifndef UTIL_PACKER_H
 #define UTIL_PACKER_H
 
-#include <stdlib.h>
-#include <nconf/util/pack.h>
 #include <util/queue.h>
 #include <util/udp.h>
-
-#if NCONF_mPACK_bARPA_INET_H
-#	include <arpa/inet.h>
-#elif NCONF_mPACK_bNETINET_IN_H
-#	include <sys/types.h>
-#	include <netinet/in.h>
-#elif NCONF_mPACK_bBSD_IN_H
-#	include <bsd/in.h>
-#endif
-#if NCONFING_mPACK
-#	define NCONF_TEST 0 == htonl(0)
-#endif
 
 #define PACKER_CREATE_STATIC(packer, buf)\
 	do {\

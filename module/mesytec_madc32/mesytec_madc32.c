@@ -29,6 +29,7 @@
 #include <module/mesytec_madc32/offsets.h>
 #include <nurdlib/config.h>
 #include <util/bits.h>
+#include <util/string.h>
 
 #define NAME "Mesytec Madc32"
 

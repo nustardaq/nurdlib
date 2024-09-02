@@ -385,7 +385,7 @@ crate_create(void)
 		log_die(LOGL, "crate_create: Could not find a configured "
 		    "crate, I bail.");
 	}
-	crate->name = strdup(config_get_block_param_string(crate_block, 0));
+	crate->name = strdup_(config_get_block_param_string(crate_block, 0));
 	LOGF(verbose)(LOGL, "Crate=\"%s\".", crate->name);
 
 	crate->acvt.yes = config_get_boolean(crate_block, KW_ACVT);
@@ -492,7 +492,7 @@ crate_create(void)
 
 				config_get_source(module_block, NULL,
 				    &line_no, &col_no);
-				snprintf(buf, sizeof buf, "auto:%u:%u",
+				snprintf_(buf, sizeof buf, "auto:%u:%u",
 				    line_no, col_no);
 				p = buf;
 			}
@@ -1742,7 +1742,7 @@ crate_scaler_add(struct Crate *a_crate, char const *a_name, struct Module
 	struct CrateScaler *scaler;
 
 	CALLOC(scaler, 1);
-	strlcpy(scaler->name, a_name, sizeof scaler->name);
+	strlcpy_(scaler->name, a_name, sizeof scaler->name);
 	scaler->module = a_module;
 	scaler->data = a_data;
 	scaler->get_counter = a_callback;
@@ -1949,7 +1949,7 @@ get_counter(struct Crate *a_crate, char const *a_name)
 	if (NULL == counter) {
 		CALLOC(counter, 1);
 		if (NULL != a_name) {
-			strlcpy(counter->name, a_name, sizeof counter->name);
+			strlcpy_(counter->name, a_name, sizeof counter->name);
 		}
 		TAILQ_INSERT_TAIL(&a_crate->counter_list, counter, next);
 	}
@@ -2260,7 +2260,7 @@ shadow_merge_module(struct Crate *a_crate, struct Module *a_module, struct
 		result |= CRATE_READOUT_FAIL_DATA_TOO_MUCH;
 		goto shadow_merge_module_done;
 	}
-	nurdlib_memcpy(a_event_buffer->ptr, old->store.ptr, bytes);
+	memcpy_(a_event_buffer->ptr, old->store.ptr, bytes);
 	a_module->eb_final.ptr = a_event_buffer->ptr;
 	a_module->eb_final.bytes = bytes;
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, (uint8_t *)a_event_buffer->ptr +
@@ -2336,7 +2336,7 @@ tag_get(struct Crate *a_crate, char const *a_name)
 		}
 	}
 	CALLOC(tag, 1);
-	strlcpy(tag->name, a_name, sizeof tag->name);
+	strlcpy_(tag->name, a_name, sizeof tag->name);
 	TAILQ_INSERT_TAIL(&a_crate->tag_list, tag, next);
 	return tag;
 }

@@ -21,27 +21,20 @@
  */
 
 #include <util/thread.h>
-#include <string.h>
-#include <nurdlib/base.h>
-#include <util/err.h>
 
 #if NCONF_mTHREAD_bST_OLD
-#	define DO_PTHREADS 1
 #	define PTHREAD_STACK_MIN THREAD_DEFAULT_STACK
 #	define ATTR_CREATE(ret, a) ret = pthread_attr_create(&a)
 #	define ATTR_DESTROY(a)
 #	define THREAD_CREATE(ret, t)\
     ret = pthread_create(&t->thread, t->attr, run, starter)
 #elif NCONF_mTHREAD_bST_NEW
-#	define DO_PTHREADS 1
 #	define PTHREAD_STACK_MIN THREAD_DEFAULT_STACK
 #	define ATTR_CREATE(ret, a) ret = pthread_attr_init(&a)
 #	define ATTR_DESTROY(a) pthread_attr_destroy(&a)
 #	define THREAD_CREATE(ret, t)\
     ret = pthread_create(&t->thread, &t->attr, run, starter)
 #elif NCONF_mTHREAD_bPTHREAD
-#	define DO_PTHREADS 1
-#	include <limits.h>
 #	define ATTR_CREATE(ret, a) ret = pthread_attr_init(&a)
 #	define ATTR_DESTROY(a) pthread_attr_destroy(&a)
 #	define THREAD_CREATE(ret, t)\
@@ -51,6 +44,9 @@
 #if DO_PTHREADS
 
 #	include <errno.h>
+#	include <string.h>
+#	include <nurdlib/base.h>
+#	include <util/err.h>
 
 struct Starter {
 	void	(*func)(void *);

@@ -32,7 +32,7 @@ NTEST(Copy1Bytes)
 	memset(src, 0xb, sizeof(src));
 	memset(dst, 0x0, sizeof(dst));
 
-	NTRY_I(0xb, ==, *((char*)nurdlib_memcpy(dst, src, sizeof(src))));
+	NTRY_I(0xb, ==, *((char*)memcpy_(dst, src, sizeof(src))));
 }
 
 NTEST(Copy2Bytes)
@@ -42,7 +42,7 @@ NTEST(Copy2Bytes)
 	memset(src, 0xb, sizeof(src));
 	memset(dst, 0x0, sizeof(dst));
 
-	nurdlib_memcpy(dst, src, sizeof(src));
+	memcpy_(dst, src, sizeof(src));
 
 	NTRY_I(0xb, ==, dst[0]);
 	NTRY_I(0xb, ==, dst[1]);
@@ -55,7 +55,7 @@ NTEST(Copy3Bytes)
 	memset(src, 0xb, sizeof(src));
 	memset(dst, 0x0, sizeof(dst));
 
-	nurdlib_memcpy(dst, src, sizeof(src));
+	memcpy_(dst, src, sizeof(src));
 
 	NTRY_I(0xb, ==, dst[0]);
 	NTRY_I(0xb, ==, dst[1]);
@@ -68,7 +68,7 @@ NTEST(Copy5DifferentBytes)
 	char src[] = {1, 2, 3, 4, 5};
 	memset(dst, 0x0, sizeof(dst));
 
-	nurdlib_memcpy(dst, src, sizeof(src));
+	memcpy_(dst, src, sizeof(src));
 
 	NTRY_I(0x1, ==, dst[0]);
 	NTRY_I(0x2, ==, dst[1]);
@@ -84,7 +84,7 @@ NTEST(Copy0xa3Bytes)
 	memset(src, 0xa, sizeof(src));
 	memset(dst, 0x0, sizeof(dst));
 
-	nurdlib_memcpy(dst, src, sizeof(src));
+	memcpy_(dst, src, sizeof(src));
 
 	NTRY_I(0xa, ==, dst[0]);
 	NTRY_I(0xa, ==, dst[1]);

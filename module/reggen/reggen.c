@@ -105,7 +105,7 @@ my_strcat(char *a_dst, size_t a_dst_bytes, char const *a_src)
 		    "max=%"PRIz"), I give up.", dst_len, src_len,
 		    a_dst_bytes);
 	}
-	strlcat(a_dst, a_src, a_dst_bytes);
+	strlcat_(a_dst, a_src, a_dst_bytes);
 }
 
 void
@@ -119,7 +119,7 @@ my_strcpy(char *a_dst, size_t a_dst_bytes, char const *a_src, size_t
 		die("strcpy with huge strings (len=%"PRIz" >= max=%"PRIz"), "
 		    "I give up.", len, a_dst_bytes);
 	}
-	strlcpy(a_dst, a_src, len + 1);
+	strlcpy_(a_dst, a_src, len + 1);
 }
 
 void

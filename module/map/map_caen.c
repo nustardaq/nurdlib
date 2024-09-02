@@ -147,7 +147,7 @@ caen_init()
 		    str, g_override.link_ip);
 		str = g_override.link_ip;
 	}
-	strlcpy(link_ip, str, sizeof link_ip);
+	strlcpy_(link_ip, str, sizeof link_ip);
 
 	link_number = config_get_int32(caenvme, KW_LINK_NUMBER,
 	    CONFIG_UNIT_NONE, 0, 10);
@@ -415,13 +415,13 @@ map_caen_type_set(char const *a_type, char const *a_link_ip, int
 	if (NULL == a_type) {
 		g_override.board_type[0] = '\0';
 	} else {
-		strlcpy(g_override.board_type, a_type,
+		strlcpy_(g_override.board_type, a_type,
 		    sizeof g_override.board_type);
 	}
 	if (NULL == a_link_ip) {
 		g_override.link_ip[0] = '\0';
 	} else {
-		strlcpy(g_override.link_ip, a_link_ip,
+		strlcpy_(g_override.link_ip, a_link_ip,
 		    sizeof g_override.link_ip);
 	}
 	g_override.link_number = a_link_number;

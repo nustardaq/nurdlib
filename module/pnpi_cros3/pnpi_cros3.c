@@ -58,8 +58,8 @@ para_write(struct PnpiCros3Crate const *a_crate, struct PnpiCros3 const
 	char *path;
 
 	/* TODO: Check snprintf result */
-	snprintf(sam_str, sizeof sam_str, "%u", a_cros3->sam->address >> 24);
-	snprintf(gtb_str, sizeof gtb_str, "%1u", a_cros3->gtb_client.gtb_i);
+	snprintf_(sam_str, sizeof sam_str, "%u", a_cros3->sam->address >> 24);
+	snprintf_(gtb_str, sizeof gtb_str, "%1u", a_cros3->gtb_client.gtb_i);
 	path = NULL;
 	path = STRCTV_BEGIN &path, a_crate->data_path, "/pnpi_cros3_sam",
 	     sam_str, "_gtb", gtb_str, ".txt" STRCTV_END;
@@ -297,7 +297,8 @@ pnpi_cros3_crate_configure(struct PnpiCros3Crate *a_crate, struct ConfigBlock
 {
 	LOGF(verbose)(LOGL, NAME" crate_configure {");
 	FREE(a_crate->data_path);
-	a_crate->data_path = strdup(config_get_string(a_block, KW_DATA_PATH));
+	a_crate->data_path = strdup_(config_get_string(a_block,
+	    KW_DATA_PATH));
 	LOGF(verbose)(LOGL, "data_path = '%s'.", a_crate->data_path);
 	LOGF(verbose)(LOGL, NAME" crate_configure }");
 }

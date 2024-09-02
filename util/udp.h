@@ -23,85 +23,9 @@
 #ifndef UTIL_UDP_H
 #define UTIL_UDP_H
 
-#include <nconf/util/udp.h>
 #include <stdlib.h>
 #include <util/funcattr.h>
 #include <util/stdint.h>
-
-#if NCONF_mSOCKET_H_bSOCKET_H
-/* NCONF_NOLINK */
-#	include <socket.h>
-#elif NCONF_mSOCKET_H_bSYS_SOCKET_H
-/* NCONF_NOLINK */
-#	include <sys/socket.h>
-#elif NCONF_mSOCKET_H_bNONE
-#endif
-
-#if NCONF_mIPPROTO_UDP_bNETINET_IN_H
-/* NCONF_NOLINK */
-#	include <netinet/in.h>
-#elif NCONF_mIPPROTO_UDP_bNOWARN_NETINET_IN_H
-/* NCONF_CPPFLAGS=-D__NO_INCLUDE_WARN__ */
-/* NCONF_NOLINK */
-#	include <netinet/in.h>
-#endif
-#if NCONFING_mIPPROTO_UDP
-#	define NCONF_TEST IPPROTO_UDP
-#endif
-
-#if NCONF_mUDP_LOOKUP_bGETADDRINFO
-/* NCONF_NOEXEC */
-#	include <netdb.h>
-#	if NCONFING_mUDP_LOOKUP
-#		define NCONF_TEST 0 == getaddrinfo(NULL, NULL, NULL, NULL)
-#	endif
-#elif NCONF_mUDP_LOOKUP_bGETHOSTBYNAME_SOCKLEN
-/* NCONF_NOEXEC */
-#	include <arpa/inet.h>
-#	include <netdb.h>
-#	if NCONFING_mUDP_LOOKUP
-#		define NCONF_TEST nconf_test_()
-static int nconf_test_(void) {
-	socklen_t len;
-	return NULL != gethostbyname(NULL) &&
-	    -1 != recvfrom(0, NULL, 0, 0, NULL, &len);
-}
-#	endif
-#endif
-
-#if NCONF_mUDP_EVENT_bPOLL
-/* NCONF_NOEXEC */
-#	include <poll.h>
-#	if NCONFING_mUDP_EVENT
-#		define NCONF_TEST nconf_test_()
-static int nconf_test_(void) {
-	struct pollfd fds[1];
-	fds[0].fd = 0;
-	fds[0].events = POLLIN;
-	return -1 != poll(fds, 1, 0);
-}
-#	endif
-#elif NCONF_mUDP_EVENT_bSYS_SELECT_H
-/* NCONF_NOEXEC */
-#	include <sys/select.h>
-#	if NCONFING_mUDP_EVENT
-#		define NCONF_TEST nconf_test_()
-static int nconf_test_(void) {
-	struct timeval tv = {0, 0};
-	return -1 != select(0, NULL, NULL, NULL, &tv);
-}
-#	endif
-#elif NCONF_mUDP_EVENT_bSELECT_TIME_H
-/* NCONF_NOEXEC */
-#	include <time.h>
-#	if NCONFING_mUDP_EVENT
-#		define NCONF_TEST nconf_test_()
-static int nconf_test_(void) {
-	struct timeval tv = {0, 0};
-	return -1 != select(0, NULL, NULL, NULL, &tv);
-}
-#	endif
-#endif
 
 enum {
 	UDP_IPV4 = 0x0,

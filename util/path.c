@@ -33,16 +33,16 @@ basename_dup(char const *a_path)
 	len = strlen(a_path);
 	i = len - 1;
 	if (0 == len || '/' == a_path[i]) {
-		return strdup("");
+		return strdup_("");
 	}
 	for (; '/' != a_path[i]; --i) {
 		if (0 == i) {
-			return strdup(a_path);
+			return strdup_(a_path);
 		}
 	}
 	len -= i;
 	base = malloc(len);
-	strlcpy(base, a_path + i + 1, len);
+	strlcpy_(base, a_path + i + 1, len);
 	return base;
 }
 
@@ -55,7 +55,7 @@ dirname_dup(char const *a_path)
 	len = strlen(a_path);
 	for (i = len - 1; '/' != a_path[i]; --i) {
 		if (0 >= i) {
-			return strdup(".");
+			return strdup_(".");
 		}
 	}
 	dir = malloc(i + 1);

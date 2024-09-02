@@ -105,8 +105,10 @@ gsi_tacquila_crate_configure(struct GsiTacquilaCrate *a_crate, struct
 	LOGF(verbose)(LOGL, NAME" crate_configure {");
 	FREE(a_crate->data_path);
 	FREE(a_crate->util_path);
-	a_crate->data_path = strdup(config_get_string(a_block, KW_DATA_PATH));
-	a_crate->util_path = strdup(config_get_string(a_block, KW_UTIL_PATH));
+	a_crate->data_path = strdup_(config_get_string(a_block,
+	    KW_DATA_PATH));
+	a_crate->util_path = strdup_(config_get_string(a_block,
+	    KW_UTIL_PATH));
 	LOGF(verbose)(LOGL, "data_path = '%s'.", a_crate->data_path);
 	LOGF(verbose)(LOGL, "util_path = '%s'.", a_crate->util_path);
 	LOGF(verbose)(LOGL, NAME" crate_configure }");

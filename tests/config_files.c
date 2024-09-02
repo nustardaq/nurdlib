@@ -49,7 +49,7 @@ NTEST(AbsolutePaths)
 	}
 	strsiz = strlen(cwd) + 1 + 12 + 1;
 	path = malloc(strsiz);
-	snprintf(path, strsiz, "%s/absolute.cfg", cwd);
+	snprintf_(path, strsiz, "%s/absolute.cfg", cwd);
 	file = fopen(path, "wb");
 	NTRY_PTR(NULL, !=, file);
 	if (NULL == file) {
@@ -117,7 +117,7 @@ NTEST(IncludeDefault)
 	char const *src_path;
 	int src_line_no, src_col_no;
 
-	old = strdup(config_default_path_get());
+	old = strdup_(config_default_path_get());
 	config_default_path_set("tests/def");
 	config_load("tests/default.cfg");
 	config_default_path_set(old);

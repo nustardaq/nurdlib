@@ -68,7 +68,7 @@ NTEST(ServerClient)
 
 		client = udp_client_create(UDP_IPV4, "127.0.0.1", 12345);
 		NTRY_PTR(NULL, != , client);
-		strlcpy(s, STRING, sizeof datagram.buf);
+		strlcpy_(s, STRING, sizeof datagram.buf);
 		datagram.bytes = sizeof(STRING);
 		udp_client_send(client, &datagram);
 		udp_client_free(&client);

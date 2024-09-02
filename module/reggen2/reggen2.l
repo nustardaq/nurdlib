@@ -63,7 +63,7 @@ ACCESS [rw]+
 	PRINTD("HEX "); return HEX; }
 {INTEGER} { yylval.val_int = atoi(yytext);
 	PRINTD("INT "); return INTEGER; }
-{ID} { yylval.val_str = strdup(yytext);
+{ID} { yylval.val_str = strdup_(yytext);
 	PRINTD2("ID(%s) ",yytext); return ID; }
 
 

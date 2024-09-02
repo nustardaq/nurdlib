@@ -40,7 +40,7 @@ system_call(char const *a_fmt, ...)
 
 	LOGF(verbose)(LOGL, "system_call(%s) {", a_fmt);
 	va_start(args, a_fmt);
-	ret = vsnprintf(cmd, sizeof cmd, a_fmt, args);
+	ret = vsnprintf_(cmd, sizeof cmd, a_fmt, args);
 	va_end(args);
 	if (ret + 1 == sizeof cmd) {
 		log_die(LOGL, "Command line too long.");

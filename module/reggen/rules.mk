@@ -25,5 +25,5 @@ C_$(NAME):=$(wildcard $(DIR_$(NAME))/*.c)
 include gmake/c.mk
 include gmake/close.mk
 
-$(BUILD_DIR)/$(DIR_$(NAME))/reggen: $(OBJ_$(NAME)) $(addprefix $(BUILD_DIR)/util/,strlcat.o strlcpy.o)
+$(BUILD_DIR)/$(DIR_$(NAME))/reggen: $(OBJ_$(NAME)) $(BUILD_DIR)/util/string.o
 	$(NCONF_LD)

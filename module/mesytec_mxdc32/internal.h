@@ -54,10 +54,10 @@
 		for (i_ = 0; i_ < LENGTH(array);) {\
 			if (0 == (1 & mask)) {\
 				array[i_] = 0x1fff;\
-				ofs_ += snprintf(str + ofs_, sizeof str -\
+				ofs_ += snprintf_(str + ofs_, sizeof str -\
 				    ofs_, " -off-");\
 			} else {\
-				ofs_ += snprintf(str + ofs_, sizeof str -\
+				ofs_ += snprintf_(str + ofs_, sizeof str -\
 				    ofs_, " 0x%03x", array[i_]);\
 			}\
 			MAP_WRITE(mod->mxdc32.sicy_map, threshold(i_), \

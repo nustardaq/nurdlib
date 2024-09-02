@@ -20,8 +20,17 @@
  * MA  02110-1301  USA
  */
 
+#include <nconf/util/math.c>
 #include <util/math.h>
-#include <math.h>
+
+#if NCONF_mMATH_LINK_bNOTHING
+#elif NCONF_mMATH_LINK_bLM
+/* NCONF_LIBS=-lm */
+#endif
+
+#if NCONFING_mMATH_LINK
+#	define NCONF_TEST sin(M_LN2 * argc) < 2.0
+#endif
 
 int32_t
 i32_round_double(double a_d)

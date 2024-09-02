@@ -86,15 +86,15 @@ register_add(const char *a_name, uint32_t a_address, uint8_t a_bits, const
 	for (i = 0; i < cur_block->repeat; ++i) {
 		uint32_t address;
 
-		snprintf(name, sizeof name, "%s%s", cur_block->prefix,
+		snprintf_(name, sizeof name, "%s%s", cur_block->prefix,
 		    a_name);
 		address = register_calc_offset(i, a_address);
 
 		CALLOC(reg, 1);
-		reg->name = strdup(name);
+		reg->name = strdup_(name);
 		reg->address = address;
 		reg->bits = a_bits;
-		reg->access = strdup(a_access);
+		reg->access = strdup_(a_access);
 		reg->n = i;
 		reg->block = cur_block;
 #ifdef DEBUG
@@ -147,7 +147,7 @@ register_block_start(
 
 		len = strlen(a_prefix) + 2;
 		CALLOC(buf, len);
-		snprintf(buf, len, "%s_", a_prefix);
+		snprintf_(buf, len, "%s_", a_prefix);
 		block->prefix = buf;
 	}
 
@@ -215,7 +215,7 @@ register_sort(void)
 void
 register_dump_header(const char *module_name)
 {
-	char *name_upper = strdup(module_name);
+	char *name_upper = strdup_(module_name);
 	str_to_upper(&name_upper);
 
 	printf("#ifndef MODULE_%s_OFFSETS_H\n", name_upper);
@@ -247,7 +247,7 @@ register_dump_struct(void)
 		}
 
 		if (reg->block->repeat > 1) {
-			snprintf(index_suff, sizeof index_suff, "_%u",
+			snprintf_(index_suff, sizeof index_suff, "_%u",
 			    reg->n);
 		}
 		printf("#define MOD_%s%s 5\n",

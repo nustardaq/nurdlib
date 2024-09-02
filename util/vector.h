@@ -47,7 +47,7 @@
 #define VECTOR_APPEND(vec, obj) do {\
 		void *old = (vec)->array;\
 		MALLOC((vec)->array, ((vec)->size + 1));\
-		memcpy((vec)->array, old, (vec)->size * sizeof \
+		memcpy_((vec)->array, old, (vec)->size * sizeof \
 		    *(vec)->array);\
 		free(old);\
 		(vec)->array[(vec)->size++] = obj;\

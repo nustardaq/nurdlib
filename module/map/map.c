@@ -270,15 +270,15 @@ map_map(uint32_t a_address, size_t a_bytes, enum Keyword a_blt_mode, int
 		}
 
 		if (0 == a_poke_r_bits) {
-			strlcpy(str_r, "skipped", sizeof str_r);
+			strlcpy_(str_r, "skipped", sizeof str_r);
 		} else {
-			snprintf(str_r, sizeof str_r, "%dns",
+			snprintf_(str_r, sizeof str_r, "%dns",
 			    (int)(1e6 * (td[1] - td[0])));
 		}
 		if (0 == a_poke_w_bits) {
-			strlcpy(str_w, "skipped", sizeof str_w);
+			strlcpy_(str_w, "skipped", sizeof str_w);
 		} else {
-			snprintf(str_w, sizeof str_w, "%dns",
+			snprintf_(str_w, sizeof str_w, "%dns",
 			    (int)(1e6 * (td[2] - td[0])));
 		}
 		if (0 < a_poke_r_bits &&

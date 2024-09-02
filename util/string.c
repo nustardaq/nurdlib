@@ -23,28 +23,25 @@
 #include <util/string.h>
 #include <assert.h>
 #include <ctype.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <nurdlib/base.h>
 
-#if NCONF_mNPRINTF_bUNSAFE
-#	include <stdarg.h>
-#	include <stdio.h>
 int
-util_snprintf_(char *a_dst, size_t a_dst_size, char const *a_fmt, ...)
+snprintf_(char *a_dst, size_t a_dst_size, char const *a_fmt, ...)
 {
 	va_list args;
 	int len;
 
 	va_start(args, a_fmt);
-	len = util_vsnprintf_(a_dst, a_dst_size, a_fmt, args);
+	len = vsnprintf_(a_dst, a_dst_size, a_fmt, args);
 	va_end(args);
 	return len;
 }
 
 int
-util_vsnprintf_(char *a_dst, size_t a_dst_size, char const *a_fmt, va_list
-    a_args)
+vsnprintf_(char *a_dst, size_t a_dst_size, char const *a_fmt, va_list a_args)
 {
 	int len;
 
@@ -55,11 +52,25 @@ util_vsnprintf_(char *a_dst, size_t a_dst_size, char const *a_fmt, va_list
 	}
 	return len;
 }
-#endif
 
-#if NCONF_mSTRNDUP_bCUSTOM
 char *
-util_strndup_(char const *a_s, size_t a_maxlen)
+strdup_(char const *a_s)
+{
+	char *s;
+	size_t len;
+
+	len = strlen(a_s);
+	s = malloc(len + 1);
+	if (NULL == s) {
+		return NULL;
+	}
+	memmove(s, a_s, len);
+	s[len] = '\0';
+	return s;
+}
+
+char *
+strndup_(char const *a_s, size_t a_maxlen)
 {
 	char *s;
 	size_t len;
@@ -74,13 +85,12 @@ util_strndup_(char const *a_s, size_t a_maxlen)
 	s[len] = '\0';
 	return s;
 }
-#endif
 
-#if NCONF_mSTRSIGNAL_bCUSTOM
-#	include <sigcodes.h>
+#include <util/strlcat.h>
+#include <util/strlcpy.h>
 
 char *
-util_strsignal_(int a_signum)
+strsignal_(int a_signum)
 {
 #	define TRANSLATE(name) case SIG##name: return #name
 	switch (a_signum) {
@@ -114,7 +124,30 @@ util_strsignal_(int a_signum)
 	default: return "Unknown";
 	}
 }
-#endif
+
+char *
+strsep_(char **a_str, char const *a_delim)
+{
+	char *p, *ret;
+
+	ret = *a_str;
+	if (NULL == *a_str) {
+		return ret;
+	}
+	for (p = *a_str; '\0' != *p; ++p) {
+		char const *q;
+
+		for (q = a_delim; '\0' != *q; ++q) {
+			if (*p == *q) {
+				*p = '\0';
+				*a_str = p + 1;
+				return ret;
+			}
+		}
+	}
+	*a_str = NULL;
+	return ret;
+}
 
 char const *strctv_sentinel_ = (void *)&strctv_sentinel_;
 static char const c_NULL[] = "NULL";

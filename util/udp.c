@@ -21,12 +21,91 @@
  * MA  02110-1301  USA
  */
 
+#include <nconf/util/udp.c>
 #include <util/udp.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <nurdlib/base.h>
 #include <util/assert.h>
+#include <util/memcpy.h>
 #include <util/err.h>
+
+#if NCONF_mSOCKET_H_bSOCKET_H
+/* NCONF_NOLINK */
+#	include <socket.h>
+#elif NCONF_mSOCKET_H_bSYS_SOCKET_H
+/* NCONF_NOLINK */
+#	include <sys/socket.h>
+#elif NCONF_mSOCKET_H_bNONE
+#endif
+
+#if NCONF_mIPPROTO_UDP_bNETINET_IN_H
+/* NCONF_NOLINK */
+#	include <netinet/in.h>
+#elif NCONF_mIPPROTO_UDP_bNOWARN_NETINET_IN_H
+/* NCONF_CPPFLAGS=-D__NO_INCLUDE_WARN__ */
+/* NCONF_NOLINK */
+#	include <netinet/in.h>
+#endif
+#if NCONFING_mIPPROTO_UDP
+#	define NCONF_TEST IPPROTO_UDP
+#endif
+
+#if NCONF_mUDP_LOOKUP_bGETADDRINFO
+/* NCONF_NOEXEC */
+#	include <netdb.h>
+#	if NCONFING_mUDP_LOOKUP
+#		define NCONF_TEST 0 == getaddrinfo(NULL, NULL, NULL, NULL)
+#	endif
+#elif NCONF_mUDP_LOOKUP_bGETHOSTBYNAME_SOCKLEN
+/* NCONF_NOEXEC */
+#	include <arpa/inet.h>
+#	include <netdb.h>
+#	if NCONFING_mUDP_LOOKUP
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	socklen_t len;
+	return NULL != gethostbyname(NULL) &&
+	    -1 != recvfrom(0, NULL, 0, 0, NULL, &len);
+}
+#	endif
+#endif
+
+#if NCONF_mUDP_EVENT_bPOLL
+/* NCONF_NOEXEC */
+#	include <poll.h>
+#	if NCONFING_mUDP_EVENT
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	struct pollfd fds[1];
+	fds[0].fd = 0;
+	fds[0].events = POLLIN;
+	return -1 != poll(fds, 1, 0);
+}
+#	endif
+#elif NCONF_mUDP_EVENT_bSYS_SELECT_H
+/* NCONF_NOEXEC */
+#	include <sys/select.h>
+#	if NCONFING_mUDP_EVENT
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	struct timeval tv = {0, 0};
+	return -1 != select(0, NULL, NULL, NULL, &tv);
+}
+#	endif
+#elif NCONF_mUDP_EVENT_bSELECT_TIME_H
+/* NCONF_NOEXEC */
+#	include <time.h>
+#	if NCONFING_mUDP_EVENT
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	struct timeval tv = {0, 0};
+	return -1 != select(0, NULL, NULL, NULL, &tv);
+}
+#	endif
+#endif
+
+#if !NCONFING
 
 #if defined(NCONF_mUDP_LOOKUP_bGETADDRINFO)
 #	define GETADDRINFO
@@ -133,8 +212,6 @@ event_wait(SOCKET a_socket, int a_fd_extra, double a_timeout)
 		return 2;
 	}
 	return 1;
-#else
-#	error "This cannot be!"
 #endif
 }
 
@@ -276,7 +353,7 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 			    "something else requested.\n");
 			goto udp_address_create_fail;
 		}
-		tmp = strdup(a_hostname);
+		tmp = strdup_(a_hostname);
 		host = gethostbyname(tmp);
 		free(tmp);
 		if (NULL == host) {
@@ -285,7 +362,8 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 			goto udp_address_create_fail;
 		}
 		in = (void *)&addr->addr;
-		memcpy(&in->sin_addr.s_addr, host->h_addr, host->h_length);
+		memcpy_(&in->sin_addr.s_addr, host->h_addr_list[0],
+		    host->h_length);
 		in->sin_port = htons(a_port);
 		addr->len = host->h_length;
 	}
@@ -309,7 +387,7 @@ udp_address_gets(struct UDPAddress const *a_address)
 
 	addr = (void const *)&a_address->addr;
 	if (AF_INET == addr->sin_family) {
-		return strdup(inet_ntoa(addr->sin_addr));
+		return strdup_(inet_ntoa(addr->sin_addr));
 #if defined(AF_INET6)
 	} else if (AF_INET6 == addr->sin_family) {
 		struct sockaddr_in6 const *addr6;
@@ -398,9 +476,12 @@ udp_client_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 	{
 		struct SOCKADDR_STORAGE server;
 		struct hostent *host;
+		char *h;
 
 		/* Not const?! Wtf... */
-		host = gethostbyname((char *)a_hostname);
+		h = strdup_(a_hostname);
+		host = gethostbyname(h);
+		free(h);
 		if (NULL == host) {
 			fprintf(stderr, "gethostbyname(%s): %s.\n",
 			    a_hostname, strerror(h_errno));
@@ -412,7 +493,8 @@ udp_client_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 			return NULL;
 		}
 		server.sin_family = get_family(a_flags);
-		memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
+		memcpy_(&server.sin_addr.s_addr, host->h_addr_list[0],
+		    host->h_length);
 		server.sin_port = htons(a_port);
 		if (0 != connect(sock, (void *)&server, sizeof server)) {
 			fprintf(stderr, "connect: %s.\n", strerror(errno));
@@ -609,3 +691,5 @@ udp_server_write(struct UDPServer const *a_server, void const *a_data, size_t
 	}
 	return 1;
 }
+
+#endif

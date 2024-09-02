@@ -29,6 +29,7 @@
 #include <nurdlib/serialio.h>
 #include <nurdlib/config.h>
 #include <util/bits.h>
+#include <util/string.h>
 
 #define NAME "Mesytec Mqdc32"
 

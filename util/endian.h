@@ -29,7 +29,9 @@
 #if NCONF_mENDIAN_bBSD_BYTEORDER_H
 /* NCONF_NOLINK */
 #	include <bsd/bsd_byteorder.h>
-#	if BYTE_ORDER == BIG_ENDIAN
+#	if !defined(BYTE_ORDER)
+#		error No BYTE_ORDER.
+#	elif BYTE_ORDER == BIG_ENDIAN
 #		define NURDLIB_BIG_ENDIAN 1
 #	elif BYTE_ORDER == BIG_ENDIAN
 #		define NURDLIB_LITTLE_ENDIAN 1

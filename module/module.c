@@ -137,7 +137,7 @@ module_parse_error(struct LogFile const *a_file, int a_line, struct
 	uintptr_t ofs;
 
 	va_start(args, a_fmt);
-	vsnprintf(str, sizeof str, a_fmt, args);
+	vsnprintf_(str, sizeof str, a_fmt, args);
 	va_end(args);
 	ofs = (uintptr_t)a_p - (uintptr_t)a_event_buffer->ptr;
 	p8 = a_p;

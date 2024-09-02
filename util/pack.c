@@ -21,6 +21,20 @@
  * MA  02110-1301  USA
  */
 
+#include <nconf/util/pack.c>
+
+#if NCONF_mPACK_bARPA_INET_H
+#	include <arpa/inet.h>
+#elif NCONF_mPACK_bNETINET_IN_H
+#	include <sys/types.h>
+#	include <netinet/in.h>
+#elif NCONF_mPACK_bBSD_IN_H
+#	include <bsd/in.h>
+#endif
+#if NCONFING_mPACK
+#	define NCONF_TEST 0 == htonl(0)
+#else
+
 #include <util/pack.h>
 #include <string.h>
 #include <nurdlib/base.h>
@@ -211,3 +225,5 @@ unpack64(struct Packer *a_packer, uint64_t *a_out)
 	a_packer->ofs += 8;
 	return 1;
 }
+
+#endif

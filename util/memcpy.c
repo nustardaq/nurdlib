@@ -21,20 +21,25 @@
  * MA  02110-1301  USA
  */
 
+#include <nconf/util/memcpy.c>
 #include <util/memcpy.h>
 
 #if NCONF_mMEMCPY_bALTIVEC
 
+/* NCONF_CFLAGS=-maltivec -mregnames */
 void *
-nurdlib_memcpy(void *a_dst, void const *a_src, size_t a_bytes)
+memcpy_(void *a_dst, void const *a_src, size_t a_bytes)
 {
 	return vec_memcpy(a_dst, a_src, a_bytes);
 }
 
 #elif NCONF_mMEMCPY_bPPC
+#	ifndef __PPC
+#		error "This is only nice for powerpc"
+#	endif
 
 void *
-nurdlib_memcpy(void *a_dst, void *a_src, size_t a_bytes)
+memcpy_(void *a_dst, void *a_src, size_t a_bytes)
 {
 	double *d_dst;
 	double const *d_src;
@@ -59,17 +64,19 @@ nurdlib_memcpy(void *a_dst, void *a_src, size_t a_bytes)
 }
 
 #elif NCONF_mMEMCPY_bGLIBC
+#	include <string.h>
 
 void *
-nurdlib_memcpy(void *a_dst, const void *a_src, size_t a_bytes)
+memcpy_(void *a_dst, const void *a_src, size_t a_bytes)
 {
+#undef memcpy
 	return memcpy(a_dst, a_src, a_bytes);
 }
 
 #elif NCONF_mMEMCPY_bCHARCOPY
 
 void *
-nurdlib_memcpy(void *a_dst, void const *a_src, size_t a_bytes)
+memcpy_(void *a_dst, void const *a_src, size_t a_bytes)
 {
 	char *c_dst;
 	char const *c_src;
@@ -83,4 +90,16 @@ nurdlib_memcpy(void *a_dst, void const *a_src, size_t a_bytes)
 	return a_dst;
 }
 
+#endif
+
+#if NCONFING_mMEMCPY
+#	include <string.h>
+#	define NCONF_TEST nconf_test_()
+int nconf_test_(void);
+int nconf_test_(void) {
+	char const src[] = "abc";
+	char dst[4];
+	memcpy_(dst, src, sizeof src);
+	return 0 == memcmp(dst, src, sizeof src);
+}
 #endif

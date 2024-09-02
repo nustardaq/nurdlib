@@ -204,7 +204,7 @@ config_default_path_get(void)
 		}
 		LOGF(info)(LOGL, "Will try default cfg path='%s', can be set "
 		    "with NURDLIB_DEF_PATH.", env);
-		g_default_path = strdup(env);
+		g_default_path = strdup_(env);
 	}
 	return g_default_path;
 }
@@ -214,7 +214,7 @@ config_default_path_set(char const *a_path)
 {
 	LOGF(info)(LOGL, "Setting default config path '%s'.", a_path);
 	FREE(g_default_path);
-	g_default_path = strdup(a_path);
+	g_default_path = strdup_(a_path);
 }
 
 void
@@ -1541,7 +1541,7 @@ parser_include_file(char const *a_path, int a_do_user_file)
 	/* Try default config. */
 	strsiz = strlen(config_default_path_get()) + 1 + strlen(base) + 1;
 	path = malloc(strsiz);
-	snprintf(path, strsiz, "%s/%s", config_default_path_get(), base);
+	snprintf_(path, strsiz, "%s/%s", config_default_path_get(), base);
 	LOGF(debug)(LOGL, "Trying default config file '%s'.", path);
 	has_default = parse_file(path);
 	FREE(path);
@@ -1549,12 +1549,12 @@ parser_include_file(char const *a_path, int a_do_user_file)
 	/* Try user config. */
 	if (a_do_user_file) {
 		if ('/' == path_expanded[0]) {
-			path = strdup(path_expanded);
+			path = strdup_(path_expanded);
 		} else {
 			strsiz = strlen(previous_root_path) + 1 +
 			    strlen(path_expanded) + 1;
 			path = malloc(strsiz);
-			snprintf(path, strsiz, "%s/%s", previous_root_path,
+			snprintf_(path, strsiz, "%s/%s", previous_root_path,
 			    path_expanded);
 		}
 		LOGF(debug)(LOGL, "Trying config file '%s'.", path);
@@ -1750,7 +1750,7 @@ parser_push_string(struct ScalarList *a_scalar_list, unsigned a_vector_index,
 
 	scalar = scalar_get(a_scalar_list, a_vector_index);
 	scalar->type = CONFIG_SCALAR_STRING;
-	scalar->value.s = strdup(a_s);
+	scalar->value.s = strdup_(a_s);
 	scalar->unit = CONFIG_UNIT_NONE;
 }
 
@@ -1814,7 +1814,7 @@ path_get_instance(char const *a_path)
 	/* Note that the terminating null is included in the [1] array! */
 	len = strlen(a_path);
 	path = malloc(sizeof *path + len);
-	strlcpy(path->path, a_path, len + 1);
+	strlcpy_(path->path, a_path, len + 1);
 	TAILQ_INSERT_HEAD(&g_path_list, path, next);
 	return path->path;
 }
@@ -2209,7 +2209,7 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 					if (CONFIG_SCALAR_STRING ==
 					    next->type) {
 						next->value.s =
-						    strdup(next->value.s);
+						    strdup_(next->value.s);
 					}
 					TAILQ_INSERT_TAIL(&scalar_list, next,
 					    next);

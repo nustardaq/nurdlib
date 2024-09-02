@@ -115,10 +115,10 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	CONFIG_GET_INT_ARRAY(threshold_array, a_module->config, KW_THRESHOLD,
 	    CONFIG_UNIT_MV, 0, 255);
-	ofs = snprintf(str, sizeof str, "Thresholds=(");
+	ofs = snprintf_(str, sizeof str, "Thresholds=(");
 	for (i = 0; 16 > i; ++i) {
 		MAP_WRITE(v895->sicy_map, threshold(i), threshold_array[i]);
-		ofs += snprintf(str + ofs, sizeof str - ofs, " %d",
+		ofs += snprintf_(str + ofs, sizeof str - ofs, " %d",
 		    threshold_array[i]);
 	}
 	LOGF(verbose)(LOGL, "%s).", str);
@@ -127,15 +127,15 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    KW_OUTPUT_WIDTH_0_7, CONFIG_UNIT_NS, 5, 40);
 	output_width_8_15 = config_get_double(a_module->config,
 	    KW_OUTPUT_WIDTH_8_15, CONFIG_UNIT_NS, 5, 40);
-	ofs = snprintf(str, sizeof str, "Widths=(");
+	ofs = snprintf_(str, sizeof str, "Widths=(");
 	ow = OW_A * output_width_0_7 + OW_B;
 	ow = CLAMP(ow, 0, 255);
 	MAP_WRITE(v895->sicy_map, output_width_0_to_7, ow);
-	ofs += snprintf(str + ofs, sizeof str - ofs, " %d", ow);
+	ofs += snprintf_(str + ofs, sizeof str - ofs, " %d", ow);
 	ow = OW_A * output_width_8_15 + OW_B;
 	ow = CLAMP(ow, 0, 255);
 	MAP_WRITE(v895->sicy_map, output_width_8_to_15, ow);
-	ofs += snprintf(str + ofs, sizeof str - ofs, " %d)", ow);
+	ofs += snprintf_(str + ofs, sizeof str - ofs, " %d)", ow);
 	LOGF(verbose)(LOGL, "%s.", str);
 
 	channel_mask = config_get_bitmask(a_module->config, KW_CHANNEL_ENABLE,

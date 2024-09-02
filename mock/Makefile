@@ -99,7 +99,7 @@ rimfaxe: rimfaxe/libavb.a
 .PHONY: caen
 caen: caen/libCAENVME.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
 
 .PHONY: etherbone

@@ -27,6 +27,7 @@
 #include <nurdlib/config.h>
 #include <nurdlib/crate.h>
 #include <util/bits.h>
+#include <util/string.h>
 #include <util/syscall.h>
 
 #define NAME "Gsi Siderem"
@@ -61,8 +62,10 @@ gsi_siderem_crate_configure(struct GsiSideremCrate *a_crate, struct
 	LOGF(verbose)(LOGL, NAME" crate_configure {");
 	FREE(a_crate->data_path);
 	FREE(a_crate->util_path);
-	a_crate->data_path = strdup(config_get_string(a_block, KW_DATA_PATH));
-	a_crate->util_path = strdup(config_get_string(a_block, KW_UTIL_PATH));
+	a_crate->data_path = strdup_(config_get_string(a_block,
+	    KW_DATA_PATH));
+	a_crate->util_path = strdup_(config_get_string(a_block,
+	    KW_UTIL_PATH));
 	LOGF(verbose)(LOGL, "data_path = \"%s\".", a_crate->data_path);
 	LOGF(verbose)(LOGL, "util_path = \"%s\".", a_crate->util_path);
 	LOGF(verbose)(LOGL, NAME" crate_configure }");
@@ -72,8 +75,8 @@ void
 gsi_siderem_crate_create(struct GsiSideremCrate *a_crate)
 {
 	LOGF(verbose)(LOGL, NAME" crate_create {");
-	a_crate->data_path = strdup(".");
-	a_crate->util_path = strdup(".");
+	a_crate->data_path = strdup_(".");
+	a_crate->util_path = strdup_(".");
 	TAILQ_INIT(&a_crate->list);
 	LOGF(verbose)(LOGL, NAME" crate_create }");
 }

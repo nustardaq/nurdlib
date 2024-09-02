@@ -20,14 +20,77 @@
  * MA  02110-1301  USA
  */
 
+#include <nconf/util/time.c>
+
+#if NCONF_mTIME_GET_bCLOCK_GETTIME
+#	define _POSIX_C_SOURCE 199309
+#	define TIME_CLOCK_GETTIME 1
+#elif NCONF_mTIME_GET_bCLOCK_GETTIME_LRT
+/* NCONF_LIBS=-lrt */
+#	define _POSIX_C_SOURCE 199309
+#	define TIME_CLOCK_GETTIME 1
+#elif NCONF_mTIME_GET_bMACH
+#	if NCONFING_mTIME_GET
+#		define NCONF_TEST mach_absolute_time()
+#	endif
+#endif
+
+#if NCONFING_mTIME_GET && TIME_CLOCK_GETTIME
+#	include <time.h>
+#	define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	struct timespec ts;
+	return 0 == clock_gettime(CLOCK_REALTIME, &ts);
+}
+#endif
+
+#if NCONF_mTIME_SLEEP_bNANOSLEEP
+#endif
+#if NCONFING_mTIME_SLEEP
+#	include <time.h>
+#	define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	struct timespec ts = {0, 0};
+	return 0 == nanosleep(&ts, NULL);
+}
+#endif
+
+#if NCONF_mTIME_DRAFT9_bNO
+/* NCONF_NOEXEC */
+#	if NCONFING_mTIME_DRAFT9
+#		include <time.h>
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	time_t tt;
+	char buf[26];
+	time(&tt);
+	return NULL != asctime_r(localtime(&tt), buf);
+}
+#	endif
+#elif NCONF_mTIME_DRAFT9_bYES
+/* NCONF_NOEXEC */
+#	if NCONFING_mTIME_DRAFT9
+#		include <time.h>
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	time_t tt;
+	char buf[26];
+	time(&tt);
+	return NULL != asctime_r(localtime(&tt), buf, 0);
+}
+#	endif
+#endif
+
+#if !NCONFING
+
 #include <util/time.h>
 
-#if defined(TIME_CLOCK_GETTIME)
+#if TIME_CLOCK_GETTIME
 #	include <stdlib.h>
 #	include <time.h>
 #	include <util/err.h>
 #	include <util/thread.h>
-#elif defined(NCONF_mTIME_GET_bMACH)
+#elif NCONF_mTIME_GET_bMACH
 #	include <stdlib.h>
 #	include <mach/mach_time.h>
 #	include <util/err.h>
@@ -142,6 +205,10 @@ time_sleep(double a_s)
 			return 0;
 		}
 	}
+#else
+#	error "This is cannot be!"
 #endif
 	return 1;
 }
+
+#endif

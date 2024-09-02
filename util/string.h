@@ -23,93 +23,31 @@
 #ifndef UTIL_STRING_H
 #define UTIL_STRING_H
 
-#include <nconf/util/string.h>
 #include <stdarg.h>
 #include <string.h>
 #include <util/funcattr.h>
 #include <util/stdint.h>
 
-#if NCONF_mNPRINTF_bSTDIO
-#	include <stdio.h>
-#elif NCONF_mNPRINTF_bDEFAULT_SOURCE
-/* NCONF_CPPFLAGS=-D_DEFAULT_SOURCE */
-#	include <stdio.h>
-#elif NCONF_mNPRINTF_bBSD_SOURCE
-/* NCONF_CPPFLAGS=-D_BSD_SOURCE */
-#	include <stdio.h>
-#elif NCONF_mNPRINTF_bPROTOTYPE
-int snprintf(char *, size_t, char const *, ...) FUNC_PRINTF(3, 4);
-int vsnprintf(char *, size_t, char const *, va_list) FUNC_PRINTF(3, 0);
-#elif NCONF_mNPRINTF_bUNSAFE
-/* NCONF_SRC=util/string.c */
-#	define snprintf util_snprintf_
-#	define vsnprintf util_vsnprintf_
-int util_snprintf_(char *, size_t, char const *, ...) FUNC_PRINTF(3, 4);
-int util_vsnprintf_(char *, size_t, char const *, va_list) FUNC_PRINTF(3, 0);
-#endif
-#if NCONFING_mNPRINTF
-#	define NCONF_TEST nprintf_test_(argc, "")
-static int nprintf_test_(int i, ...) {
-	va_list args;
-	char s[10];
-	int ret;
-	va_start(args, i);
-	ret = vsnprintf(s, sizeof s, "%d", args);
-	va_end(args);
-	return snprintf(s, sizeof s, "%d", i) + ret;
-}
-#endif
+#define snprintf PLEASE_USE_snprintf_
+#define vsnprintf PLEASE_USE_vsnprintf_
+int	snprintf_(char *, size_t, char const *, ...) FUNC_PRINTF(3, 4);
+int	vsnprintf_(char *, size_t, char const *, va_list) FUNC_PRINTF(3, 0);
 
-#if NCONF_mSTRDUP_bPOSIX_200809
-/* NCONF_CPPFLAGS=-D_POSIX_C_SOURCE=200809 */
-#elif NCONF_mSTRDUP_bBSD_SOURCE
-/* NCONF_CPPFLAGS=-D_BSD_SOURCE */
-#endif
-#if NCONFING_mSTRDUP
-#	define NCONF_TEST strdup(argv[0])
-#endif
+#define strdup PLEASE_USE_strdup_
+#define strndup PLEASE_USE_strndup_
+char	*strdup_(char const *);
+char	*strndup_(char const *, size_t);
 
-#if NCONF_mSTRL_bBSD_SOURCE
-/* NCONF_CPPFLAGS=-D_BSD_SOURCE */
-#elif NCONF_mSTRL_bDARWIN_C_SOURCE
-/* NCONF_CPPFLAGS=-D_DARWIN_C_SOURCE */
-#elif NCONF_mSTRL_bIMPORT
-/* NCONF_SRC=util/strlcat.c util/strlcpy.c */
-size_t	strlcat(char *, const char *, size_t);
-size_t	strlcpy(char *, const char *, size_t);
-#endif
-#if NCONFING_mSTRL
-#	define NCONF_TEST strl_test_(argv[0])
-static int strl_test_(char const *str) {
-	char s[2];
-	return strlcat(s, str, sizeof s) + strlcpy(s, str, sizeof s);
-}
-#endif
+#define strlcat PLEASE_USE_strlcat_
+#define strlcpy PLEASE_USE_strlcpy_
+size_t	strlcat_(char *, const char *, size_t);
+size_t	strlcpy_(char *, const char *, size_t);
 
-#if NCONF_mSTRNDUP_bPOSIX_200809
-/* NCONF_CPPFLAGS=-D_POSIX_C_SOURCE=200809 */
-#elif NCONF_mSTRNDUP_bCUSTOM
-/* NCONF_SRC=util/string.c */
-#	define strndup util_strndup_
-char *util_strndup_(char const *, size_t) FUNC_RETURNS;
-#endif
-#if NCONFING_mSTRNDUP
-#	define NCONF_TEST strndup(argv[0], 1)
-#endif
+#define strsignal PLEASE_USE_strsignal_
+char	*strsignal_(int);
 
-#if NCONF_mSTRSIGNAL_bPOSIX_200809
-/* NCONF_CPPFLAGS=-D_POSIX_C_SOURCE=200809 */
-#elif NCONF_mSTRSIGNAL_bPROTOTYPE
-char *strsignal(int) FUNC_RETURNS;
-#elif NCONF_mSTRSIGNAL_bCUSTOM
-/* NCONF_SRC=util/string.c */
-#	define strsignal util_strsignal_
-char *util_strsignal_(int) FUNC_RETURNS;
-#endif
-#if NCONFING_mSTRSIGNAL
-#	include <signal.h>
-#	define NCONF_TEST strsignal(argc)
-#endif
+#define strsep PLEASE_USE_strsep_
+char	*strsep_(char **, char const *);
 
 #define STRCTV_BEGIN strctv_(
 #define STRCTV_END ,strctv_sentinel_)

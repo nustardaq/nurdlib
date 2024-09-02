@@ -30,6 +30,7 @@
 #include <nurdlib/crate.h>
 #include <nurdlib/serialio.h>
 #include <module/map/map.h>
+#include <util/bits.h>
 
 #define NAME "Gsi Etherbone"
 
@@ -593,8 +594,8 @@ write_ts(struct EventBuffer *a_event_buffer, uint32_t a_hi, uint32_t a_lo,
 	    ((uint64_t)a_lo << 3) |
 	    ((uint64_t)a_fn & 0x7);
 	/* Store network-order/big-endian. */
-	*p32++ = htonl(ts >> 32);
-	*p32++ = htonl(ts & 0xffffffff);
+	*p32++ = htonl_(ts >> 32);
+	*p32++ = htonl_(ts & 0xffffffff);
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32);
 	return 0;
 }

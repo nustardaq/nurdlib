@@ -29,7 +29,7 @@
 #if NCONF_mTHREAD_bST_OLD
 /* NCONF_LDFLAGS=-mthreads */
 #	include <pthread.h>
-#	define PTHREADS
+#	define DO_PTHREADS 1
 #	if NCONFING_mTHREAD
 #		define NCONF_TEST nconf_test_()
 static int nconf_test_(void) {
@@ -40,7 +40,7 @@ static int nconf_test_(void) {
 #elif NCONF_mTHREAD_bST_NEW
 /* NCONF_LDFLAGS=-mthreads */
 #	include <pthread.h>
-#	define PTHREADS
+#	define DO_PTHREADS 1
 #	if NCONFING_mTHREAD
 #		define NCONF_TEST nconf_test_()
 static void *runner_(void *a_dummy) { return a_dummy; }
@@ -53,7 +53,7 @@ static int nconf_test_(void) {
 /* NCONF_CPPFLAGS=-pthread */
 /* NCONF_LIBS=-pthread */
 #	include <pthread.h>
-#	define PTHREADS
+#	define DO_PTHREADS 1
 #	if NCONFING_mTHREAD
 #		define NCONF_TEST nconf_test_()
 static void *runner_(void *a_dummy) { return a_dummy; }
@@ -64,7 +64,7 @@ static int nconf_test_(void) {
 #	endif
 #endif
 
-#if defined(PTHREADS)
+#if DO_PTHREADS
 struct CondVar {
 	pthread_cond_t	cond;
 };

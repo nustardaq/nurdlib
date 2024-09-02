@@ -195,7 +195,7 @@ NTEST(PackUnpackTuttiFrutti)
 
 			cmd_array[i].bit_num = 0;
 			u32 %= 1000;
-			snprintf(str, sizeof str, "%d", u32);
+			snprintf_(str, sizeof str, "%d", u32);
 			pack_str(&packer, str);
 		}
 		cmd_array[i].value = u32;
@@ -210,7 +210,7 @@ NTEST(PackUnpackTuttiFrutti)
 				char str[16];
 				char *p;
 
-				snprintf(str, sizeof str, "%d",
+				snprintf_(str, sizeof str, "%d",
 				    cmd_array[i].value);
 				p = unpack_strdup(&packer);
 				NTRY_STR(str, ==, p);
@@ -291,7 +291,7 @@ NTEST(UnpackLimit)
 	uint16_t u16;
 	uint32_t u32;
 
-	strlcpy(buf, "abc", sizeof buf);
+	strlcpy_(buf, "abc", sizeof buf);
 
 	PACKER_CREATE(packer, buf, 0); NTRY_BOOL(!unpack8(&packer, &u8));
 	PACKER_CREATE(packer, buf, 0); NTRY_BOOL(!unpack16(&packer, &u16));

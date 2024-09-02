@@ -23,14 +23,15 @@
  */
 
 #include <module/map/internal.h>
-#include <nurdlib/base.h>
-#include <nurdlib/log.h>
 
 #ifdef SICY_SMEM
 
 #	include <errno.h>
 #	include <smem.h>
 #	include <stdio.h>
+#	include <nurdlib/base.h>
+#	include <nurdlib/log.h>
+#	include <util/string.h>
 
 struct SiCy {
 	char	*name;
@@ -55,7 +56,7 @@ sicy_map(struct Map *a_map)
 
 	len = 8 + 1 + 8 + 1;
 	MALLOC(private->name, len);
-	snprintf(private->name, len, "%08x_%"PRIzx, a_map->address,
+	snprintf_(private->name, len, "%08x_%"PRIzx, a_map->address,
 	    a_map->bytes);
 	page_start = 0xfffff000 & a_map->address;
 	private->page_ofs = 0x00000fff & a_map->address;

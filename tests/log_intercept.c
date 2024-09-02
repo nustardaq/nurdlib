@@ -39,7 +39,7 @@ log_intercept(char const *a_file, int a_line_no, unsigned a_level, char const
 	(void)a_line_no;
 	if (LENGTH(g_log) > g_num) {
 		g_log[g_num].level = a_level;
-		strlcpy(g_log[g_num].str, a_str, sizeof g_log[g_num].str);
+		strlcpy_(g_log[g_num].str, a_str, sizeof g_log[g_num].str);
 		++g_num;
 	}
 }

@@ -32,7 +32,7 @@
 #include <nurdlib/keyword.h>
 #include <nurdlib/log.h>
 #include <nurdlib/trloii.h>
-#include <util/stdint.h>
+#include <util/bits.h>
 
 struct Crate;
 
@@ -246,8 +246,8 @@ gsi_##nlib_name##_readout(struct Crate *a_crate, struct Module *a_module, \
 			goto nlib_name##_readout_done; \
 		} \
 		/* Store it in network-order/big-endian. */ \
-		*p32++ = htonl(stamp >> 32); \
-		*p32++ = htonl(stamp & 0xffffffff); \
+		*p32++ = htonl_(stamp >> 32); \
+		*p32++ = htonl_(stamp & 0xffffffff); \
 	} \
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32); \
 	chksum_header = (trloii->ts_status >> 24) & 0x0ff; \
@@ -408,8 +408,8 @@ gsi_##nlib_name##_readout_shadow(struct Crate *a_crate, struct Module \
 			int desync; \
 \
 			/* Store it in network-order/big-endian. */ \
-			*p32++ = htonl(u32); \
-			*p32++ = htonl(trloii->u32_low); \
+			*p32++ = htonl_(u32); \
+			*p32++ = htonl_(trloii->u32_low); \
 			desync = (u32 >> 30) & 1; \
 			if (desync) { \
 				log_error(LOGL, \

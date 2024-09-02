@@ -50,7 +50,7 @@ enum {
 	VAR_CFLAGS,
 	VAR_LDFLAGS,
 	VAR_LIBS,
-	VAR_SRC
+	VAR_NUM
 };
 struct VarArray {
 	size_t	size;
@@ -61,25 +61,26 @@ struct VarArray {
 static void		append(char **, char const *);
 static void		err_(char const *, ...);
 static char const	*extract_args(struct VarArray *, char const *);
-static void		filter_vars(struct VarArray *, struct VarArray const
-    *, struct VarArray const *);
 static void		free_vars(struct VarArray *);
 static void		log_(char const *, ...);
+static void		merge_vars(struct VarArray *, struct VarArray const *,
+    struct VarArray const *);
 static void		mkdirs(char const *);
 static char		*resolve_env(char const *);
 static int		run(char **);
 static char		*strdup_(char const *);
+static char		*strndup_(char const *, size_t);
 static void		try(void);
 static void		try_done(void);
 static int		try_module_branch(char const *);
 static int		try_var(char const *);
-static void		usage(char const *);
-static void		var_array_grow(struct VarArray *);
+static void		usage(int);
+static void		var_array_grow(struct VarArray *, size_t);
 static void		write_files(int);
 
 static char const *g_arg0;
-static struct VarArray g_env_vars[VAR_LIBS + 1];
-static struct VarArray g_prev_vars[VAR_LIBS + 1];
+static struct VarArray g_env_vars[VAR_NUM];
+static struct VarArray g_prev_vars[VAR_NUM];
 static char *g_compiler;
 static char *g_input_path;
 static char *g_output_dir;
@@ -90,10 +91,10 @@ static char *g_log_path;
 static int g_line_no;
 static char *g_module;
 static char *g_branch;
-static struct VarArray g_vars[VAR_SRC + 1];
-static int g_nocflags;
-static int g_nolink;
-static int g_noexec;
+static struct VarArray g_vars[VAR_NUM];
+static int g_do_cflags;
+static int g_do_link;
+static int g_do_exec;
 static struct {
 	char	*module;
 	char	*branch;
@@ -142,93 +143,22 @@ extract_args(struct VarArray *a_array, char const *a_str)
 
 		for (; isspace(*p); ++p)
 			;
-		if ('\0' == *p || ('*' == p[0] && '/' == p[1])) {
+#define IS_END '\0' == *p || ('*' == p[0] && '/' == p[1])
+		if (IS_END) {
 			return p;
 		}
-		for (start = p; '\0' != *p && !isspace(*p); ++p) {
-			if ('*' == p[0] && '/' == p[1]) {
+		for (start = p; !isspace(*p); ++p) {
+			if (IS_END) {
 				break;
 			}
 		}
 		len = p - start;
-		value = malloc(len + 1);
-		memcpy(value, start, len);
-		value[len] = '\0';
+		value = strndup_(start, len);
 		resolved = resolve_env(value);
 		free(value);
-		var_array_grow(a_array);
+		var_array_grow(a_array, 10);
 		a_array->array[a_array->num++] = resolved;
 	}
-}
-
-void
-filter_vars(struct VarArray *a_dst, struct VarArray const *a_left, struct
-    VarArray const *a_right)
-{
-	size_t left_num, right_num;
-	size_t i, j;
-
-	/* Concatenate, then remove duplicates and "old" ones. */
-	left_num = a_left->num;
-	for (i = 0; i < left_num; ++i) {
-		var_array_grow(a_dst);
-		a_dst->array[a_dst->num++] = strdup_(a_left->array[i]);
-	}
-	right_num = a_right->num;
-	for (i = 0; i < right_num; ++i) {
-		var_array_grow(a_dst);
-		a_dst->array[a_dst->num++] = strdup_(a_right->array[i]);
-	}
-	for (i = 0; i < left_num;) {
-		for (j = left_num; j < left_num + right_num;) {
-			char const *p_i, *p_j;
-			int cmp, keep;
-
-			p_i = a_dst->array[i];
-			p_j = a_dst->array[j];
-			keep = 1;
-			for (;; ++p_i, ++p_j) {
-				cmp = (int)*p_i - (int)*p_j;
-				if (0 != cmp) {
-					/* Different, depends on '='. */
-					break;
-				}
-				if ('\0' == *p_i) {
-					/* Dup, keep the right. */
-					cmp = -1;
-					keep = 0;
-					break;
-				}
-				if ('=' == *p_i) {
-					/* Same, keep the larger value. */
-					keep = 0;
-				}
-			}
-			if (!keep) {
-				size_t k;
-
-				if (cmp < 0) {
-					--left_num;
-					k = i;
-				} else {
-					--right_num;
-					k = j;
-				}
-				free(a_dst->array[k]);
-				for (; k < left_num + right_num; ++k) {
-					a_dst->array[k] = a_dst->array[k + 1];
-				}
-				if (cmp < 0) {
-					goto next_i;
-				}
-			} else {
-				++j;
-			}
-		}
-		++i;
-next_i:;
-	}
-	a_dst->num = left_num + right_num;
 }
 
 void
@@ -258,6 +188,22 @@ log_(char const *a_fmt, ...)
 	if (0 != fclose(file)) {
 		err_("fclose(%s)", g_log_path);
 	}
+}
+
+void
+merge_vars(struct VarArray *a_dst, struct VarArray const *a_left, struct
+    VarArray const *a_right)
+{
+	size_t i;
+
+	var_array_grow(a_dst, a_left->num + a_right->num);
+	for (i = 0; i < a_left->num; ++i) {
+		a_dst->array[i] = strdup_(a_left->array[i]);
+	}
+	for (i = 0; i < a_right->num; ++i) {
+		a_dst->array[a_left->num + i] = strdup_(a_right->array[i]);
+	}
+	a_dst->num = a_dst->size;
 }
 
 void
@@ -317,9 +263,7 @@ resolve_env(char const *a_str)
 					;
 				j = i;
 			}
-			tmp = malloc(i + 1);
-			memcpy(tmp, p, i);
-			tmp[i] = '\0';
+			tmp = strndup_(p, i);
 			value = getenv(tmp);
 			free(tmp);
 			if (NULL != value) {
@@ -332,9 +276,7 @@ resolve_env(char const *a_str)
 				++i;
 			}
 		}
-		tmp = malloc(i + 1);
-		memcpy(tmp, p, i);
-		tmp[i] = '\0';
+		tmp = strndup_(p, i);
 		append(&dst, tmp);
 		free(tmp);
 		p += i;
@@ -425,21 +367,31 @@ strdup_(char const *a_str)
 	return p;
 }
 
+char *
+strndup_(char const *a_str, size_t a_len)
+{
+	char *p;
+
+	p = malloc(a_len + 1);
+	memcpy(p, a_str, a_len);
+	p[a_len] = '\0';
+	return p;
+}
+
 void
 try()
 {
-	struct VarArray loc_vars[VAR_LIBS + 1];
-	struct VarArray full_vars[VAR_LIBS + 1];
+	struct VarArray local_vars[VAR_NUM]; /* Without env vars. */
+	struct VarArray full_vars[VAR_NUM];
 	FILE *file;
 	char *argv[1000];
 	char *bin = NULL;
 	char *obj = NULL;
 	char *c = NULL;
-	char *d = NULL;
 	unsigned var_i, j;
 	int argc, success;
 
-	ZERO(loc_vars);
+	ZERO(local_vars);
 	ZERO(full_vars);
 	if (NULL == g_module) {
 		return;
@@ -465,6 +417,8 @@ try()
 	if (NULL == file) {
 		err_("fopen(%s)", c);
 	}
+	fprintf(file, "#define NCONFING 1\n");
+	fprintf(file, "#define NCONFING_m%s 1\n", g_module);
 	fprintf(file, "#include <%s>\n", g_input_path);
 	fprintf(file, "int main(int argc, char **argv) {\n");
 	fprintf(file, "\t(void)argc; (void)argv;\n");
@@ -481,40 +435,41 @@ try()
 		err_("fclose(%s)", c);
 	}
 
-	append(&d, "-DNCONFING_m");
-	append(&d, g_module);
-	append(&d, "=1");
-
 	write_files(0);
 
 	success = 1;
 
 	/*
-	 * Merge previous, current, and env variables.
-	 * CPPFLAGS and LDFLAGS prepend to override search paths.
-	 * CFLAGS append to override compilation switches.
-	 * LIBS append to cover for missing libraries.
+	 * Merge previous, current, and env variables, in very specific
+	 * orders!
+	 *  The new file:
+	 *   CPPFLAGS: append  -> doesn't break old nconf search paths.
+	 *   CFLAGS  : append  -> overrides compilation switches.
+	 *   LDFLAGS : append  -> doesn't break old nconf search paths.
+	 *   LIBS    : prepend -> rely on old nconf libraries.
+	 *  Environment variables:
+	 *   CPPFLAGS: prepend -> user can override search paths.
+	 *   CFLAGS  : append  -> user can override compilation switches.
+	 *   LDFLAGS : prepend -> user can override search paths.
+	 *   LIBS    : append  -> user can add missing libraries.
 	 */
-	for (var_i = VAR_CPPFLAGS; var_i <= VAR_LIBS; ++var_i) {
-		switch (var_i) {
-		case VAR_CPPFLAGS:
-		case VAR_LDFLAGS:
-			filter_vars(&loc_vars[var_i], &g_prev_vars[var_i],
-			    &g_vars[var_i]);
-			filter_vars(&full_vars[var_i], &g_env_vars[var_i],
-			    &loc_vars[var_i]);
-			break;
-		case VAR_CFLAGS:
-		case VAR_LIBS:
-			filter_vars(&loc_vars[var_i], &g_vars[var_i],
-			    &g_prev_vars[var_i]);
-			filter_vars(&full_vars[var_i], &loc_vars[var_i],
-			    &g_env_vars[var_i]);
-			break;
-		default:
-			abort();
-		}
-	}
+	var_i = VAR_CPPFLAGS;
+	merge_vars(&local_vars[var_i], &g_prev_vars[var_i], &g_vars[var_i]);
+	++var_i;
+	merge_vars(&local_vars[var_i], &g_prev_vars[var_i], &g_vars[var_i]);
+	++var_i;
+	merge_vars(&local_vars[var_i], &g_prev_vars[var_i], &g_vars[var_i]);
+	++var_i;
+	merge_vars(&local_vars[var_i], &g_vars[var_i], &g_prev_vars[var_i]);
+
+	var_i = VAR_CPPFLAGS;
+	merge_vars(&full_vars[var_i], &g_env_vars[var_i], &local_vars[var_i]);
+	++var_i;
+	merge_vars(&full_vars[var_i], &local_vars[var_i], &g_env_vars[var_i]);
+	++var_i;
+	merge_vars(&full_vars[var_i], &g_env_vars[var_i], &local_vars[var_i]);
+	++var_i;
+	merge_vars(&full_vars[var_i], &local_vars[var_i], &g_env_vars[var_i]);
 
 	/* Compile. */
 	argc = 0;
@@ -526,9 +481,8 @@ try()
 	argv[argc++] = "-I";
 	argv[argc++] = g_nconfing_path;
 	argv[argc++] = "-c";
-	argv[argc++] = d;
 	for (var_i = VAR_CPPFLAGS; var_i <= VAR_CFLAGS; ++var_i) {
-		if (g_nocflags && var_i == VAR_CFLAGS) {
+		if (!g_do_cflags && var_i == VAR_CFLAGS) {
 			continue;
 		}
 		for (j = 0; j < full_vars[var_i].num; ++j) {
@@ -538,19 +492,12 @@ try()
 	argv[argc++] = NULL;
 	if (!run(argv)) {
 		success = 0;
-	} else if (!g_nolink) {
+	} else if (g_do_link) {
 		/* Link, reuse previous args. */
 		argv[2] = bin;
 		argv[3] = obj;
-		argc = 7;
-		for (j = 0; j < g_vars[VAR_SRC].num; ++j) {
-			argv[argc++] = g_vars[VAR_SRC].array[j];
-		}
-		/* Compiler flags too, may have source files here. */
-		for (var_i = VAR_CPPFLAGS; var_i <= VAR_LIBS; ++var_i) {
-			if (g_nocflags && var_i == VAR_CFLAGS) {
-				continue;
-			}
+		argc = 4;
+		for (var_i = VAR_LDFLAGS; var_i <= VAR_LIBS; ++var_i) {
 			for (j = 0; j < full_vars[var_i].num; ++j) {
 				argv[argc++] = full_vars[var_i].array[j];
 			}
@@ -558,7 +505,7 @@ try()
 		argv[argc++] = NULL;
 		if (!run(argv)) {
 			success = 0;
-		} else if (!g_noexec) {
+		} else if (g_do_exec) {
 			/* Run. */
 			argc = 0;
 			argv[argc++] = bin;
@@ -580,15 +527,15 @@ try()
 		/* Save without env vars. */
 		for (var_i = VAR_CPPFLAGS; var_i <= VAR_LIBS; ++var_i) {
 			free_vars(&g_prev_vars[var_i]);
-			memcpy(&g_prev_vars[var_i], &loc_vars[var_i], sizeof
-			    loc_vars[var_i]);
+			memcpy(&g_prev_vars[var_i], &local_vars[var_i], sizeof
+			    local_vars[var_i]);
 		}
 		++g_done_num;
 		log_("Success!\n");
 		printf(STYLE_BOLD "%s:%s\n" STYLE_RESET, g_module, g_branch);
 	} else {
 		for (var_i = VAR_CPPFLAGS; var_i <= VAR_LIBS; ++var_i) {
-			free_vars(&loc_vars[var_i]);
+			free_vars(&local_vars[var_i]);
 		}
 		log_("Failed.\n");
 	}
@@ -658,9 +605,7 @@ try_module_branch(char const *a_line)
 		}
 	}
 	len = p - start;
-	module = malloc(len + 1);
-	memcpy(module, start, len);
-	module[len] = '\0';
+	module = strndup_(start, len);
 	if (NULL != g_module && 0 != strcmp(module, g_module)) {
 		try_done();
 	}
@@ -670,12 +615,11 @@ try_module_branch(char const *a_line)
 	for (start = p; '_' == *p || isalnum(*p); ++p)
 		;
 	len = p - start;
-	g_branch = malloc(len + 1);
-	memcpy(g_branch, start, len);
-	g_branch[len] = '\0';
+	g_branch = strndup_(start, len);
 
-	g_nolink = 0;
-	g_noexec = 0;
+	g_do_cflags = 1;
+	g_do_link = 1;
+	g_do_exec = 1;
 
 	for (var_i = 0; var_i < LENGTH(g_vars); ++var_i) {
 		free_vars(&g_vars[var_i]);
@@ -715,17 +659,14 @@ try_var(char const *a_line)
 	} else if (0 == strncmp(p, "LIBS", 4)) {
 		var_i = VAR_LIBS;
 		p += 4;
-	} else if (0 == strncmp(p, "SRC", 3)) {
-		var_i = VAR_SRC;
-		p += 3;
 	} else if (0 == strncmp(p, "NOCFLAGS", 8)) {
-		g_nocflags = 1;
+		g_do_cflags = 0;
 		return 1;
 	} else if (0 == strncmp(p, "NOLINK", 6)) {
-		g_nolink = 1;
+		g_do_link = 0;
 		return 1;
 	} else if (0 == strncmp(p, "NOEXEC", 6)) {
-		g_noexec = 1;
+		g_do_exec = 0;
 		return 1;
 	} else {
 		fprintf(stderr, "%s:%d: Invalid NCONF_var.\n", g_input_path,
@@ -750,37 +691,29 @@ try_var(char const *a_line)
 }
 
 void
-usage(char const *a_msg)
+usage(int a_code)
 {
 	FILE *str;
-	int exit_code;
 
-	if (NULL == a_msg) {
-		str = stdout;
-		exit_code = EXIT_SUCCESS;
-	} else {
-		str = stderr;
-		fprintf(str, "%s\n", a_msg);
-		exit_code = EXIT_FAILURE;
-	}
+	str == EXIT_SUCCESS == a_code ? stdout : stderr;
 	fprintf(str, "Usage: %s [-h] -i: -o: [-c:] [-a:]\n", g_arg0);
 	fprintf(str, " -h  Help!\n");
 	fprintf(str, " -c  Compiler command.\n");
 	fprintf(str, " -i  Input file path.\n");
 	fprintf(str, " -o  Output directory.\n");
 	fprintf(str, " -a  Config to use and update.\n");
-	exit(exit_code);
+	exit(a_code);
 }
 
 void
-var_array_grow(struct VarArray *a_array)
+var_array_grow(struct VarArray *a_array, size_t a_size0)
 {
 	void *p;
 	size_t size;
 
 	if (0 == a_array->size) {
-		size = 100;
-	} else if (a_array->num == a_array->size) {
+		size = a_size0;
+	} else if (a_array->num >= a_array->size) {
 		size = a_array->size * 2;
 	} else {
 		return;
@@ -825,8 +758,8 @@ write_files(int a_is_final)
 		    g_done_array[i].module, g_done_array[i].branch);
 	}
 	if (!a_is_final) {
-		fprintf(file, "\t#define NCONF_m%s_b%s 1\n", g_module,
-		    g_branch);
+		fprintf(file, "\t#define NCONF_m%s_b%s 1\n",
+		    g_module, g_branch);
 	}
 	fprintf(file, "#endif\n");
 	if (0 != fclose(file)) {
@@ -842,7 +775,7 @@ write_files(int a_is_final)
 		if (NULL == file) {
 			err_("fopen(%s)", path);
 		}
-		for (j = 0; j <= VAR_LIBS; ++j) {
+		for (j = 0; j < VAR_NUM; ++j) {
 			unsigned k;
 
 			for (k = 0; k < g_prev_vars[j].num; ++k) {
@@ -874,7 +807,8 @@ main(int argc, char **argv)
 
 		arg = argv[i];
 		if ('-' != arg[0]) {
-			usage("Missing switch.");
+			fprintf(stderr, "Missing switch.\n");
+			usage(EXIT_FAILURE);
 		}
 		opt = arg[1];
 		var_ptr = NULL;
@@ -886,7 +820,7 @@ main(int argc, char **argv)
 			var_ptr = &prev_args_path;
 			break;
 		case 'h':
-			usage(NULL);
+			usage(EXIT_SUCCESS);
 		case 'i':
 			var_ptr = &g_input_path;
 			break;
@@ -895,7 +829,7 @@ main(int argc, char **argv)
 			break;
 		default:
 			fprintf(stderr, "Unknown argument -%c.\n", opt);
-			exit(EXIT_FAILURE);
+			usage(EXIT_FAILURE);
 		}
 		if (NULL != var_ptr) {
 			if ('\0' == arg[2]) {
@@ -917,7 +851,8 @@ main(int argc, char **argv)
 		ok = 0;
 	}
 	if (!ok) {
-		usage("Missing mandatory arguments.");
+		fprintf(stderr, "Missing mandatory arguments.\n");
+		usage(EXIT_FAILURE);
 	}
 
 	/* Get env vars. */
@@ -948,7 +883,7 @@ main(int argc, char **argv)
 		if (NULL == file) {
 			err_("fopen(%s)", prev_args_path);
 		}
-		for (i = 0; i <= VAR_LIBS; ++i) {
+		for (i = 0; i < VAR_NUM; ++i) {
 			char buf[BUFSIZ];
 			size_t len;
 
@@ -989,6 +924,7 @@ main(int argc, char **argv)
 	remove(g_log_path);
 	mkdirs(g_log_path);
 
+	/* Parse input file. */
 	file = fopen(g_input_path, "r");
 	if (NULL == file) {
 		err_("fopen(%s)", g_input_path);

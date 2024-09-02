@@ -28,7 +28,6 @@
 #include <nconf/include/nurdlib/trloii.h>
 #include <nurdlib/base.h>
 #include <util/funcattr.h>
-#include <util/stdint.h>
 
 /* Ripped from trloii header to avoid vararg macros. */
 void trcom_hwmap_error_internal(int, const char *, int, const char *, ...);

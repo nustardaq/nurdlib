@@ -38,7 +38,6 @@
 /* NCONF_LDFLAGS=-L$RIO3LDPATH/lib/ces */
 /* NCONF_LIBS=-lbma -luio -lbus -lvme */
 /* NCONF_NOEXEC */
-#	include <sys/types.h>
 #	include <ces/bmalib.h>
 #	include <ces/vmelib.h>
 #	if NCONFING_mMAP
@@ -60,7 +59,6 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
 #		include <smem.h>
-#		include <sys/types.h>
 #		include <ces/bmalib.h>
 #		define NCONF_TEST \
 	0 == bma_open() && NULL != smem_create(NULL, NULL, 0, 0)
@@ -78,7 +76,6 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 /* NCONF_LIBS=-lbma -luio -lbus -lvme */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
-#		include <sys/types.h>
 #		include <ces/bmalib.h>
 #		define NCONF_TEST 0 == bma_open()
 #	endif
@@ -127,7 +124,6 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #       define BLT_DST_DUMB
 #elif NCONF_mMAP_bUNIVERSE
 /* NCONF_LIBS=-lvme */
-/* NCONF_NOCFLAGS */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
 #		include <vme/vme.h>
@@ -151,7 +147,6 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #       define BLT_HW_MBLT_SWAP
 #elif NCONF_mMAP_bCAEN_VMELIB
 /* NCONF_LIBS=-lCAENVME */
-/* NCONF_NOCFLAGS */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
 #		include <CAENVMElib.h>
@@ -165,10 +160,9 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 /*
  * Note: To build with CAENVMElib without having to install it:
  *  make \
- *      CPPFLAGS=-I<CAENVMElib-path>/include \
+ *      CPPFLAGS="-isystem <CAENVMElib-path>/include" \
  *      LIBS=<CAENVMElib-path>/lib/<platform>/libCAENVME.so...
  */
-/* NCONF_NOCFLAGS */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
 #		include <CAENVMElib.h>

@@ -21,6 +21,7 @@
  */
 
 #include <util/bits.h>
+#include <util/endian.h>
 
 static int const c_bitlut[16] = {
 	0, 1, 1, 2, 1, 2, 2, 3,
@@ -37,4 +38,18 @@ bits_get_count(uint32_t a_value)
 		count += c_bitlut[0xf & (a_value >> i)];
 	}
 	return count;
+}
+
+uint32_t
+htonl_(uint32_t a_u32)
+{
+#if NURDLIB_BIG_ENDIAN
+	return a_u32;
+#else
+	return
+	    (a_u32 & 0xff000000) >> 24 |
+	    (a_u32 & 0x00ff0000) >>  8 |
+	    (a_u32 & 0x0000ff00) <<  8 |
+	    (a_u32 & 0x000000ff) << 24;
+#endif
 }

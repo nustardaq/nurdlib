@@ -1434,7 +1434,7 @@ unpack_scalar_list(struct DatagramArray *a_dgram_array, size_t
 				/* Gotta dup allocated stuff! */
 				if (CONFIG_SCALAR_STRING == next->type) {
 					next->value.str =
-					    strdup(next->value.str);
+					    strdup_(next->value.str);
 				}
 				TAILQ_INSERT_TAIL(a_list, next, next);
 			}

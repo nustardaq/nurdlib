@@ -83,8 +83,12 @@ $(call infovar,BUILD_DIR)
 MKDIR=[ -d $(@D) ] || mkdir -p $(@D)
 
 # Don't use eg CPPFLAGS, will be overwritten if given on the cmd-line.
-CPPFLAGS_:=$(CPPFLAGS) -I$(BUILD_DIR)/replacements -I$(BUILD_DIR) -Iinclude -I.
-CFLAGS_:=$(CFLAGS) -ansi -pedantic-errors -Wall -Wcast-qual -Werror -Wformat=2 -Wmissing-prototypes -Wshadow -Wstrict-prototypes
+CPPFLAGS_:=$(CPPFLAGS) -I$(BUILD_DIR)/replacements -I$(BUILD_DIR) \
+	-Iinclude -I.
+CFLAGS_:=$(CFLAGS) \
+	-ansi -pedantic-errors \
+	-Wall -Wcast-qual -Werror -Wformat=2 \
+	-Wmissing-prototypes -Wshadow -Wstrict-prototypes
 LDFLAGS_:=$(LDFLAGS)
 LIBS_:=$(LIBS)
 
@@ -217,7 +221,7 @@ help:
 	@echo " 4) make BUILD_MODE=cov cov_funcs - Function-level summary."
 	@echo " 4) make BUILD_MODE=cov cov_anno  - Annotated sources."
 	@echo
-	@echo "CPPFLAGS and LIBS are prepended, CFLAGS and LDFLAGS prepended."
+	@echo "CPPFLAGS and LDFLAGS prepended, CFLAGS and LIBS appended."
 	@echo
 	@echo "nconf intermediary files are in \"$(BUILD_DIR)/nconfing/\"."
 	@echo "nconf results and logs are in \"$(BUILD_DIR)/nconf/\"."
@@ -297,13 +301,12 @@ NCONF_H:=\
 	util/fmtmod.h \
 	util/funcattr.h \
 	util/limits.h \
-	util/memcpy.h \
-	util/string.h \
+	util/memcpy.c \
 	util/thread.h \
-	util/time.h \
-	util/udp.h \
-	util/pack.h \
-	util/math.h \
+	util/time.c \
+	util/udp.c \
+	util/pack.c \
+	util/math.c \
 	module/map/map.h \
 	module/gsi_pex/nconf.h \
 	module/gsi_etherbone/nconf.h \
@@ -313,7 +316,7 @@ include nconf/nconf.mk
 $(NCONFER): nconf/nconf.c nconf/nconf.mk Makefile $(BUILD_DIR)/config/kwenum.h
 	$(QUIET)echo "CCLD  $@"; \
 	$(MKDIR); \
-	$(CC) -o $@ $<
+	$(CC) -ggdb -o $@ $<
 
 $(NCONF_ARGS): $(BUILD_DIR)/replacements/proc.h \
 		$(BUILD_DIR)/replacements/bsd/in.h \

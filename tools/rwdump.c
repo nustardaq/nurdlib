@@ -143,10 +143,10 @@ main(int argc, char *argv[])
 			int link_number = -1;
 			int conet_node = -1;
 
-			strlcpy(buf, str, sizeof buf);
+			strlcpy_(buf, str, sizeof buf);
 			p = buf;
 			/* Parse and check board type. */
-			p2 = strsep(&p, ",");
+			p2 = strsep_(&p, ",");
 			board_type = p2;
 			if (!map_caen_type_exists(board_type)) {
 				size_t i;
@@ -166,18 +166,18 @@ main(int argc, char *argv[])
 				log_die(LOGL, "Bailing.");
 			}
 			/* Parse link/ip. */
-			p2 = strsep(&p, ",");
+			p2 = strsep_(&p, ",");
 			if (NULL != p2) {
 				char *end;
 
 				link_number = strtol(p2, &end, 10);
 				if (p2 == end || '\0' != *end) {
 					link_number = -1;
-					strlcpy(link_ip, p2, sizeof link_ip);
+					strlcpy_(link_ip, p2, sizeof link_ip);
 				}
 			}
 			/* Parse conet node. */
-			p2 = strsep(&p, ",");
+			p2 = strsep_(&p, ",");
 			if (NULL != p2) {
 				char *end;
 

@@ -198,7 +198,7 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 		 * way to identify nodes between each other in MBS.
 		 */
 		if (0 != stat(CONFIG_NAME_PRIMARY, &st)) {
-			snprintf(cfg_path, sizeof cfg_path, "../%u_%u/%s",
+			snprintf_(cfg_path, sizeof cfg_path, "../%u_%u/%s",
 			    setup->i_se_procid[0], setup->h_se_control,
 			    CONFIG_NAME_PRIMARY);
 		}
@@ -248,7 +248,7 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 	for (i = 1; i < LENGTH(g_tag); ++i) {
 		char name[10];
 
-		snprintf(name, sizeof name, "%u", i);
+		snprintf_(name, sizeof name, "%u", i);
 		g_tag[i] = crate_get_tag_by_name(g_crate, name);
 	}
 	if (NULL == g_tag[1]) {

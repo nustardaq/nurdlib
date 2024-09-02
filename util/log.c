@@ -126,7 +126,7 @@ log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
 				log_info_printf_(a_file, a_line_no, "%s",
 				    line);
 			}
-			ret = snprintf(line, sizeof line, "%5"PRIzx":", i);
+			ret = snprintf_(line, sizeof line, "%5"PRIzx":", i);
 			if (ret < 0) {
 				log_die(LOGL, "snprintf failed.");
 			} else {
@@ -138,7 +138,7 @@ log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
 			uint32_t const *p32;
 
 			p32 = p;
-			ret = snprintf(line + ofs, sizeof line - ofs, " %08x",
+			ret = snprintf_(line + ofs, sizeof line - ofs, " %08x",
 			    *p32);
 			if (ret < 0) {
 				log_die(LOGL, "snprintf failed.");
@@ -150,7 +150,7 @@ log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
 			uint16_t const *p16;
 
 			p16 = p;
-			ret = snprintf(line + ofs, sizeof line - ofs, " %04x",
+			ret = snprintf_(line + ofs, sizeof line - ofs, " %04x",
 			    *p16);
 			if (ret < 0) {
 				log_die(LOGL, "snprintf failed.");
@@ -162,7 +162,7 @@ log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
 			uint8_t const *p8;
 
 			p8 = p;
-			ret = snprintf(line + ofs, sizeof line - ofs, " %02x",
+			ret = snprintf_(line + ofs, sizeof line - ofs, " %02x",
 			    *p8);
 			if (ret < 0) {
 				log_die(LOGL, "snprintf failed.");
@@ -258,7 +258,7 @@ log_printerv(char const *a_fmt, va_list a_args)
 	char buf[1024];
 	int ret;
 
-	ret = vsnprintf(buf, sizeof buf, a_fmt, a_args);
+	ret = vsnprintf_(buf, sizeof buf, a_fmt, a_args);
 	g_callback("sys", 0, KW_ERROR, buf);
 	return ret;
 }
@@ -305,7 +305,7 @@ log_suppress_all_levels(int a_yes)
 
 #define STRAPP(dst, dstlen, ofs, src)\
        do {\
-               ofs += strlcpy(dst + ofs, src, dstlen - ofs);\
+               ofs += strlcpy_(dst + ofs, src, dstlen - ofs);\
                ofs = MIN(ofs, dstlen - 1);\
        } while (0)
 
@@ -331,7 +331,7 @@ print(struct LogFile const *a_file, int a_line_no, enum Keyword a_level, char
 	for (i = 0; g_indent > i; ++i) {
 		STRAPP(buf, sizeof buf, ofs, ".");
 	}
-	ofs += vsnprintf(buf + ofs, sizeof buf - ofs, a_fmt, a_args);
+	ofs += vsnprintf_(buf + ofs, sizeof buf - ofs, a_fmt, a_args);
 	last = buf[ofs - 1];
 	ofs = 0;
 	if ('{' == last) {
