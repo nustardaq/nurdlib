@@ -21,20 +21,16 @@
  */
 
 #include <errno.h>
-#include <math.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <ntest/ntest.h>
 #include <config/parser.h>
 #include <nurdlib/base.h>
 #include <nurdlib/config.h>
 #include <nurdlib/log.h>
-#include <util/limits.h>
 #include <util/string.h>
 
 NTEST(AbsolutePaths)
 {
-	char cwd[PATH_MAX];
+	char cwd[1024];
 	FILE *file;
 	struct ConfigBlock *gate;
 	char *path;
