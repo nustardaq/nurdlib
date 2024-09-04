@@ -55,7 +55,6 @@
 /* NCONF_NOLINK */
 #elif NCONF_mSTDINT_TYPES_bTYPEDEF_SYS_TYPES_H
 /* NCONF_NOLINK */
-#	include <sys/types.h>
 typedef u_int8_t  uint8_t;
 typedef u_int16_t uint16_t;
 typedef u_int32_t uint32_t;
