@@ -25,8 +25,11 @@
 #include <util/memcpy.h>
 
 #if NCONF_mMEMCPY_bALTIVEC
-
 /* NCONF_CFLAGS=-maltivec -mregnames */
+/* NCONF_SRCS=util/libmotovec_memcpy.S */
+
+extern void *vec_memcpy(void *, const void *, size_t);
+
 void *
 memcpy_(void *a_dst, void const *a_src, size_t a_bytes)
 {
@@ -39,7 +42,7 @@ memcpy_(void *a_dst, void const *a_src, size_t a_bytes)
 #	endif
 
 void *
-memcpy_(void *a_dst, void *a_src, size_t a_bytes)
+memcpy_(void *a_dst, void const *a_src, size_t a_bytes)
 {
 	double *d_dst;
 	double const *d_src;
@@ -64,12 +67,12 @@ memcpy_(void *a_dst, void *a_src, size_t a_bytes)
 }
 
 #elif NCONF_mMEMCPY_bGLIBC
+#	undef memcpy
 #	include <string.h>
 
 void *
 memcpy_(void *a_dst, const void *a_src, size_t a_bytes)
 {
-#undef memcpy
 	return memcpy(a_dst, a_src, a_bytes);
 }
 

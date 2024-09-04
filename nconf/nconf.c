@@ -50,6 +50,7 @@ enum {
 	VAR_CFLAGS,
 	VAR_LDFLAGS,
 	VAR_LIBS,
+	VAR_SRCS,
 	VAR_NUM
 };
 struct VarArray {
@@ -497,10 +498,14 @@ try()
 		argv[2] = bin;
 		argv[3] = obj;
 		argc = 4;
-		for (var_i = VAR_LDFLAGS; var_i <= VAR_LIBS; ++var_i) {
+		/* Keep compilation flags for extra sources. */
+		for (var_i = VAR_CFLAGS; var_i <= VAR_LIBS; ++var_i) {
 			for (j = 0; j < full_vars[var_i].num; ++j) {
 				argv[argc++] = full_vars[var_i].array[j];
 			}
+		}
+		for (j = 0; j < g_vars[VAR_SRCS].num; ++j) {
+			argv[argc++] = g_vars[VAR_SRCS].array[j];
 		}
 		argv[argc++] = NULL;
 		if (!run(argv)) {
@@ -659,6 +664,9 @@ try_var(char const *a_line)
 	} else if (0 == strncmp(p, "LIBS", 4)) {
 		var_i = VAR_LIBS;
 		p += 4;
+	} else if (0 == strncmp(p, "SRCS", 4)) {
+		var_i = VAR_SRCS;
+		p += 4;
 	} else if (0 == strncmp(p, "NOCFLAGS", 8)) {
 		g_do_cflags = 0;
 		return 1;
@@ -775,7 +783,7 @@ write_files(int a_is_final)
 		if (NULL == file) {
 			err_("fopen(%s)", path);
 		}
-		for (j = 0; j < VAR_NUM; ++j) {
+		for (j = 0; j <= VAR_LIBS; ++j) {
 			unsigned k;
 
 			for (k = 0; k < g_prev_vars[j].num; ++k) {
@@ -883,7 +891,7 @@ main(int argc, char **argv)
 		if (NULL == file) {
 			err_("fopen(%s)", prev_args_path);
 		}
-		for (i = 0; i < VAR_NUM; ++i) {
+		for (i = 0; i <= VAR_LIBS; ++i) {
 			char buf[BUFSIZ];
 			size_t len;
 
