@@ -26,6 +26,7 @@
 #include <nconf/module/gsi_pex/nconf.h>
 
 #if NCONF_mGSI_PEX_bYES
+#	define _BSD_SOURCE 1
 #	include <sys/mman.h>
 #	include <errno.h>
 #	include <fcntl.h>

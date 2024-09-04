@@ -29,6 +29,7 @@
 /* NCONF_CPPFLAGS=-I$WR_SYS/include */
 /* NCONF_LIBS=$WR_SYS/lib/libetherbone.a */
 /* NCONF_NOEXEC */
+#	define _BSD_SOURCE 1
 #	include <etherbone.h>
 #	if NCONFING_mGSI_ETHERBONE
 #		define NCONF_TEST eb_status(0)
