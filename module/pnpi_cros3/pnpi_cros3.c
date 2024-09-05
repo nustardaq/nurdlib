@@ -216,7 +216,7 @@ parse_data(struct Crate const *a_crate, struct GsiSamGtbClient *a_client,
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p);
 	result = 0;
 pnpi_cros3_parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }
 
@@ -254,12 +254,14 @@ pnpi_cros3_crate_init_slow(struct PnpiCros3Crate *a_crate)
 {
 	struct PnpiCros3 *cros3;
 	unsigned sam_mask;
+	int ret;
 
 	if (TAILQ_EMPTY(&a_crate->list)) {
 		return 1;
 	}
 
-	LOGF(verbose)(LOGL, NAME" crate_init_slow {");
+	LOGF(info)(LOGL, NAME" crate_init_slow {");
+	ret = 0;
 
 	sam_mask = 0;
 	TAILQ_FOREACH(cros3, &a_crate->list, next) {
@@ -270,8 +272,10 @@ pnpi_cros3_crate_init_slow(struct PnpiCros3Crate *a_crate)
 		bit = 1 << sam_i;
 		if (0 == (bit & sam_mask)) {
 			LOGF(info)(LOGL, "Initializing SAM=%u...", sam_i);
-			system_call("%s/hstart %u", a_crate->data_path,
-			    sam_i);
+			if (!system_call("%s/hstart %u", a_crate->data_path,
+			    sam_i)) {
+				goto pnpi_cros3_crate_init_slow_done;
+			}
 			sam_mask |= bit;
 		}
 
@@ -279,28 +283,34 @@ pnpi_cros3_crate_init_slow(struct PnpiCros3Crate *a_crate)
 		    cros3->gtb_client.gtb_i);
 		path = para_write(a_crate, cros3);
 		/* TODO: Check if the following SIGBUS:es. */
-		system_call("%s/paraload %u %s", a_crate->data_path, sam_i,
-		    path);
+		if (!system_call("%s/paraload %u %s", a_crate->data_path,
+		    sam_i, path)) {
+			goto pnpi_cros3_crate_init_slow_done;
+		}
 		FREE(path);
-		system_call("%s/hpiload %u %u %s/cros3read.m0",
+		if (!system_call("%s/hpiload %u %u %s/cros3read.m0",
 		    a_crate->data_path, sam_i, cros3->gtb_client.gtb_i,
-		    a_crate->data_path);
+		    a_crate->data_path)) {
+			goto pnpi_cros3_crate_init_slow_done;
+		}
 	}
+	ret = 1;
 
-	LOGF(verbose)(LOGL, NAME" crate_init_slow }");
-	return 1;
+pnpi_cros3_crate_init_slow_done:
+	LOGF(info)(LOGL, NAME" crate_init_slow }");
+	return ret;
 }
 
 void
 pnpi_cros3_crate_configure(struct PnpiCros3Crate *a_crate, struct ConfigBlock
     *a_block)
 {
-	LOGF(verbose)(LOGL, NAME" crate_configure {");
+	LOGF(info)(LOGL, NAME" crate_configure {");
 	FREE(a_crate->data_path);
 	a_crate->data_path = strdup_(config_get_string(a_block,
 	    KW_DATA_PATH));
-	LOGF(verbose)(LOGL, "data_path = '%s'.", a_crate->data_path);
-	LOGF(verbose)(LOGL, NAME" crate_configure }");
+	LOGF(info)(LOGL, "data_path = '%s'.", a_crate->data_path);
+	LOGF(info)(LOGL, NAME" crate_configure }");
 }
 
 struct GsiSamGtbClient *
@@ -616,6 +626,6 @@ rewrite_data(struct GsiSamGtbClient const *a_client, struct EventBuffer
 	result = 0;
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, end);
 pnpi_cros3_rewrite_data_done:
-	LOGF(spam)(LOGL, NAME" rewrite_data }");
+	LOGF(spam)(LOGL, NAME" rewrite_data(0x%08x) }", result);
 	return result;
 }

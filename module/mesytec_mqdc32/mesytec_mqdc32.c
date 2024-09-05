@@ -125,7 +125,7 @@ mesytec_mqdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	enum Keyword gate_input, exp_trig;
 	double exp_t0, exp_t1;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_MESYTEC_MQDC32, mqdc32, a_module);
 
@@ -172,7 +172,7 @@ mesytec_mqdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	MAP_WRITE(mqdc32->mxdc32.sicy_map, low_limit0, 1);
 	MAP_WRITE(mqdc32->mxdc32.sicy_map, low_limit1, 1);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 

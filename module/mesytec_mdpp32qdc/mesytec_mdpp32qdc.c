@@ -103,7 +103,7 @@ mesytec_mdpp32qdc_init_fast(struct Crate *a_crate, struct Module *a_module)
 	double init_sleep;
 	unsigned i, output_format;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_MESYTEC_MDPP32QDC, mdpp32qdc, a_module);
 	mesytec_mdpp_init_fast(a_crate, &mdpp32qdc->mdpp);
@@ -189,7 +189,7 @@ mesytec_mdpp32qdc_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}*/
 	MAP_WRITE(mdpp32qdc->mdpp.mxdc32.sicy_map, output_format, output_format);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 

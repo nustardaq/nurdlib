@@ -156,8 +156,8 @@ gsi_tacquila_crate_init_slow(struct GsiTacquilaCrate *a_crate)
 		return 1;
 	}
 
-	LOGF(verbose)(LOGL, NAME" crate_init_slow {");
-	ret = 1;
+	LOGF(info)(LOGL, NAME" crate_init_slow {");
+	ret = 0;
 
 	TAILQ_FOREACH(tacquila, &a_crate->list, next) {
 		size_t ofs;
@@ -167,9 +167,10 @@ gsi_tacquila_crate_init_slow(struct GsiTacquilaCrate *a_crate)
 		MAP_WRITE_OFS(tacquila->sam->crate->sicy_map, init, ofs, 0);
 	}
 
-	LOGF(info)(LOGL, "Loading %s/tacset.txt...", a_crate->data_path);
-	system_call("%s/paraload %s/tacset.txt", a_crate->util_path,
-	    a_crate->data_path);
+	if (!system_call("%s/paraload %s/tacset.txt", a_crate->util_path,
+	    a_crate->data_path)) {
+		goto gsi_tacquila_crate_init_slow_done;
+	}
 
 	sam_mask = 0;
 	TAILQ_FOREACH(tacquila, &a_crate->list, next) {
@@ -183,18 +184,22 @@ gsi_tacquila_crate_init_slow(struct GsiTacquilaCrate *a_crate)
 		sam_mask |= bit;
 
 		LOGF(info)(LOGL, "Initializing SAM=%d...", sam_i);
-		system_call("%s/hstart %d", a_crate->util_path, sam_i);
-		system_call(
+		if (!system_call(
+		    "%s/hstart %d", a_crate->util_path, sam_i) ||
+		    !system_call(
 		    "%s/tacload %d "
 		    "%s/tacquila_big_2013.hex "
 		    "%s/tacquila_middle_2013.hex", a_crate->util_path, sam_i,
-		    a_crate->util_path, a_crate->util_path);
-		system_call(
+		    a_crate->util_path, a_crate->util_path) ||
+		    !system_call(
 		    "%s/hpistart2 %d "
 		    "%s/tacsam5.m0", a_crate->util_path, sam_i,
-		    a_crate->util_path);
+		    a_crate->util_path)) {
+			goto gsi_tacquila_crate_init_slow_done;
+		}
 	}
 
+	ret = 1;
 	TAILQ_FOREACH(tacquila, &a_crate->list, next) {
 		size_t ofs;
 
@@ -238,7 +243,8 @@ gsi_tacquila_crate_init_slow(struct GsiTacquilaCrate *a_crate)
 		}
 		tacquila->lec = 0;
 	}
-	LOGF(verbose)(LOGL, NAME" crate_init_slow }");
+gsi_tacquila_crate_init_slow_done:
+	LOGF(info)(LOGL, NAME" crate_init_slow }");
 	return ret;
 }
 
@@ -368,6 +374,6 @@ parse_data(struct Crate const *a_crate, struct GsiSamGtbClient *a_client,
 gsi_tacquila_parse_data_done:
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p);
 	tacquila->lec = (tacquila->lec + 1) & 15;
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }

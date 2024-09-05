@@ -68,7 +68,7 @@ gsi_vuprom_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	MODULE_CREATE(vuprom);
 	vuprom->module.event_max = 1;
 	vuprom->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", vuprom->address);
+	LOGF(info)(LOGL, "Address=%08x.", vuprom->address);
 	LOGF(verbose)(LOGL, NAME" create }");
 
 	return (void *)vuprom;
@@ -79,17 +79,16 @@ gsi_vuprom_deinit(struct Module *a_module)
 {
 	struct GsiVupromModule *vuprom;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_GSI_VUPROM, vuprom, a_module);
 	map_unmap(&vuprom->sicy_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 gsi_vuprom_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -106,12 +105,14 @@ gsi_vuprom_get_map(struct Module *a_module)
 void
 gsi_vuprom_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(16, 23),
 		BITS_MASK(24, 31) | BITS_MASK(9, 15),
 		0xfe << 24)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -123,7 +124,7 @@ gsi_vuprom_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int do_zero_suppress;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_GSI_VUPROM, vuprom, a_module);
 
 	do_zero_suppress = config_get_boolean(a_module->config,
@@ -143,7 +144,7 @@ gsi_vuprom_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    gate.width_ns);
 	MAP_WRITE(vuprom->sicy_map, full_range, full_range);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -155,7 +156,7 @@ gsi_vuprom_init_slow(struct Crate *a_crate, struct Module *a_module)
 	uint32_t firmware;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_VUPROM, vuprom, a_module);
 
 	/* Mapping. */
@@ -164,13 +165,13 @@ gsi_vuprom_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	/* Firmware info. */
 	firmware = MAP_READ(vuprom->sicy_map, firmware_date);
-	LOGF(verbose)(LOGL, "Firmware: 20%02d/%02d/%02d v%02d, 0x%08x",
+	LOGF(info)(LOGL, "Firmware: 20%02d/%02d/%02d v%02d, 0x%08x",
 		(firmware >> 8) & 0xff, (firmware >> 16) & 0xff,
 		(firmware >> 24) & 0xff, firmware & 0xff, firmware);
 
 	/* Initialise clock. */
 	while (0x0003 != MAP_READ(vuprom->sicy_map, clock_status)) {
-		LOGF(spam)(LOGL, "setting clock and waiting 0.01 s.");
+		LOGF(spam)(LOGL, "Setting clock and waiting 0.01 s.");
 		MAP_WRITE(vuprom->sicy_map, clock_status, 0x0003);
 		time_sleep(10e-3);
 	}
@@ -193,7 +194,7 @@ gsi_vuprom_init_slow(struct Crate *a_crate, struct Module *a_module)
 	/* Trigger mode (what comes out on the outputs) */
 	MAP_WRITE(vuprom->sicy_map, trig_sel, 0x120);
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -252,7 +253,7 @@ gsi_vuprom_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	++vuprom->counter;
 
 gsi_vuprom_parse_data_end:
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }
 
@@ -299,7 +300,7 @@ gsi_vuprom_readout(struct Crate *a_crate, struct Module *a_module, struct
 	}
 gsi_vuprom_readout_done:
 	MAP_WRITE(vuprom->sicy_map, data_ready, 1);
-	LOGF(spam)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
 	return result;
 }
 

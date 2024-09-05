@@ -97,12 +97,15 @@ caen_v7nn_create(struct ConfigBlock *a_block, struct CaenV7nnModule *a_v7nn,
 	a_v7nn->child_type = a_child_type;
 
 	a_v7nn->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", a_v7nn->address);
+	LOGF(info)(LOGL, "Address=%08x.", a_v7nn->address);
 
 	a_v7nn->do_auto_pedestals = config_get_boolean(a_block,
 	    KW_AUTO_PEDESTALS);
-	LOGF(verbose)(LOGL, "Auto pedestals=%s.",
-	    a_v7nn->do_auto_pedestals ? "yes" : "no");
+	if (a_v7nn->do_auto_pedestals) {
+		LOGF(info)(LOGL, "Auto pedestals enabled.");
+	} else {
+		LOGF(verbose)(LOGL, "Auto pedestals disabled.");
+	}
 
 	a_v7nn->dma_map = NULL;
 
@@ -120,29 +123,28 @@ caen_v7nn_create(struct ConfigBlock *a_block, struct CaenV7nnModule *a_v7nn,
 void
 caen_v7nn_deinit(struct CaenV7nnModule *a_v7nn)
 {
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	map_unmap(&a_v7nn->sicy_map);
 	map_unmap(&a_v7nn->dma_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 caen_v7nn_destroy(struct CaenV7nnModule *a_v7nn)
 {
 	(void)a_v7nn;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
 caen_v7nn_get_map(struct CaenV7nnModule *a_v7nn)
 {
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return a_v7nn->sicy_map;
 }
 
 void
 caen_v7nn_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(27, 31),
@@ -153,6 +155,7 @@ caen_v7nn_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 		BITS_MASK(0, 31),
 		DMA_FILLER)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 void
@@ -163,7 +166,7 @@ caen_v7nn_init_fast(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 	unsigned ofs, i;
 	uint16_t bs2;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	/* Nurdlib default, verbose mode. */
 	bs2 =
@@ -227,7 +230,7 @@ caen_v7nn_init_fast(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 	bs2 = MAP_READ(a_v7nn->sicy_map, bit_set_2);
 	LOGF(verbose)(LOGL, "Bit set 2 = 0x%04x.", bs2);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 }
 
 void
@@ -241,7 +244,7 @@ caen_v7nn_init_slow(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 	};
 	uint16_t revision, status;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	a_v7nn->blt_mode = CONFIG_GET_KEYWORD(a_v7nn->module.config,
 	    KW_BLT_MODE, c_blt_mode);
@@ -272,7 +275,7 @@ caen_v7nn_init_slow(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 	SERIALIZE_IO;
 
 	revision = MAP_READ(a_v7nn->sicy_map, firmware_revision);
-	LOGF(verbose)(LOGL, "Firmware revision = %d.%d (0x%04x).",
+	LOGF(info)(LOGL, "Firmware revision = %d.%d (0x%04x).",
 	    (0xff00 & revision) >> 8, 0xff & revision, revision);
 
 	/* Enable BERR/SIGBUS to end DMA readout. */
@@ -294,7 +297,7 @@ caen_v7nn_init_slow(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 		    MAP_POKE_REG(crate_select),
 		    MAP_POKE_REG(crate_select), 0);
 	}
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 }
 
 uint32_t
@@ -811,7 +814,7 @@ threshold_set(struct CaenV7nnModule *a_v7nn, uint16_t const
 	uint16_t threshold_stride;
 	uint16_t bs2_fine;
 
-	LOGF(spam)(LOGL, NAME" threshold_set {");
+	LOGF(verbose)(LOGL, NAME" threshold_set {");
 	assert(a_v7nn->number_of_channels == a_threshold_num);
 	if (KW_CAEN_V785N == a_v7nn->child_type) {
 		threshold_stride = 2;
@@ -838,5 +841,5 @@ threshold_set(struct CaenV7nnModule *a_v7nn, uint16_t const
 		    (a_threshold_array[i] >> threshold_shift) +
 		    channel_offset);
 	}
-	LOGF(spam)(LOGL, NAME" threshold_set }");
+	LOGF(verbose)(LOGL, NAME" threshold_set }");
 }

@@ -84,7 +84,6 @@ uint32_t
 dummy_check_empty(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(spam)(LOGL, NAME" check_empty.");
 	return 0;
 }
 
@@ -151,9 +150,13 @@ dummy_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	 * init_fast, so check also there!
 	 */
 
-	/* Get an integer value from the block's first parameter. */
+	/*
+	 * Get an integer value from the block's first parameter.
+	 * Some things are always useful for the user, but don't be too wordy
+	 * in this function!
+	 */
 	dummy->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", dummy->address);
+	LOGF(info)(LOGL, "Address=%08x.", dummy->address);
 
 	/*
 	 * Get value from a config named KW_MODE.
@@ -180,7 +183,7 @@ dummy_deinit(struct Module *a_module)
 {
 	struct DummyModule *dummy;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 
 	/* This asserts the module type before casting. */
 	MODULE_CAST(KW_DUMMY, dummy, a_module);
@@ -188,7 +191,7 @@ dummy_deinit(struct Module *a_module)
 	/* Undo 'init_fast' and then 'init_slow'. */
 	(void)dummy;
 
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
@@ -229,12 +232,14 @@ dummy_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 	 * TODO: Put the module id in 'store_event' in the header to make this
 	 * more interesting!
 	 */
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		0,
 		BITS_MASK(16, 31),
 		0x1234)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -244,7 +249,7 @@ dummy_init_fast(struct Crate *a_crate, struct Module *a_module)
 	struct DummyModule *dummy;
 	size_t ch;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	/*
 	 * Some modules need crate-wide resources, this dummy does not.
@@ -320,7 +325,7 @@ dummy_init_fast(struct Crate *a_crate, struct Module *a_module)
 		dummy->init_callback();
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 
 	/*
 	 * All went well, return 1!
@@ -338,7 +343,7 @@ dummy_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct DummyModule *dummy;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	/*
 	 * Some modules need crate-wide resources, this dummy module does not.
@@ -354,7 +359,7 @@ dummy_init_slow(struct Crate *a_crate, struct Module *a_module)
 	/* Populate the registers with some numbers for testing. */
 	init_registers(dummy);
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 
 	/*
 	 * See init_fast for more info on the return value.
@@ -385,9 +390,10 @@ dummy_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	struct DummyModule *dummy;
 
 	(void)a_crate;
+	(void)a_event_buffer;
 	(void)a_do_pedestals;
-	LOGF(spam)(LOGL, NAME" parse_data(%p,%"PRIz") {", a_event_buffer->ptr,
-	    a_event_buffer->bytes);
+
+	LOGF(spam)(LOGL, NAME" parse_data {");
 	MODULE_CAST(KW_DUMMY, dummy, a_module);
 	(void)dummy;
 	/*
@@ -462,7 +468,7 @@ dummy_readout_done:
 	 * of pointer arithmetic.
 	 */
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
-	LOGF(spam)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
 	return result;
 }
 

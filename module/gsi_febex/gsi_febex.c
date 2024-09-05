@@ -193,7 +193,6 @@ void
 gsi_febex_deinit(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" deinit.");
 }
 
 void
@@ -211,7 +210,6 @@ struct Map *
 gsi_febex_get_map(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return NULL;
 }
 
@@ -249,7 +247,7 @@ gsi_febex_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int ret, trigger_delay;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	ret = 0;
 	MODULE_CAST(KW_GSI_FEBEX, feb, a_module);
 	pex = crate_gsi_pex_get(a_crate);
@@ -399,7 +397,7 @@ gsi_febex_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	ret = 1;
 febex_init_fast_done:
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return ret;
 }
 
@@ -412,7 +410,7 @@ gsi_febex_init_slow(struct Crate *a_crate, struct Module *a_module)
 	int ret;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	ret = 0;
 	MODULE_CAST(KW_GSI_FEBEX, feb, a_module);
 	pex = crate_gsi_pex_get(a_crate);
@@ -463,7 +461,7 @@ gsi_febex_init_slow(struct Crate *a_crate, struct Module *a_module)
 	}
 	ret = 1;
 febex_init_slow_done:
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return ret;
 }
 
@@ -631,7 +629,7 @@ gsi_febex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 		++p32;
 	}
 gsi_febex_parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse }");
+	LOGF(spam)(LOGL, NAME" parse(0x%08x) }", ret);
 	return ret;
 }
 
@@ -741,7 +739,7 @@ gsi_febex_readout(struct Crate *a_crate, struct Module *a_module, struct
 	memmove(a_event_buffer->ptr, (void *)dst_bursted, bytes);
 	a_event_buffer->ptr = (uint8_t *)a_event_buffer->ptr + bytes;
 gsi_febex_readout_done:
-	LOGF(spam)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", ret);
 	return ret;
 }
 
@@ -783,7 +781,7 @@ gsi_febex_crate_add(struct GsiFebexCrate *a_crate, struct Module *a_module)
 	struct GsiFebexModule *feb;
 	size_t sfp_i;
 
-	LOGF(spam)(LOGL, NAME" crate_add {");
+	LOGF(verbose)(LOGL, NAME" crate_add {");
 	MODULE_CAST(KW_GSI_FEBEX, feb, a_module);
 	sfp_i = feb->sfp_i;
 	if (NULL != a_crate->sfp[sfp_i]) {
@@ -791,7 +789,7 @@ gsi_febex_crate_add(struct GsiFebexCrate *a_crate, struct Module *a_module)
 		    sfp_i);
 	}
 	a_crate->sfp[sfp_i] = feb;
-	LOGF(spam)(LOGL, NAME" crate_add }");
+	LOGF(verbose)(LOGL, NAME" crate_add }");
 }
 
 void

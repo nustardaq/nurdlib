@@ -108,7 +108,7 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	double init_sleep;
 	unsigned i;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_MESYTEC_MDPP32SCP, mdpp32scp, a_module);
 	mesytec_mdpp_init_fast(a_crate, &mdpp32scp->mdpp);
@@ -128,7 +128,7 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 		} else {
 			*pz /= 12.5;
 		}
-		LOGF(verbose)(LOGL, "Threshold[%u]=%u\tPz[%u]=%uns",
+		LOGF(verbose)(LOGL, "Threshold[%u]=%u\tPz[%u]=%uns.",
 		    i, mdpp32scp->mdpp.config.threshold[i], i, *pz);
 	}
 
@@ -149,7 +149,7 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    mdpp32scp->mdpp.mxdc32.module.config,
 	    KW_SIGNAL_RISETIME, CONFIG_UNIT_NS, 0, 1580);
 	for (i = 0; i < MDPP32SCP_PR_N; ++i) {
-		LOGF(verbose)(LOGL, "Input gain[%d]=%.2f (=%d/100)", i,
+		LOGF(verbose)(LOGL, "Input gain[%d]=%.2f (=%d/100).", i,
 		    mdpp32scp->config.gain[i] / 100.,
 		    mdpp32scp->config.gain[i]);
 	}
@@ -231,7 +231,7 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, output_format, 4);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 

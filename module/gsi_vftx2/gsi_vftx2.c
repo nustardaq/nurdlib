@@ -47,17 +47,12 @@ gsi_vftx2_check_empty(struct Module *a_module)
 	struct GsiVftx2Module *vftx2;
 	uint32_t status, result;
 
-	/* Why has this been commented out?
-	   return 0;
-	   */
-
 	LOGF(spam)(LOGL, NAME" check_empty {");
 	MODULE_CAST(KW_GSI_VFTX2, vftx2, a_module);
 	status = MAP_READ(vftx2->sicy_map, fifo_status);
 	result = 0 == (0x1ff0 & status) ? 0 :
 	    CRATE_READOUT_FAIL_DATA_TOO_MUCH;
 	LOGF(spam)(LOGL, NAME" check_empty(0x%08x) }", result);
-
 	return result;
 }
 
@@ -79,7 +74,7 @@ gsi_vftx2_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 		    "or 32.", vftx2->channel_num, vftx2->channel_num);
 	}
 	vftx2->address = config_get_block_param_int32(a_block, 1);
-	LOGF(verbose)(LOGL, "Channels=%u address=0x%08x.", vftx2->channel_num,
+	LOGF(info)(LOGL, "Channels=%u address=0x%08x.", vftx2->channel_num,
 	    vftx2->address);
 
 	/* The VFTX2 has no event counter. */
@@ -95,17 +90,16 @@ gsi_vftx2_deinit(struct Module *a_module)
 {
 	struct GsiVftx2Module *vftx2;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_GSI_VFTX2, vftx2, a_module);
 	map_unmap(&vftx2->sicy_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 gsi_vftx2_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -122,12 +116,14 @@ gsi_vftx2_get_map(struct Module *a_module)
 void
 gsi_vftx2_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(0, 7),
 		BITS_MASK(24, 31),
 		0xab << 24)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -142,7 +138,7 @@ gsi_vftx2_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int32_t gate_end;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_GSI_VFTX2, vftx2, a_module);
 
 	/* CPLD = input types. */
@@ -217,7 +213,7 @@ gsi_vftx2_init_fast(struct Crate *a_crate, struct Module *a_module)
 	MAP_WRITE(vftx2->sicy_map, trigger_enable, vftx2->channel_mask);
 	MAP_WRITE(vftx2->sicy_map, start_reset, 1);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -227,13 +223,13 @@ gsi_vftx2_init_slow(struct Crate *a_crate, struct Module *a_module)
 	struct GsiVftx2Module *vftx2;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_VFTX2, vftx2, a_module);
 
 	vftx2->sicy_map = map_map(vftx2->address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(channel_enable), MAP_POKE_REG(channel_enable), 0);
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -309,7 +305,7 @@ gsi_vftx2_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	}
 
 gsi_vftx2_parse_data_end:
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(%08x) }", result);
 	return result;
 }
 
@@ -354,7 +350,7 @@ gsi_vftx2_readout(struct Crate *a_crate, struct Module *a_module, struct
 	}
 
 	outp = a_event_buffer->ptr;
-	LOGF(spam)(LOGL, "status=0x%08x", status);
+	LOGF(spam)(LOGL, "status=0x%08x.n", status);
 	hit_num = (status & 0x1ff0) >> 4;
 	/* NOTE: 1 + hit_num words. */
 	if (!MEMORY_CHECK(*a_event_buffer, &outp[hit_num])) {
@@ -382,7 +378,6 @@ gsi_vftx2_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	(void)a_crate;
 	(void)a_module;
-	LOGF(spam)(LOGL, NAME" readout_dt.");
 	return 0;
 }
 

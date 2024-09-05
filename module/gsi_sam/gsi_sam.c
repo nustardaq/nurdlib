@@ -67,7 +67,7 @@ gsi_sam_crate_collect(struct GsiSamCrate *a_sam_crate, struct GsiSideremCrate
 	size_t gtb_i;
 	unsigned id;
 
-	LOGF(debug)(LOGL, NAME" crate_collect {");
+	LOGF(verbose)(LOGL, NAME" crate_collect {");
 	MODULE_CAST(KW_GSI_SAM, sam, a_module);
 	if (KW_BLT != a_sam_crate->blt_mode &&
 	    KW_MBLT != a_sam_crate->blt_mode) {
@@ -95,28 +95,28 @@ gsi_sam_crate_collect(struct GsiSamCrate *a_sam_crate, struct GsiSideremCrate
 		}
 	}
 	sam->crate = a_sam_crate;
-	LOGF(debug)(LOGL, NAME" crate_collect }");
+	LOGF(verbose)(LOGL, NAME" crate_collect }");
 }
 
 void
 gsi_sam_crate_create(struct GsiSamCrate *a_sam_crate)
 {
-	LOGF(debug)(LOGL, NAME" crate_create {");
+	LOGF(verbose)(LOGL, NAME" crate_create {");
 	a_sam_crate->blt_mode = KW_NONE;
 	a_sam_crate->first = 0xff;
 	a_sam_crate->last = 0;
 	a_sam_crate->sicy_map = NULL;
 	a_sam_crate->blt_map = NULL;
-	LOGF(debug)(LOGL, NAME" crate_create }");
+	LOGF(verbose)(LOGL, NAME" crate_create }");
 }
 
 void
 gsi_sam_crate_deinit(struct GsiSamCrate *a_sam_crate)
 {
-	LOGF(debug)(LOGL, NAME" crate_deinit {");
+	LOGF(info)(LOGL, NAME" crate_deinit {");
 	map_unmap(&a_sam_crate->sicy_map);
 	map_unmap(&a_sam_crate->blt_map);
-	LOGF(debug)(LOGL, NAME" crate_deinit }");
+	LOGF(info)(LOGL, NAME" crate_deinit }");
 }
 
 int
@@ -129,7 +129,7 @@ gsi_sam_crate_init_fast(struct GsiSamCrate *a_sam_crate)
 int
 gsi_sam_crate_init_slow(struct GsiSamCrate *a_sam_crate)
 {
-	LOGF(debug)(LOGL, NAME" crate_init_slow {");
+	LOGF(info)(LOGL, NAME" crate_init_slow {");
 	if ((0xff != a_sam_crate->first || 0 != a_sam_crate->last) &&
 	    a_sam_crate->first > a_sam_crate->last) {
 		log_die(LOGL, "SAM crate first=%u last=%u, bad!!!",
@@ -152,7 +152,7 @@ gsi_sam_crate_init_slow(struct GsiSamCrate *a_sam_crate)
 			    0, 0, 0, 0);
 		}
 	}
-	LOGF(debug)(LOGL, NAME" crate_init_slow }");
+	LOGF(info)(LOGL, NAME" crate_init_slow }");
 	return 1;
 }
 
@@ -175,7 +175,7 @@ gsi_sam_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	sam->module.event_max = 1;
 
 	sam->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", sam->address);
+	LOGF(info)(LOGL, "Address=%08x.", sam->address);
 
 	sam->blt_mode = CONFIG_GET_KEYWORD(a_block, KW_BLT_MODE, c_blt_mode);
 	LOGF(verbose)(LOGL, "Using BLT mode = %s.",
@@ -211,8 +211,8 @@ gsi_sam_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 		    "(tacq=%d cros3=%d)!", tacquila_num, cros3_num);
 	}
 
-	LOGF(verbose)(LOGL, NAME" create(sid=%u,tac=%u,cros3=%u) }", siderem_num,
-	    tacquila_num, cros3_num);
+	LOGF(verbose)(LOGL, NAME" create(sid=%u,tac=%u,cros3=%u) }",
+	    siderem_num, tacquila_num, cros3_num);
 
 	return (void *)sam;
 }
@@ -221,7 +221,6 @@ void
 gsi_sam_deinit(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" deinit.");
 }
 
 void
@@ -248,14 +247,13 @@ struct Map *
 gsi_sam_get_map(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" get_map.");
-	return 0;
+	return NULL;
 }
 
 void
 gsi_sam_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 {
-	/* TODO: Payload signature depends on the clients... */
+	/* TODO: Payload signature depends on the clients. */
 	MODULE_SIGNATURE_BEGIN
 	MODULE_SIGNATURE_END(a_array, a_num)
 }
@@ -275,7 +273,7 @@ gsi_sam_init_slow(struct Crate *a_crate, struct Module *a_module)
 	size_t gtb_i;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_SAM, sam, a_module);
 	for (gtb_i = 0; LENGTH(sam->gtb_client) > gtb_i; ++gtb_i) {
 		struct GsiSamGtbClient *client;
@@ -285,7 +283,7 @@ gsi_sam_init_slow(struct Crate *a_crate, struct Module *a_module)
 			continue;
 		}
 	}
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -342,7 +340,7 @@ gsi_sam_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 		result = CRATE_READOUT_FAIL_DATA_TOO_MUCH;
 	}
 gsi_sam_parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }
 

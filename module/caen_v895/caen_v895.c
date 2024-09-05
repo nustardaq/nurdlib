@@ -54,7 +54,7 @@ caen_v895_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	(void)a_crate;
 	MODULE_CREATE(v895);
 	v895->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", v895->address);
+	LOGF(info)(LOGL, "Address=%08x.", v895->address);
 
 	LOGF(verbose)(LOGL, NAME" create }");
 
@@ -66,17 +66,16 @@ caen_v895_deinit(struct Module *a_module)
 {
 	struct CaenV895Module *v895;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_CAEN_V895, v895, a_module);
 	map_unmap(&v895->sicy_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 caen_v895_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -109,7 +108,7 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int i, ow, ofs;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_CAEN_V895, v895, a_module);
 
@@ -142,7 +141,7 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    0, 15);
 	MAP_WRITE(v895->sicy_map, pattern_inhibit, channel_mask);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -153,7 +152,7 @@ caen_v895_init_slow(struct Crate *a_crate, struct Module *a_module)
 	uint16_t id;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	MODULE_CAST(KW_CAEN_V895, v895, a_module);
 
@@ -166,13 +165,13 @@ caen_v895_init_slow(struct Crate *a_crate, struct Module *a_module)
 		    id);
 	}
 	id = MAP_READ(v895->sicy_map, manufacturer_module_type);
-	LOGF(verbose)(LOGL, "Manufacturer=%02x, module type=%03x (0x%04x).",
+	LOGF(info)(LOGL, "Manufacturer=%02x, module type=%03x (0x%04x).",
 	    (0xfc00 & id) >> 10, 0x3ff & id, id);
 	id = MAP_READ(v895->sicy_map, version_serial_number);
-	LOGF(verbose)(LOGL, "Version=%x, S/N=%03x (0x%04x).",
+	LOGF(info)(LOGL, "Version=%x, S/N=%03x (0x%04x).",
 	    (0xf000 & id) >> 12, 0xfff & id, id);
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 

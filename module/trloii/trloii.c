@@ -221,9 +221,10 @@ cvt_set(struct Module *a_module, unsigned a_cvt_ns)
 	struct TRLOIIModule *trloii;
 	unsigned cvt;
 
+	LOGF(spam)(LOGL, NAME" cvt_set(%u ns) {", a_cvt_ns);
 	cvt = (a_cvt_ns + 99) / 100;
 	cvt = 0xffff - MIN(cvt, 0xfffe);
-	LOGF(spam)(LOGL, NAME" cvt_set(%u ns = 0x%x) {", a_cvt_ns, cvt);
+	LOGF(spam)(LOGL, "Raw=0x%x.", cvt);
 	trloii = get_trloii(a_module);
 	if (KW_GSI_TRIDI == a_module->type) {
 		tridi_cvt_set(trloii->hwmap, cvt);
@@ -360,11 +361,11 @@ trloii_create(struct Crate *a_crate, struct TRLOIIModule *a_trloii, struct
 	LOGF(verbose)(LOGL, NAME" create {");
 
 	a_trloii->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", a_trloii->address);
+	LOGF(info)(LOGL, "Address=%08x.", a_trloii->address);
 
 	a_trloii->has_timestamp = config_get_boolean(a_block, KW_TIMESTAMP);
 	if (a_trloii->has_timestamp) {
-		LOGF(verbose)(LOGL, "Has timestamps.");
+		LOGF(info)(LOGL, "Has timestamps.");
 		/*
 		 * Skip MSB because data_counter counts 32-bitters but event
 		 * counters count 64-bit timestamps.
@@ -514,6 +515,7 @@ trloii_scaler_parse(struct Crate *a_crate, struct ConfigBlock *a_block, char
 	enum Keyword type;
 	unsigned ch;
 
+	LOGF(verbose)(LOGL, NAME" scaler_parse(%s) {", a_name);
 	type = CONFIG_GET_KEYWORD(a_block, KW_TYPE, c_type_array);
 	if (KW_ACCEPT_PULSE == type) {
 		ch = 0;
@@ -538,4 +540,5 @@ trloii_scaler_parse(struct Crate *a_crate, struct ConfigBlock *a_block, char
 	}
 	crate_scaler_add(a_crate, a_name, &a_trloii->module,
 	    (void *)(uintptr_t)ch, func);
+	LOGF(verbose)(LOGL, NAME" scaler_parse }");
 }

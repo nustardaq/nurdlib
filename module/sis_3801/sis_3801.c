@@ -51,7 +51,7 @@ sis_3801_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	MODULE_CREATE(m);
 	m->module.event_max = 1;
 	m->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address = %08x", m->address);
+	LOGF(info)(LOGL, "Address = %08x", m->address);
 	LOGF(verbose)(LOGL, NAME" create }");
 	return (void *)m;
 }
@@ -61,17 +61,16 @@ sis_3801_deinit(struct Module *a_module)
 {
 	struct Sis3801Module *m;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_SIS_3801, m, a_module);
 	map_unmap(&m->sicy_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 sis_3801_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 void
@@ -79,7 +78,6 @@ sis_3801_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 {
 	(void)a_module;
 	(void)a_memtest_mode;
-	LOGF(verbose)(LOGL, NAME" memtest.");
 }
 
 struct Map *
@@ -108,7 +106,7 @@ sis_3801_init_fast(struct Crate *a_crate, struct Module *a_module)
 	struct Sis3801Module *m;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_SIS_3801, m, a_module);
 
@@ -117,12 +115,12 @@ sis_3801_init_fast(struct Crate *a_crate, struct Module *a_module)
 	MAP_WRITE(m->sicy_map, control, 0x10000);
 	m->channel_enable = config_get_bitmask(m->module.config,
 	    KW_CHANNEL_ENABLE, 0, 31);
-	LOGF(verbose)(LOGL, "channel_enable=0x%08x", m->channel_enable);
+	LOGF(verbose)(LOGL, "channel_enable=0x%08x.", m->channel_enable);
 	MAP_WRITE(m->sicy_map, copy_disable, ~m->channel_enable);
 	MAP_WRITE(m->sicy_map, enable_next_clock_logic, 1);
 	m->is_running = 0;
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -133,7 +131,7 @@ sis_3801_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	(void)a_crate;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	MODULE_CAST(KW_SIS_3801, m, a_module);
 
@@ -142,7 +140,7 @@ sis_3801_init_slow(struct Crate *a_crate, struct Module *a_module)
 	    MAP_POKE_REG(prescaler_factor),
 	    MAP_POKE_REG(prescaler_factor), 0);
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -153,9 +151,9 @@ sis_3801_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	(void)a_crate;
 	(void)a_event_buffer;
 	(void)a_do_pedestals;
-	LOGF(verbose)(LOGL, NAME" parse_data {");
+	LOGF(spam)(LOGL, NAME" parse_data {");
 	++a_module->event_counter.value;
-	LOGF(verbose)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data }");
 	return 0;
 }
 
@@ -169,7 +167,7 @@ sis_3801_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 	(void)a_crate;
 
-	LOGF(debug)(LOGL, NAME" readout {");
+	LOGF(spam)(LOGL, NAME" readout {");
 	result = 0;
 	outp = a_event_buffer->ptr;
 
@@ -195,7 +193,7 @@ sis_3801_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 sis_3801_readout_done:
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
-	LOGF(debug)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout }");
 	return result;
 }
 
@@ -204,7 +202,6 @@ sis_3801_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	(void)a_crate;
 	(void)a_module;
-	LOGF(debug)(LOGL, NAME" readout_dt.");
 	return 0;
 }
 

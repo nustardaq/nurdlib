@@ -57,7 +57,7 @@ caen_v8n0_create(struct Crate *a_crate, struct ConfigBlock *a_block, struct
 	a_v8n0->child_type = a_child_type;
 
 	a_v8n0->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", a_v8n0->address);
+	LOGF(info)(LOGL, "Address=%08x.", a_v8n0->address);
 
 	a_v8n0->paux = config_get_boolean(a_block, KW_PAUX);
 	LOGF(verbose)(LOGL, "PAUX = %s.", a_v8n0->paux ? "Yes" : "No");
@@ -70,10 +70,10 @@ caen_v8n0_create(struct Crate *a_crate, struct ConfigBlock *a_block, struct
 void
 caen_v8n0_deinit(struct CaenV8n0Module *a_v8n0)
 {
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	map_unmap(&a_v8n0->sicy_map);
 	map_unmap(&a_v8n0->dma_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 struct Map *
@@ -94,7 +94,7 @@ caen_v8n0_init_slow(struct CaenV8n0Module *a_v8n0)
 	};
 	uint16_t revision;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	a_v8n0->sicy_map = map_map(a_v8n0->address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(dummy16), MAP_POKE_REG(dummy16), 0);
@@ -112,7 +112,7 @@ caen_v8n0_init_slow(struct CaenV8n0Module *a_v8n0)
 	SERIALIZE_IO;
 
 	revision = MAP_READ(a_v8n0->sicy_map, firmware);
-	LOGF(verbose)(LOGL, "Firmware revision = %d.%d (0x%02x).",
+	LOGF(info)(LOGL, "Firmware revision = %d.%d (0x%02x).",
 	    (0xf0 & revision) >> 4, 0x0f & revision, 0xff & revision);
 
 	SERIALIZE_IO;
@@ -128,7 +128,7 @@ caen_v8n0_init_slow(struct CaenV8n0Module *a_v8n0)
 		    MAP_POKE_REG(dummy16), MAP_POKE_REG(dummy16), 0);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 }
 
 uint32_t
@@ -153,7 +153,10 @@ scaler_parse(struct Crate *a_crate, struct ConfigBlock *a_block, char const
 {
 	unsigned ch;
 
+	LOGF(verbose)(LOGL, NAME" scaler_parse(cr=%s,name=%s) {",
+	    crate_get_name(a_crate), a_name);
 	ch = config_get_int32(a_block, KW_CHANNEL, CONFIG_UNIT_NONE, 0, 31);
 	crate_scaler_add(a_crate, a_name, &a_v8n0->module,
 	    (void *)(uintptr_t)ch, scaler_get);
+	LOGF(verbose)(LOGL, NAME" scaler_parse }");
 }

@@ -90,14 +90,15 @@ static struct ModuleProps g_module_props_
 
 #define STRUCT_PADDING(start, next) uint8_t pad_##start##_##next[next - start]
 
-#define MODULE_SIGNATURE_BEGIN \
+#define MODULE_SIGNATURE_BEGIN do { \
 	static const struct ModuleSignature s_sign_[] = {
 #define MODULE_SIGNATURE(id_mask, fixed_mask, fixed_value) \
 	{ id_mask, fixed_mask, fixed_value },
 #define MODULE_SIGNATURE_END(array, num) \
 	{0, 0, 0}}; \
 	*array = s_sign_; \
-	*num = LENGTH(s_sign_) - 1;
+	*num = LENGTH(s_sign_) - 1; \
+} while (0);
 
 enum {
 	MODULE_FLAG_EARLY_DT = 1

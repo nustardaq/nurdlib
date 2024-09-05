@@ -1112,8 +1112,11 @@ server_run(void *a_server)
 				    &submodule_k)) {
 					submodule_int = submodule_k;
 				}
-				crate_config_write(crate_i, module_j,
-				    submodule_int, &packer);
+				if (!crate_config_write(crate_i, module_j,
+				    submodule_int, &packer)) {
+					LOGF(verbose)(LOGL,
+					    "Could not write new config.");
+				}
 			}
 			break;
 		case VL_CTRL_CONFIG_DUMP:

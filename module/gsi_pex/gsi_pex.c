@@ -109,7 +109,7 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 	size_t i;
 	int fd;
 
-	LOGF(verbose)(LOGL, NAME" init(0x%x) {", a_pex->sfp_bitmask);
+	LOGF(info)(LOGL, NAME" init(0x%x) {", a_pex->sfp_bitmask);
 
 	buf_ofs = config_get_int32(a_block, KW_BUF_OFS, CONFIG_UNIT_NONE, 0,
 	    0x70000000);
@@ -194,7 +194,7 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 		LOGF(info)(LOGL, "Pexheal=0x%08x.", r);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init }");
+	LOGF(info)(LOGL, NAME" init }");
 }
 
 void
@@ -231,7 +231,7 @@ gsi_pex_slave_init(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_num)
 	unsigned trial;
 	int ret;
 
-	LOGF(verbose)(LOGL, NAME" slave_init(%"PRIz", %"PRIz") {", a_sfp_i,
+	LOGF(info)(LOGL, NAME" slave_init(%"PRIz", %"PRIz") {", a_sfp_i,
 	    a_slave_num);
 	ret = 0;
 	assert(4 > a_sfp_i);
@@ -256,7 +256,7 @@ gsi_pex_slave_init(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_num)
 	}
 	ret = 1;
 gsi_pex_init_slave_done:
-	LOGF(verbose)(LOGL, NAME" slave_init }");
+	LOGF(info)(LOGL, NAME" slave_init }");
 	return ret;
 }
 
@@ -383,11 +383,13 @@ gsi_pex_token_receive_fail:
 void
 gsi_pex_reset(struct GsiPex *a_pex)
 {
+	LOGF(verbose)(LOGL, NAME" reset {");
 	if (a_pex->is_v5) {
 		a_pex->dma->stat = 0x20;
 	} else {
 		a_pex->dma->stat = 0x0;
 	}
+	LOGF(verbose)(LOGL, NAME" reset }");
 }
 
 int

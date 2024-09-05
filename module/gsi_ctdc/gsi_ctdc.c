@@ -71,7 +71,6 @@ void
 gsi_ctdc_deinit(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" deinit.");
 }
 
 void
@@ -79,17 +78,14 @@ gsi_ctdc_destroy(struct Module *a_module)
 {
 	struct GsiCTDCModule *ctdc;
 
-	LOGF(verbose)(LOGL, NAME" destroy {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
 	gsi_ctdc_proto_destroy(&ctdc->ctdcp);
-	LOGF(verbose)(LOGL, NAME" destroy }");
 }
 
 struct Map *
 gsi_ctdc_get_map(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return NULL;
 }
 
@@ -104,13 +100,9 @@ struct ConfigBlock *
 gsi_ctdc_get_submodule_config(struct Module *a_module, unsigned a_i)
 {
 	struct GsiCTDCModule *ctdc;
-	struct ConfigBlock *config;
 
-	LOGF(verbose)(LOGL, NAME" get_submodule_config(%u) {", a_i);
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
-	config = gsi_ctdc_proto_get_submodule_config(&ctdc->ctdcp, a_i);
-	LOGF(verbose)(LOGL, NAME" get_submodule_config }");
-	return config;
+	return gsi_ctdc_proto_get_submodule_config(&ctdc->ctdcp, a_i);
 }
 
 int
@@ -118,13 +110,9 @@ gsi_ctdc_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
 	unsigned clock_switch[] = {2, 1};
 	struct GsiCTDCModule *ctdc;
-	int ret;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
-	ret = gsi_ctdc_proto_init_fast(a_crate, &ctdc->ctdcp, clock_switch);
-	LOGF(verbose)(LOGL, NAME" init_fast }");
-	return ret;
+	return gsi_ctdc_proto_init_fast(a_crate, &ctdc->ctdcp, clock_switch);
 }
 
 int
@@ -132,10 +120,8 @@ gsi_ctdc_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct GsiCTDCModule *ctdc;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
 	gsi_ctdc_proto_init_slow(a_crate, &ctdc->ctdcp);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -151,15 +137,11 @@ gsi_ctdc_parse_data(struct Crate *a_crate, struct Module *a_module, struct
     EventConstBuffer const *a_event_buffer, int a_do_pedestals)
 {
 	struct GsiCTDCModule *ctdc;
-	int ret;
 
 	(void)a_do_pedestals;
-	LOGF(spam)(LOGL, NAME" parse {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
-	ret = gsi_ctdc_proto_parse_data(a_crate, &ctdc->ctdcp,
+	return gsi_ctdc_proto_parse_data(a_crate, &ctdc->ctdcp,
 	    a_event_buffer);
-	LOGF(spam)(LOGL, NAME" parse }");
-	return ret;
 }
 
 uint32_t
@@ -167,13 +149,9 @@ gsi_ctdc_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
 {
 	struct GsiCTDCModule *ctdc;
-	uint32_t ret;
 
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
-	ret = gsi_ctdc_proto_readout(a_crate, &ctdc->ctdcp, a_event_buffer);
-	LOGF(spam)(LOGL, NAME" readout }");
-	return ret;
+	return gsi_ctdc_proto_readout(a_crate, &ctdc->ctdcp, a_event_buffer);
 }
 
 uint32_t
@@ -198,10 +176,8 @@ gsi_ctdc_sub_module_pack(struct Module *a_module, struct PackerList *a_list)
 {
 	struct GsiCTDCModule *ctdc;
 
-	LOGF(debug)(LOGL, NAME" sub_module_pack {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
 	gsi_ctdc_proto_sub_module_pack(&ctdc->ctdcp, a_list);
-	LOGF(debug)(LOGL, NAME" sub_module_pack }");
 }
 
 #define CTDC_INIT_RD(a0, a1, label) do {\
@@ -229,26 +205,31 @@ threshold_set(struct ConfigBlock *a_block, struct GsiPex *a_pex, unsigned
 		KW_PADI
 	};
 	enum Keyword frontend;
+	int ret;
+
+	LOGF(verbose)(LOGL, NAME" threshold_set {");
+	ret = 0;
 
 	frontend = CONFIG_GET_KEYWORD(a_block, KW_FRONTEND, c_frontend);
 
 	if (KW_BJT == frontend) {
 		if (!threshold_set_bjt(a_block, a_pex, a_sfp_i, a_card_i,
 		    a_offset, a_threshold_array)) {
-			goto threshold_set_fail;
+			goto threshold_set_done;
 		}
 	} else if (KW_PADI == frontend) {
 		if (!threshold_set_padi(a_block, a_pex, a_sfp_i, a_card_i,
 		    a_offset, a_threshold_array)) {
-			goto threshold_set_fail;
+			goto threshold_set_done;
 		}
 	}
 	if (config_get_boolean(a_block, KW_INVERT_SIGNAL)) {
-		CTDC_INIT_WR(0x200100, 1, threshold_set_fail);
+		CTDC_INIT_WR(0x200100, 1, threshold_set_done);
 	}
-	return 1;
-threshold_set_fail:
-	return 0;
+	ret = 1;
+threshold_set_done:
+	LOGF(verbose)(LOGL, NAME" threshold_set(ret=%d) }", ret);
+	return ret;
 }
 
 int
@@ -380,7 +361,7 @@ gsi_ctdc_crate_add(struct GsiCTDCCrate *a_crate, struct Module *a_module)
 	struct GsiCTDCModule *ctdc;
 	size_t sfp_i;
 
-	LOGF(spam)(LOGL, NAME" crate_add {");
+	LOGF(verbose)(LOGL, NAME" crate_add {");
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
 	sfp_i = ctdc->ctdcp.sfp_i;
 	if (NULL != a_crate->sfp[sfp_i]) {
@@ -388,7 +369,7 @@ gsi_ctdc_crate_add(struct GsiCTDCCrate *a_crate, struct Module *a_module)
 		    sfp_i);
 	}
 	a_crate->sfp[sfp_i] = ctdc;
-	LOGF(spam)(LOGL, NAME" crate_add }");
+	LOGF(verbose)(LOGL, NAME" crate_add }");
 }
 
 void

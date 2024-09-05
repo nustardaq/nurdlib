@@ -64,7 +64,6 @@ void
 gsi_pexaria_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *

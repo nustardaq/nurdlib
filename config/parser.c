@@ -543,7 +543,7 @@ parse_snippet(char const *a_str)
 {
 	struct File cur;
 
-	LOGF(verbose)(LOGL, "Parsing snippet.");
+	LOGF(debug)(LOGL, "Parsing snippet.");
 	cur.filename = "<snippet>";
 	cur.file = NULL;
 	cur.snippet = a_str;
@@ -554,7 +554,7 @@ parse_snippet(char const *a_str)
 	cur.buf_len = 0;
 	cur.comment_state = 0;
 	parse_block(&cur, 1);
-	LOGF(verbose)(LOGL, "Parsed snippet.");
+	LOGF(debug)(LOGL, "Parsed snippet.");
 }
 
 /* Parses a unit. */

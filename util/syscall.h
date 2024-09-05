@@ -26,6 +26,6 @@
 
 #include <util/funcattr.h>
 
-void	system_call(char const *, ...) FUNC_PRINTF(1, 0);
+int	system_call(char const *, ...) FUNC_PRINTF(1, 0) FUNC_RETURNS;
 
 #endif

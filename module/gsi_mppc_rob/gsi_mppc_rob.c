@@ -74,7 +74,6 @@ void
 gsi_mppc_rob_deinit(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" deinit.");
 }
 
 void
@@ -82,17 +81,14 @@ gsi_mppc_rob_destroy(struct Module *a_module)
 {
 	struct GsiMppcRobModule *mppc_rob;
 
-	LOGF(verbose)(LOGL, NAME" destroy {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
 	gsi_ctdc_proto_destroy(&mppc_rob->ctdcp);
-	LOGF(verbose)(LOGL, NAME" destroy }");
 }
 
 struct Map *
 gsi_mppc_rob_get_map(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return NULL;
 }
 
@@ -108,13 +104,9 @@ struct ConfigBlock *
 gsi_mppc_rob_get_submodule_config(struct Module *a_module, unsigned a_i)
 {
 	struct GsiMppcRobModule *mppc_rob;
-	struct ConfigBlock *config;
 
-	LOGF(verbose)(LOGL, NAME" get_submodule_config(%u) {", a_i);
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
-	config = gsi_ctdc_proto_get_submodule_config(&mppc_rob->ctdcp, a_i);
-	LOGF(verbose)(LOGL, NAME" get_submodule_config }");
-	return config;
+	return gsi_ctdc_proto_get_submodule_config(&mppc_rob->ctdcp, a_i);
 }
 
 int
@@ -125,7 +117,7 @@ gsi_mppc_rob_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int ret;
 
 	ret = 0;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
 	if (!gsi_ctdc_proto_init_fast(a_crate, &mppc_rob->ctdcp,
 	    clock_switch)) {
@@ -133,7 +125,7 @@ gsi_mppc_rob_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	ret = 1;
 gsi_mppc_rob_init_fast_done:
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return ret;
 }
 
@@ -142,10 +134,8 @@ gsi_mppc_rob_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct GsiMppcRobModule *mppc_rob;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
 	gsi_ctdc_proto_init_slow(a_crate, &mppc_rob->ctdcp);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -161,15 +151,11 @@ gsi_mppc_rob_parse_data(struct Crate *a_crate, struct Module *a_module, struct
     EventConstBuffer const *a_event_buffer, int a_do_pedestals)
 {
 	struct GsiMppcRobModule *mppc_rob;
-	int ret;
 
 	(void)a_do_pedestals;
-	LOGF(spam)(LOGL, NAME" parse {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
-	ret = gsi_ctdc_proto_parse_data(a_crate, &mppc_rob->ctdcp,
+	return gsi_ctdc_proto_parse_data(a_crate, &mppc_rob->ctdcp,
 	    a_event_buffer);
-	LOGF(spam)(LOGL, NAME" parse }");
-	return ret;
 }
 
 uint32_t
@@ -177,13 +163,9 @@ gsi_mppc_rob_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
 {
 	struct GsiMppcRobModule *mppc_rob;
-	uint32_t ret;
 
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
-	ret = gsi_ctdc_proto_readout(a_crate, &mppc_rob->ctdcp, a_event_buffer);
-	LOGF(spam)(LOGL, NAME" readout }");
-	return ret;
+	return gsi_ctdc_proto_readout(a_crate, &mppc_rob->ctdcp, a_event_buffer);
 }
 
 uint32_t
@@ -209,10 +191,8 @@ gsi_mppc_rob_sub_module_pack(struct Module *a_module, struct PackerList
 {
 	struct GsiMppcRobModule *mppc_rob;
 
-	LOGF(debug)(LOGL, NAME" sub_module_pack {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
 	gsi_ctdc_proto_sub_module_pack(&mppc_rob->ctdcp, a_list);
-	LOGF(debug)(LOGL, NAME" sub_module_pack }");
 }
 
 int
@@ -339,7 +319,7 @@ gsi_mppc_rob_crate_add(struct GsiMppcRobCrate *a_crate, struct Module
 	struct GsiMppcRobModule *mppc_rob;
 	size_t sfp_i;
 
-	LOGF(spam)(LOGL, NAME" crate_add {");
+	LOGF(verbose)(LOGL, NAME" crate_add {");
 	MODULE_CAST(KW_GSI_MPPC_ROB, mppc_rob, a_module);
 	sfp_i = mppc_rob->ctdcp.sfp_i;
 	if (NULL != a_crate->sfp[sfp_i]) {
@@ -347,7 +327,7 @@ gsi_mppc_rob_crate_add(struct GsiMppcRobCrate *a_crate, struct Module
 		    sfp_i);
 	}
 	a_crate->sfp[sfp_i] = mppc_rob;
-	LOGF(spam)(LOGL, NAME" crate_add }");
+	LOGF(verbose)(LOGL, NAME" crate_add }");
 }
 
 void

@@ -241,7 +241,7 @@ static struct Module		*get_module(struct Crate *, unsigned)
 	FUNC_RETURNS;
 static uint32_t			shadow_merge_module(struct Crate *, struct
     Module *, struct EventBuffer *) FUNC_RETURNS;
-static void			module_counter_update(struct Module *);
+static void			module_counter_latch(struct Module *);
 static void			module_init_id_clear(struct Crate *);
 static void			module_init_id_mark(struct Crate *, struct
     Module const *);
@@ -285,7 +285,7 @@ crate_acvt_set(struct Crate *a_crate, struct Module *a_module, CvtSetCallback
 	a_crate->acvt.set_cvt = a_callback;
 }
 
-void
+int
 crate_config_write(int a_crate_i, int a_module_j, int a_submodule_k, struct
     Packer *a_packer)
 {
@@ -293,50 +293,63 @@ crate_config_write(int a_crate_i, int a_module_j, int a_submodule_k, struct
 	struct Module *module;
 	struct ConfigBlock *config_block;
 	struct Module **module_ref;
+	int ret;
+
+	LOGF(debug)(LOGL, "crate_config_write(cr=%d,mod=%d,sub=%d) {",
+	    a_crate_i, a_module_j, a_submodule_k);
+	ret = 0;
 
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
-		LOGF(verbose)(LOGL, "No such crate %d.", a_crate_i);
-		return;
+		LOGF(debug)(LOGL, "No such crate %d.", a_crate_i);
+		goto crate_config_write_done;
 	}
 	module = get_module(crate, a_module_j);
 	if (NULL == module) {
-		LOGF(verbose)(LOGL, "No such module %d.", a_module_j);
-		return;
+		LOGF(debug)(LOGL, "No such module %d.", a_module_j);
+		goto crate_config_write_done;
 	}
 	if (-1 == a_submodule_k) {
 		config_block = module->config;
 	} else {
 		if (NULL == module->props) {
-			LOGF(verbose)(LOGL, "Module %d has no props.",
+			LOGF(debug)(LOGL, "Module %d has no props.",
 			    a_module_j);
-			return;
+			goto crate_config_write_done;
 		}
 		if (NULL == module->props->get_submodule_config) {
-			LOGF(verbose)(LOGL, "Module %d has no submodule conf.",
+			LOGF(debug)(LOGL, "Module %d has no submodule conf.",
 			    a_module_j);
-			return;
+			goto crate_config_write_done;
 		}
 		config_block = module->props->get_submodule_config(module,
 		    a_submodule_k);
 		if (NULL == config_block) {
-			LOGF(verbose)(LOGL,
+			LOGF(debug)(LOGL,
 			    "Module %d has no submodule config block %d.",
 			    a_module_j, a_submodule_k);
-			return;
+			goto crate_config_write_done;
 		}
 	}
 	if (!config_merge(config_block, a_packer)) {
-		LOGF(verbose)(LOGL, "Config merge failed");
-		return;
+		LOGF(debug)(LOGL, "Config merge failed.");
+		goto crate_config_write_done;
 	}
 	/* If the module has no pending reconfig, make one. */
 	VECTOR_FOREACH(module_ref, &crate->module_configed_vec) {
 		if (*module_ref == module) {
-			return;
+			module = NULL;
+			break;
 		}
 	}
-	VECTOR_APPEND(&crate->module_configed_vec, module);
+	if (NULL != module) {
+		VECTOR_APPEND(&crate->module_configed_vec, module);
+	}
+	ret = 1;
+
+crate_config_write_done:
+	LOGF(debug)(LOGL, "crate_config_write }");
+	return ret;
 }
 
 struct CrateCounter *
@@ -386,18 +399,25 @@ crate_create(void)
 		    "crate, I bail.");
 	}
 	crate->name = strdup_(config_get_block_param_string(crate_block, 0));
-	LOGF(verbose)(LOGL, "Crate=\"%s\".", crate->name);
+	LOGF(info)(LOGL, "Crate=\"%s\".", crate->name);
+
+#define FLAG_LOG(flag, msg) do { \
+	if (flag) { \
+		LOGF(info)(LOGL, #msg " enabled."); \
+	} else { \
+		LOGF(verbose)(LOGL, #msg " disabled."); \
+	} \
+} while (0)
 
 	crate->acvt.yes = config_get_boolean(crate_block, KW_ACVT);
 	crate->acvt.pioneer_counter = 0;
 	crate->acvt.ns = 0;
-	LOGF(verbose)(LOGL, "Adaptive CVT=%s.", crate->acvt.yes ? "yes" :
-	    "no");
+	FLAG_LOG(crate->acvt.yes, "Adaptive CVT");
 
 	crate->shadow.buf_bytes = config_get_int32(crate_block,
 	    KW_SHADOW_BYTES, CONFIG_UNIT_B, 0, 1 << 30);
 	if (0 != crate->shadow.buf_bytes) {
-		LOGF(verbose)(LOGL, "Shadow readout enabled, buffer "
+		LOGF(info)(LOGL, "Shadow readout enabled, buffer "
 		    "size=0x%"PRIzx" B.", crate->shadow.buf_bytes);
 		crate->shadow.dst = map_blt_dst_alloc(crate->shadow.buf_bytes);
 	} else {
@@ -406,9 +426,8 @@ crate_create(void)
 
 	crate->dt_release.do_it = config_get_boolean(crate_block,
 	    KW_DEADTIME_RELEASE);
-	LOGF(verbose)(LOGL, "Early deadtime release=%s.",
-	    crate->dt_release.do_it ? "yes" : "no");
 	crate->dt_release.for_it_prev = -1;
+	FLAG_LOG(crate->dt_release.do_it, "Early deadtime release");
 
 	crate->event_max_override = config_get_int32(crate_block,
 	    KW_EVENT_MAX_OVERRIDE, CONFIG_UNIT_NONE, 0, 200000);
@@ -424,8 +443,7 @@ crate_create(void)
 
 	crate->is_free_running = config_get_boolean(crate_block,
 	    KW_FREE_RUNNING);
-	LOGF(verbose)(LOGL, "Free-running=%s.",
-	    crate->is_free_running ? "yes" : "no");
+	FLAG_LOG(crate->is_free_running, "Free-running");
 
 	gsi_sam_crate_create(&crate->gsi_sam_crate);
 	gsi_siderem_crate_create(&crate->gsi_siderem_crate);
@@ -555,11 +573,11 @@ crate_create(void)
 			continue;
 		}
 		++crate->module_num;
+		LOGF(info)(LOGL, "module[%u]=%s.", module_id,
+		    keyword_get_string(module_type));
 		module = module_create(crate, module_type, module_block);
 		module->id = module_id++;
 		module->crate_counter = &counter->cur;
-		LOGF(verbose)(LOGL, "module[%u]=%s.", module->id,
-		    keyword_get_string(module_type));
 		if (KW_GSI_SAM == module_type) {
 			/*
 			 * The GSI SAM is special since it has "client"
@@ -724,7 +742,7 @@ crate_deinit(struct Crate *a_crate)
 	LOGF(info)(LOGL, "crate_deinit(%s) {", a_crate->name);
 
 	if (a_crate->shadow.is_running) {
-		LOGF(verbose)(LOGL, "Stopping shadow thread.");
+		LOGF(info)(LOGL, "Stopping shadow thread.");
 		a_crate->shadow.is_running = 0;
 		thread_clean(&a_crate->shadow.thread);
 	}
@@ -823,7 +841,11 @@ crate_dt_is_on(struct Crate const *a_crate)
 void
 crate_dt_release_inhibit_once(struct Crate *a_crate)
 {
+	LOGF(spam)(LOGL, "crate_dt_release_inhibit_once(%s) {",
+	    a_crate->name);
 	a_crate->dt_release.do_inhibit = 1;
+	LOGF(spam)(LOGL, "crate_dt_release_inhibit_once(%s) }",
+	    a_crate->name);
 }
 
 void
@@ -904,16 +926,17 @@ crate_gsi_pex_goc_read(uint8_t a_crate_i, uint8_t a_sfp, uint16_t a_card,
 	struct GsiPex *pex;
 	unsigned i;
 
-	for (i = 0; i < a_num; ++i) {
-		a_value[i] = 0;
-	}
+	LOGF(spam)(LOGL, "crate_gsi_pex_goc_read"
+	    "(cr=%u,sfp=%u,cd=%u,ofs=%u,num=%u) {",
+	    a_crate_i, a_sfp, a_card, a_offset, a_num);
+	memset(a_value, 0, a_num * sizeof *a_value);
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
-		return;
+		goto crate_gsi_pex_goc_read_done;
 	}
 	pex = crate->gsi_pex.pex;
 	if (NULL == pex) {
-		return;
+		goto crate_gsi_pex_goc_read_done;
 	}
 	THREAD_MUTEX_LOCK(&crate->mutex);
 	for (i = 0; i < a_num; ++i) {
@@ -925,6 +948,8 @@ crate_gsi_pex_goc_read(uint8_t a_crate_i, uint8_t a_sfp, uint16_t a_card,
 		}
 	}
 	thread_mutex_unlock(&crate->mutex);
+crate_gsi_pex_goc_read_done:
+	LOGF(spam)(LOGL, "crate_gsi_pex_goc_read }");
 #else
 	(void)a_crate_i;
 	(void)a_sfp;
@@ -942,25 +967,32 @@ crate_gsi_pex_goc_write(uint8_t a_crate_i, uint8_t a_sfp, uint16_t a_card,
 #if NCONF_mGSI_PEX_bYES
 	struct Crate *crate;
 	struct GsiPex *pex;
+	uint32_t ofs;
 	unsigned i;
 
+	LOGF(spam)(LOGL, "crate_gsi_pex_goc_write"
+	    "(cr=%u,sfp=%u,cd=%u,ofs=%u,num=%u) {",
+	    a_crate_i, a_sfp, a_card, a_offset, a_num);
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
-		return;
+		goto crate_gsi_pex_goc_write_done;
 	}
 	pex = crate->gsi_pex.pex;
 	if (NULL == pex) {
-		return;
+		goto crate_gsi_pex_goc_write_done;
 	}
 	THREAD_MUTEX_LOCK(&crate->mutex);
+	ofs = a_offset;
 	for (i = 0; i < a_num; ++i) {
 		int ret;
 
-		ret = gsi_pex_slave_write(pex, a_sfp, a_card, a_offset + 4 *
-		    i, a_value);
+		ret = gsi_pex_slave_write(pex, a_sfp, a_card, ofs, a_value);
+		ofs += sizeof a_value;
 		(void)ret;
 	}
 	thread_mutex_unlock(&crate->mutex);
+crate_gsi_pex_goc_write_done:
+	LOGF(spam)(LOGL, "crate_gsi_pex_goc_write }");
 #else
 	(void)a_crate_i;
 	(void)a_sfp;
@@ -990,7 +1022,6 @@ crate_gsi_mbs_trigger_set(struct Crate *a_crate, unsigned a_trigger)
 struct GsiPex *
 crate_gsi_pex_get(struct Crate const *a_crate)
 {
-	LOGF(spam)(LOGL, "crate_gsi_pex_get(%s).", a_crate->name);
 	return a_crate->gsi_pex.pex;
 }
 
@@ -999,17 +1030,19 @@ crate_info_pack(struct Packer *a_packer, int a_crate_i)
 {
 	struct Crate const *crate;
 
+	LOGF(debug)(LOGL, "crate_info_pack(cr=%d) {", a_crate_i);
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
 		pack16(a_packer, 0xffff);
 		PACK_LOC(a_packer);
-		return;
+	} else {
+		pack16(a_packer, crate->event_max_override);
+		pack8(a_packer, crate->dt_release.do_it);
+		pack16(a_packer, crate->acvt.ns);
+		pack32(a_packer, crate->shadow.buf_bytes);
+		pack32(a_packer, crate->shadow.max_bytes);
 	}
-	pack16(a_packer, crate->event_max_override);
-	pack8(a_packer, crate->dt_release.do_it);
-	pack16(a_packer, crate->acvt.ns);
-	pack32(a_packer, crate->shadow.buf_bytes);
-	pack32(a_packer, crate->shadow.max_bytes);
+	LOGF(debug)(LOGL, "crate_info_pack }");
 }
 
 void
@@ -1160,7 +1193,7 @@ crate_init_there_is_no_try:
 	TAILQ_FOREACH(module, &a_crate->module_list, next) {
 		module->result = 0;
 		if (NULL != module->props) {
-			module_counter_update(module);
+			module_counter_latch(module);
 		}
 		if (NULL != module->crate_counter) {
 			module->crate_counter_prev =
@@ -1172,7 +1205,7 @@ crate_init_there_is_no_try:
 	}
 
 	if (crate_get_do_shadow(a_crate)) {
-		LOGF(verbose)(LOGL, "Starting shadow thread.");
+		LOGF(info)(LOGL, "Starting shadow thread.");
 		a_crate->shadow.is_running = 1;
 		if (!thread_start(&a_crate->shadow.thread, shadow_func,
 		    a_crate)) {
@@ -1201,7 +1234,7 @@ crate_memtest(struct Crate const *a_crate, int a_chunks)
 {
 	struct Module *module;
 
-	LOGF(verbose)(LOGL, "crate_memtest(%s) {", a_crate->name);
+	LOGF(info)(LOGL, "crate_memtest(%s) {", a_crate->name);
 	TAILQ_FOREACH(module, &a_crate->module_list, next) {
 		/*
 		 * TODO: Crate state?
@@ -1213,7 +1246,7 @@ crate_memtest(struct Crate const *a_crate, int a_chunks)
 			pop_log_level(module);
 		}
 	}
-	LOGF(verbose)(LOGL, "crate_memtest(%s) }", a_crate->name);
+	LOGF(info)(LOGL, "crate_memtest(%s) }", a_crate->name);
 }
 
 struct Module *
@@ -1258,17 +1291,20 @@ crate_pack(struct PackerList *a_list)
 	struct Packer *packer;
 	uint8_t crate_num;
 
+	LOGF(debug)(LOGL, "crate_pack {");
 	assert(TAILQ_EMPTY(a_list));
 	crate_num = 0;
 	TAILQ_FOREACH(crate, &g_crate_list, next) {
 		++crate_num;
 	}
+	LOGF(debug)(LOGL, "Number of crates=%u.", crate_num);
 	packer = packer_list_get(a_list, 8);
 	pack8(packer, crate_num);
 	TAILQ_FOREACH(crate, &g_crate_list, next) {
 		struct Module *module;
 		uint8_t num;
 
+		LOGF(debug)(LOGL, "Crate=%s.", crate->name);
 		packer = packer_list_get(a_list, 8 * (strlen(crate->name) +
 		    1));
 		pack_str(packer, crate->name);
@@ -1279,6 +1315,7 @@ crate_pack(struct PackerList *a_list)
 		TAILQ_FOREACH(module, &crate->module_list, next) {
 			++num;
 		}
+		LOGF(debug)(LOGL, "Number of (virtual) modules=%u.", num);
 		packer = packer_list_get(a_list, 8);
 		pack8(packer, num);
 		TAILQ_FOREACH(module, &crate->module_list, next) {
@@ -1294,6 +1331,7 @@ crate_pack(struct PackerList *a_list)
 			}
 		}
 	}
+	LOGF(debug)(LOGL, "crate_pack }");
 }
 
 uint32_t
@@ -1476,7 +1514,7 @@ crate_readout_dt(struct Crate *a_crate)
 	if (a_crate->dt_release.do_it &&
 	    a_crate->dt_release.for_it_prev != a_crate->dt_release.for_it) {
 		LOGF(info)(LOGL,
-		    "DT release possible on module # %u/%u (not ID!).",
+		    "DT release possible on module # %u/%u.",
 		    a_crate->dt_release.for_it, for_it);
 	    a_crate->dt_release.for_it_prev = a_crate->dt_release.for_it;
 	}
@@ -1693,7 +1731,7 @@ crate_readout_finalize(struct Crate *a_crate)
 			if (!module->props->post_init(a_crate, module)) {
 				a_crate->state = STATE_REINIT;
 			}
-			module_counter_update(module);
+			module_counter_latch(module);
 		}
 		module_init_id_clear(a_crate);
 		VECTOR_FREE(&a_crate->module_configed_vec);
@@ -1716,23 +1754,27 @@ crate_register_array_pack(struct PackerList *a_list, int a_crate_i, int
 	struct Module *module;
 	struct Packer *packer;
 
+	LOGF(debug)(LOGL, "crate_register_array_pack(cr=%d,mod=%d,sub=%d) {",
+	    a_crate_i, a_module_j, a_submodule_k);
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
 		packer = packer_list_get(a_list, 16);
 		pack16(packer, -1);
 		PACK_LOC(packer);
-		return;
+		goto crate_register_array_pack_done;
 	}
 	module = get_module(crate, a_module_j);
 	if (NULL == module) {
 		packer = packer_list_get(a_list, 16);
 		pack16(packer, -1);
 		PACK_LOC(packer);
-		return;
+		goto crate_register_array_pack_done;
 	}
 	THREAD_MUTEX_LOCK(&crate->mutex);
 	module_register_list_pack(a_list, module, a_submodule_k);
 	thread_mutex_unlock(&crate->mutex);
+crate_register_array_pack_done:
+	LOGF(debug)(LOGL, "crate_register_array_pack }");
 }
 
 void
@@ -1741,12 +1783,15 @@ crate_scaler_add(struct Crate *a_crate, char const *a_name, struct Module
 {
 	struct CrateScaler *scaler;
 
+	LOGF(debug)(LOGL, "crate_scaler_add(cr=%s,name=%s,modid=%u) {",
+	    a_crate->name, a_name, a_module->id);
 	CALLOC(scaler, 1);
 	strlcpy_(scaler->name, a_name, sizeof scaler->name);
 	scaler->module = a_module;
 	scaler->data = a_data;
 	scaler->get_counter = a_callback;
 	TAILQ_INSERT_TAIL(&a_crate->scaler_list, scaler, next);
+	LOGF(debug)(LOGL, "crate_scaler_add }");
 }
 
 void
@@ -1989,7 +2034,7 @@ get_module(struct Crate *a_crate, unsigned a_module_j)
 }
 
 void
-module_counter_update(struct Module *a_module)
+module_counter_latch(struct Module *a_module)
 {
 	a_module->this_minus_crate = a_module->event_counter.value -
 	    a_module->crate_counter->value;
@@ -2003,6 +2048,7 @@ module_counter_update(struct Module *a_module)
 void
 module_init_id_clear(struct Crate *a_crate)
 {
+	LOGF(debug)(LOGL, "module_init_id_clear {");
 	while (!TAILQ_EMPTY(&a_crate->module_init_id_list)) {
 		struct ModuleID *p;
 
@@ -2010,6 +2056,7 @@ module_init_id_clear(struct Crate *a_crate)
 		TAILQ_REMOVE(&a_crate->module_init_id_list, p, next);
 		FREE(p);
 	}
+	LOGF(debug)(LOGL, "module_init_id_clear }");
 }
 
 void
@@ -2017,6 +2064,7 @@ module_init_id_mark(struct Crate *a_crate, struct Module const *a_module)
 {
 	struct ModuleID *p;
 
+	LOGF(debug)(LOGL, "module_init_id_mark {");
 	TAILQ_FOREACH(p, &a_crate->module_init_id_list, next) {
 		if (a_crate->module_init_id == p->id) {
 			log_die(LOGL, "Module id=%u mapped to id=%u has "
@@ -2028,6 +2076,7 @@ module_init_id_mark(struct Crate *a_crate, struct Module const *a_module)
 	MALLOC(p, 1);
 	p->id = a_crate->module_init_id;
 	TAILQ_INSERT_TAIL(&a_crate->module_init_id_list, p, next);
+	LOGF(debug)(LOGL, "module_init_id_mark }");
 }
 
 void
@@ -2036,6 +2085,7 @@ module_insert(struct Crate *a_crate, struct TagRefVector *a_active_vec, struct
 {
 	struct CrateTag **tag_ref;
 
+	LOGF(debug)(LOGL, "module_insert {");
 	TAILQ_INSERT_TAIL(&a_crate->module_list, a_module, next);
 	VECTOR_FOREACH(tag_ref, a_active_vec) {
 		struct CrateTag *tag;
@@ -2046,6 +2096,7 @@ module_insert(struct Crate *a_crate, struct TagRefVector *a_active_vec, struct
 			++tag->module_num;
 		}
 	}
+	LOGF(debug)(LOGL, "module_insert }");
 }
 
 void

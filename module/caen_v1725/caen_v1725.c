@@ -96,7 +96,7 @@ caen_v1725_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	v1725->module.event_max = 1;
 
 	v1725->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", v1725->address);
+	LOGF(info)(LOGL, "Address=%08x.", v1725->address);
 
 	v1725->module.event_counter.mask = BITS_MASK_TOP(23);
 
@@ -110,18 +110,17 @@ caen_v1725_deinit(struct Module *a_module)
 {
 	struct CaenV1725Module *v1725;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
 	map_unmap(&v1725->sicy_map);
 	map_unmap(&v1725->dma_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 caen_v1725_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -129,8 +128,9 @@ caen_v1725_get_map(struct Module *a_module)
 {
 	struct CaenV1725Module *v1725;
 
-	LOGF(verbose)(LOGL, NAME" get_map.");
+	LOGF(verbose)(LOGL, NAME" get_map {");
 	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
+	LOGF(verbose)(LOGL, NAME" get_map }");
 	return v1725->sicy_map;
 }
 
@@ -138,8 +138,10 @@ void
 caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
     *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -402,7 +404,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 		for (i = 0; i < 16; ++i) {
 			revision = MAP_READ(v1725->sicy_map,
 			    amc_firmware_revision(i));
-			LOGF(verbose)(LOGL,
+			LOGF(info)(LOGL,
 			    "AMC Firmware revision = %d.%d (0x%04x).",
 			    (0x0000ff00 & revision) >> 8,
 			    0x000000ff & revision,
@@ -411,7 +413,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	}
 
 	revision = MAP_READ(v1725->sicy_map, roc_fpga_firmware_revision);
-	LOGF(verbose)(LOGL, "ROC FPGA Firmware revision = %d.%d (0x%04x).",
+	LOGF(info)(LOGL, "ROC FPGA Firmware revision = %d.%d (0x%04x).",
 	    (0x0000ff00 & revision) >> 8, 0x000000ff & revision, revision);
 
 	/* Get module type and channel #. */
@@ -504,7 +506,7 @@ caen_v1725_readout(struct Crate *a_crate, struct Module *a_module, struct
 	p32 = a_event_buffer->ptr;
 
 	event_size = MAP_READ(v1725->sicy_map, event_size);
-	LOGF(spam)(LOGL, "event_size = %u.", event_size);
+	LOGF(spam)(LOGL, "Event_size = %u.", event_size);
 	if (0) if (0 == event_size) {
 		log_error(LOGL, "Event buffer empty!");
 		result = CRATE_READOUT_FAIL_DATA_MISSING;
@@ -543,7 +545,7 @@ caen_v1725_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	LOGF(spam)(LOGL, NAME" readout_dt {");
 	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
 	event_size = MAP_READ(v1725->sicy_map, event_size);
-	LOGF(spam)(LOGL, NAME" readout_dt(event_size=0x%08x) }", event_size);
+	LOGF(spam)(LOGL, NAME" readout_dt(event_size=%u) }", event_size);
 	return 0;
 }
 
@@ -559,7 +561,7 @@ set_thresholds(struct CaenV1725Module *a_v1725, uint16_t const
 {
 	size_t i;
 
-	LOGF(info)(LOGL, NAME" set_thresholds {");
+	LOGF(verbose)(LOGL, NAME" set_thresholds {");
 	assert(16 == a_threshold_num);
 	for (i = 0; a_threshold_num > i; ++i) {
 		uint32_t u32;
@@ -569,5 +571,5 @@ set_thresholds(struct CaenV1725Module *a_v1725, uint16_t const
 		MAP_WRITE(a_v1725->sicy_map, channel_n_trigger_threshold(i),
 		    u32);
 	}
-	LOGF(info)(LOGL, NAME" set_thresholds }");
+	LOGF(verbose)(LOGL, NAME" set_thresholds }");
 }

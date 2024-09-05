@@ -81,7 +81,7 @@ caen_v1n90_create(struct ConfigBlock const *a_block, struct CaenV1n90Module
 	a_v1n90->module.event_max = 1024;
 
 	a_v1n90->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", a_v1n90->address);
+	LOGF(info)(LOGL, "Address=%08x.", a_v1n90->address);
 
 	a_v1n90->dma_map = NULL;
 
@@ -93,23 +93,21 @@ caen_v1n90_create(struct ConfigBlock const *a_block, struct CaenV1n90Module
 void
 caen_v1n90_deinit(struct CaenV1n90Module *a_v1n90)
 {
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	map_unmap(&a_v1n90->sicy_map);
 	map_unmap(&a_v1n90->dma_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 caen_v1n90_destroy(struct CaenV1n90Module *a_v1n90)
 {
 	(void)a_v1n90;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
 caen_v1n90_get_map(struct CaenV1n90Module *a_v1n90)
 {
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return a_v1n90->sicy_map;
 }
 
@@ -117,6 +115,7 @@ void
 caen_v1n90_get_signature(struct ModuleSignature const **a_array, size_t
     *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(0, 4),
@@ -127,6 +126,7 @@ caen_v1n90_get_signature(struct ModuleSignature const **a_array, size_t
 		BITS_MASK(0, 31),
 		DMA_FILLER)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 void
@@ -141,6 +141,8 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 	};
 	enum Keyword edge;
 	int deadtime;
+
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	module_gate_get(&gate, a_v1n90->module.config,
 	    -(0x800 * 25.), 0x28 * 25.,
@@ -242,6 +244,8 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 		log_die(LOGL, "Invalid eadtime %d ns, should be 5, 10, 30, "
 		    "or 100 ns.", deadtime);
 	}
+
+	LOGF(info)(LOGL, NAME" init_fast }");
 }
 
 void
@@ -257,7 +261,7 @@ caen_v1n90_init_slow(struct CaenV1n90Module *a_v1n90)
 	};
 	uint16_t revision, rom_vers, control;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	a_v1n90->sicy_map = map_map(a_v1n90->address, MAP_SIZE,
 	    KW_NOBLT, 0, 0, MAP_POKE_REG(testreg), MAP_POKE_REG(testreg), 0);
@@ -269,11 +273,11 @@ caen_v1n90_init_slow(struct CaenV1n90Module *a_v1n90)
 	SERIALIZE_IO;
 
 	revision = MAP_READ(a_v1n90->sicy_map, firmware_revision);
-	LOGF(verbose)(LOGL, "Firmware revision = %d.%d (%04x).",
+	LOGF(info)(LOGL, "Firmware revision = %d.%d (%04x).",
 	    (0xf0 & revision) >> 4, 0x0f & revision, revision);
 
 	rom_vers = MAP_READ(a_v1n90->sicy_map, rom_vers);
-	LOGF(verbose)(LOGL, "ROM version = %04x.", rom_vers);
+	LOGF(info)(LOGL, "ROM version = %04x.", rom_vers);
 
 	control = !CTRL_BERREN |
 	    !CTRL_TERM |
@@ -309,7 +313,7 @@ caen_v1n90_init_slow(struct CaenV1n90Module *a_v1n90)
 
 	a_v1n90->parse.expect = EXPECT_DMA_HEADER;
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 }
 
 int
@@ -333,7 +337,7 @@ caen_v1n90_micro_init_fast(struct ModuleList const *a_list)
 		return 1;
 	}
 
-	LOGF(verbose)(LOGL, NAME" micro_init_fast (patience...) {");
+	LOGF(info)(LOGL, NAME" micro_init_fast (patience...) {");
 	skip = 0;
 
 #define MICRO_WRITE(reg) do {\
@@ -347,7 +351,7 @@ caen_v1n90_micro_init_fast(struct ModuleList const *a_list)
 		SERIALIZE_IO;\
 	} while(0);
 
-	LOGF(verbose)(LOGL, NAME" micro_init_fast }");
+	LOGF(info)(LOGL, NAME" micro_init_fast }");
 	return !skip;
 }
 
@@ -372,7 +376,7 @@ caen_v1n90_micro_init_slow(struct ModuleList const *a_list)
 		return 1;
 	}
 
-	LOGF(verbose)(LOGL, NAME" micro_init_slow (patience...) {");
+	LOGF(info)(LOGL, NAME" micro_init_slow (patience...) {");
 	skip = 0;
 
 	/* Trigger matching mode. */
@@ -596,7 +600,7 @@ caen_v1n90_micro_init_slow(struct ModuleList const *a_list)
 	SERIALIZE_IO;
 #endif
 
-	LOGF(verbose)(LOGL, NAME" micro_init_slow }");
+	LOGF(info)(LOGL, NAME" micro_init_slow }");
 	return !skip;
 }
 
@@ -668,7 +672,7 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 			if (0x00000000 == (TYPE_MASK & u32)) {
 			} else if (0x20000000 == (TYPE_MASK & u32)) {
 				/* TODO: This is optional. */
-				LOGF(info)(LOGL,
+				log_error(LOGL,
 				    NAME" TDC [%1x] reports error 0x%4x.",
 				    ((u32 >> 24) & 0x3), (u32 & 0x7FFF));
 			} else if (0x18000000 == (TYPE_MASK & u32)) {
@@ -782,7 +786,7 @@ caen_v1n90_readout(struct Crate *a_crate, struct CaenV1n90Module *a_v1n90,
 		event_count += (0xffff0000 & counts) >> 16;
 		word_count += 0x0000ffff & counts;
 	}
-	LOGF(spam)(LOGL, "Event count=%d, word count=%d.", event_count,
+	LOGF(spam)(LOGL, "Event-count=%d, word-count=%d.", event_count,
 	    word_count);
 	if (word_count * sizeof(uint32_t) > a_event_buffer->bytes) {
 		log_error(LOGL, "FIFO too big for event destination.");
@@ -872,6 +876,8 @@ caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
 	int skip;
 	uint16_t u16;
 
+	LOGF(debug)(LOGL, NAME" register_list_pack {");
+
 	TAILQ_INIT(&module_list);
 	TAILQ_INSERT_TAIL(&module_list, (struct Module *)&a_v1n90->module,
 	    next);
@@ -926,4 +932,6 @@ caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
 	READ(FIRMWARE);
 
 	*nump = num;
+
+	LOGF(debug)(LOGL, NAME" register_list_pack }");
 }

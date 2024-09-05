@@ -40,13 +40,9 @@ uint32_t
 caen_v965_check_empty(struct Module *a_module)
 {
 	struct CaenV965Module *v965;
-	uint32_t result;
 
-	LOGF(spam)(LOGL, NAME" check_empty {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
-	result = caen_v7nn_check_empty(&v965->v7nn);
-	LOGF(spam)(LOGL, NAME" check_empty(0x%08x) }", result);
-	return result;
+	return caen_v7nn_check_empty(&v965->v7nn);
 }
 
 struct Module *
@@ -70,10 +66,8 @@ caen_v965_deinit(struct Module *a_module)
 {
 	struct CaenV965Module *v965;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_deinit(&v965->v7nn);
-	LOGF(verbose)(LOGL, NAME" deinit }");
 }
 
 void
@@ -81,10 +75,8 @@ caen_v965_destroy(struct Module *a_module)
 {
 	struct CaenV965Module *v965;
 
-	LOGF(verbose)(LOGL, NAME" destroy {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_destroy(&v965->v7nn);
-	LOGF(verbose)(LOGL, NAME" destroy }");
 }
 
 struct Map *
@@ -108,7 +100,7 @@ caen_v965_init_fast(struct Crate *a_crate, struct Module *a_module)
 	struct CaenV965Module *v965;
 	unsigned iped;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_init_fast(a_crate, &v965->v7nn);
 
@@ -118,7 +110,7 @@ caen_v965_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    caen_v965_iped_to_current(iped));
 	MAP_WRITE(v965->v7nn.sicy_map, iped, iped);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -127,10 +119,8 @@ caen_v965_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct CaenV965Module *v965;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_init_slow(a_crate, &v965->v7nn);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -152,15 +142,11 @@ caen_v965_parse_data(struct Crate *a_crate, struct Module *a_module, struct
     EventConstBuffer const *a_event_buffer, int a_do_pedestals)
 {
 	struct CaenV965Module *v965;
-	uint32_t result;
 
 	(void)a_crate;
-	LOGF(spam)(LOGL, NAME" parse_data {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
-	result = caen_v7nn_parse_data(&v965->v7nn, a_event_buffer,
+	return caen_v7nn_parse_data(&v965->v7nn, a_event_buffer,
 	    a_do_pedestals);
-	LOGF(spam)(LOGL, NAME" parse_data }");
-	return result;
 }
 
 uint32_t
@@ -168,13 +154,9 @@ caen_v965_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
 {
 	struct CaenV965Module *v965;
-	uint32_t result;
 
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
-	result = caen_v7nn_readout(a_crate, &v965->v7nn, a_event_buffer);
-	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
-	return result;
+	return caen_v7nn_readout(a_crate, &v965->v7nn, a_event_buffer);
 }
 
 uint32_t
@@ -183,10 +165,8 @@ caen_v965_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	struct CaenV965Module *v965;
 
 	(void)a_crate;
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_readout_dt(&v965->v7nn);
-	LOGF(spam)(LOGL, NAME" readout }");
 	return 0;
 }
 
@@ -203,10 +183,8 @@ caen_v965_use_pedestals(struct Module *a_module)
 {
 	struct CaenV965Module *v965;
 
-	LOGF(spam)(LOGL, NAME" use_pedestals {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_use_pedestals(&v965->v7nn);
-	LOGF(spam)(LOGL, NAME" use_pedestals }");
 }
 
 void
@@ -214,8 +192,6 @@ caen_v965_zero_suppress(struct Module *a_module, int a_yes)
 {
 	struct CaenV965Module *v965;
 
-	LOGF(spam)(LOGL, NAME" zero_suppress {");
 	MODULE_CAST(KW_CAEN_V965, v965, a_module);
 	caen_v7nn_zero_suppress(&v965->v7nn, a_yes);
-	LOGF(spam)(LOGL, NAME" zero_suppress }");
 }

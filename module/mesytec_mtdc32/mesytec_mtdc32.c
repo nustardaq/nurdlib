@@ -95,6 +95,7 @@ void
 mesytec_mtdc32_get_signature(struct ModuleSignature const **a_array, size_t
     *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(16, 23),
@@ -105,6 +106,7 @@ mesytec_mtdc32_get_signature(struct ModuleSignature const **a_array, size_t
 		BITS_MASK(0, 31),
 		DMA_FILLER)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -118,7 +120,7 @@ mesytec_mtdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int only_first_hit = 0;
 	int pulser_enabled = 0;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_MESYTEC_MTDC32, mtdc32, a_module);
 
@@ -147,8 +149,8 @@ mesytec_mtdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 			}
 		}
 		resolution_code = i + 2;
-		LOGF(info)(LOGL, NAME" Wanted resolution=%.1f ps, chose %.1f "
-		    "ps (0x%04x).", resolution, c_valid_resolution[i],
+		LOGF(verbose)(LOGL, NAME" Wanted resolution=%.1f ps, chose "
+		    "%.1f ps (0x%04x).", resolution, c_valid_resolution[i],
 		    resolution_code);
 		MAP_WRITE(mtdc32->mxdc32.sicy_map, tdc_resolution,
 		    resolution_code);
@@ -157,7 +159,7 @@ mesytec_mtdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	trigger_input_kw = CONFIG_GET_KEYWORD(a_module->config,
 	    KW_TRIGGER_INPUT, c_trigger_input);
 	trigger_input = KW_NIM == trigger_input_kw ? 0 : 1;
-	LOGF(verbose)(LOGL, "Trigger input=%s=%u.",
+	LOGF(info)(LOGL, "Trigger input=%s=%u.",
 	    keyword_get_string(trigger_input_kw), trigger_input);
 	MAP_WRITE(mtdc32->mxdc32.sicy_map, trig_select, trigger_input);
 
@@ -185,7 +187,7 @@ mesytec_mtdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	} else {
 		MAP_WRITE(mtdc32->mxdc32.sicy_map, first_hit, 0);
 	}
-	LOGF(verbose)(LOGL, "Only first hit=%s.",
+	LOGF(info)(LOGL, "Only first hit=%s.",
 	    only_first_hit ? "yes" : "no");
 
 	/*
@@ -198,7 +200,7 @@ mesytec_mtdc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	mesytec_mxdc32_init_fast(a_crate, &mtdc32->mxdc32,
 	    MESYTEC_BANK_OP_CONNECTED | MESYTEC_BANK_OP_INDEPENDENT);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -210,7 +212,6 @@ mesytec_mtdc32_init_slow(struct Crate *a_crate, struct Module *a_module)
 	(void)a_crate;
 	MODULE_CAST(KW_MESYTEC_MTDC32, mtdc32, a_module);
 	mesytec_mxdc32_init_slow(&mtdc32->mxdc32);
-
 	return 1;
 }
 
@@ -269,13 +270,11 @@ mesytec_mtdc32_readout_shadow(struct Crate *a_crate, struct Module *a_module,
     struct EventBuffer *a_event_buffer)
 {
 	struct MesytecMtdc32Module *mtdc32;
-	uint32_t result;
 
 	(void)a_crate;
 	MODULE_CAST(KW_MESYTEC_MTDC32, mtdc32, a_module);
-	result = mesytec_mxdc32_readout_shadow(&mtdc32->mxdc32,
-	    a_event_buffer, 0);
-	return result;
+	return mesytec_mxdc32_readout_shadow(&mtdc32->mxdc32, a_event_buffer,
+	    0);
 }
 
 void

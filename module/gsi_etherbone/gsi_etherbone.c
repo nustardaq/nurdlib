@@ -105,7 +105,7 @@ direct_create(struct GsiEtherboneModule *a_etherbone, enum Keyword a_type)
 void
 direct_deinit(struct GsiEtherboneModule *a_etherbone)
 {
-	LOGF(verbose)(LOGL, NAME" direct_deinit {");
+	LOGF(info)(LOGL, NAME" direct_deinit {");
 	if (KW_GSI_VETAR == a_etherbone->module.type) {
 		map_unmap(&a_etherbone->direct.vetar_sicy_map);
 	} else if (MAP_FAILED != a_etherbone->direct.pexaria_mmap) {
@@ -114,7 +114,7 @@ direct_deinit(struct GsiEtherboneModule *a_etherbone)
 		}
 		a_etherbone->direct.pexaria_mmap = MAP_FAILED;
 	}
-	LOGF(verbose)(LOGL, NAME" direct_deinit }");
+	LOGF(info)(LOGL, NAME" direct_deinit }");
 }
 
 int
@@ -122,13 +122,13 @@ direct_init(struct GsiEtherboneModule *a_etherbone)
 {
 	eb_data_t fifo_size;
 
-	LOGF(verbose)(LOGL, NAME" direct_init {");
+	LOGF(info)(LOGL, NAME" direct_init {");
 
 	if (KW_GSI_VETAR == a_etherbone->module.type) {
 		a_etherbone->direct.address =
 		    config_get_block_param_int32(a_etherbone->module.config,
 			0);
-		LOGF(verbose)(LOGL, "Address=0x%08x.",
+		LOGF(info)(LOGL, "Address=0x%08x.",
 		    a_etherbone->direct.address);
 		a_etherbone->direct.vetar_sicy_map =
 		    map_map(a_etherbone->direct.address,
@@ -164,7 +164,7 @@ direct_init(struct GsiEtherboneModule *a_etherbone)
 	LOGF(verbose)(LOGL, "FIFO=%u size=%u.",
 	    a_etherbone->fifo_id, (uint32_t)fifo_size);
 
-	LOGF(verbose)(LOGL, NAME" direct_init }");
+	LOGF(info)(LOGL, NAME" direct_init }");
 
 	return 1;
 }
@@ -226,7 +226,7 @@ direct_stat(struct GsiEtherboneModule *a_etherbone, uint32_t *a_stat)
 void
 etherbone_deinit(void)
 {
-	LOGF(verbose)(LOGL, NAME" etherbone_deinit {");
+	LOGF(info)(LOGL, NAME" etherbone_deinit {");
 	if (EB_NULL != g_eb_device) {
 		EB_CALL(eb_device_close, (g_eb_device), "Closing device",
 		    device_close);
@@ -239,7 +239,7 @@ device_close:
 socket_close:
 		g_eb_socket = EB_NULL;
 	}
-	LOGF(verbose)(LOGL, NAME" etherbone_deinit }");
+	LOGF(info)(LOGL, NAME" etherbone_deinit }");
 }
 
 int
@@ -250,7 +250,7 @@ etherbone_init(struct GsiEtherboneModule *a_etherbone)
 	eb_data_t fifo_size;
 	int device_num, ret = 0;
 
-	LOGF(verbose)(LOGL, NAME" etherbone_init {");
+	LOGF(info)(LOGL, NAME" etherbone_init {");
 
 	if (EB_NULL != g_eb_socket ||
 	    EB_NULL != g_eb_device) {
@@ -268,10 +268,10 @@ etherbone_init(struct GsiEtherboneModule *a_etherbone)
 	EB_CALL(eb_sdb_find_by_identity, (g_eb_device, GSI_TM_LATCH_VENDOR,
 	    GSI_TM_LATCH_PRODUCT, &sdb_dev, &device_num),
 	    "Finding HW", etherbone_init_fail);
-	LOGF(verbose)(LOGL, "ABI class = 0x%04x.", sdb_dev.abi_class);
-	LOGF(verbose)(LOGL, "ABI version = 0x%02x.%02x.",
+	LOGF(info)(LOGL, "ABI class = 0x%04x.", sdb_dev.abi_class);
+	LOGF(info)(LOGL, "ABI version = 0x%02x.%02x.",
 	    sdb_dev.abi_ver_major, sdb_dev.abi_ver_minor);
-	LOGF(verbose)(LOGL, "Name = %s.", sdb_dev.sdb_component.product.name);
+	LOGF(info)(LOGL, "Name = %s.", sdb_dev.sdb_component.product.name);
 	if (1 != device_num) {
 		log_error(LOGL, "Found %u Etherbone TLUs, should be 1!",
 		    device_num);
@@ -280,7 +280,7 @@ etherbone_init(struct GsiEtherboneModule *a_etherbone)
 
 	a_etherbone->etherbone.tlu_address =
 	    sdb_dev.sdb_component.addr_first;
-	LOGF(verbose)(LOGL, "TLU address = 0x%"PRIpx"\n",
+	LOGF(info)(LOGL, "TLU address = 0x%"PRIpx"\n",
 	    a_etherbone->etherbone.tlu_address);
 
 	EB_CALL(eb_device_write, (g_eb_device,
@@ -316,7 +316,7 @@ etherbone_init(struct GsiEtherboneModule *a_etherbone)
 	ret = 1;
 
 etherbone_init_fail:
-	LOGF(verbose)(LOGL, NAME" etherbone_init }");
+	LOGF(info)(LOGL, NAME" etherbone_init }");
 	return ret;
 }
 
@@ -441,10 +441,10 @@ gsi_etherbone_create(struct ConfigBlock *a_block, struct GsiEtherboneModule
 void
 gsi_etherbone_deinit(struct GsiEtherboneModule *a_etherbone)
 {
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	direct_deinit(a_etherbone);
 	etherbone_deinit();
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 int
@@ -456,7 +456,7 @@ gsi_etherbone_init_slow(struct GsiEtherboneModule *a_etherbone)
 	uint32_t dactl_value, value;
 	int ret;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	ret = 0;
 	a_etherbone->is_direct = 0;
 
@@ -525,7 +525,7 @@ dactl_done:
 	ret = a_etherbone->is_direct ?
 	    direct_init(a_etherbone) :
 	    etherbone_init(a_etherbone);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return ret;
 }
 
@@ -582,7 +582,7 @@ write_ts(struct EventBuffer *a_event_buffer, uint32_t a_hi, uint32_t a_lo,
 	uint32_t *p32;
 	uint64_t ts;
 
-	LOGF(spam)(LOGL, "hi=%08x lo=%08x fine=%08x", a_hi, a_lo, a_fn);
+	LOGF(spam)(LOGL, "hi=%08x lo=%08x fine=%08x.", a_hi, a_lo, a_fn);
 
 	p32 = a_event_buffer->ptr;
 	if (!MEMORY_CHECK(*a_event_buffer, p32 + 1)) {

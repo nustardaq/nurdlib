@@ -139,7 +139,7 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 	int has_input_t0;
 	int has_input_t1;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	mesytec_mxdc32_init_fast(a_crate, &a_mdpp->mxdc32, 0);
 
@@ -276,7 +276,7 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 	/* Clock setup. */
 	a_mdpp->config.use_ext_clk = config_get_boolean(
 	    a_mdpp->mxdc32.module.config, KW_CLOCK_INPUT);
-	LOGF(verbose)(LOGL, "External clock = %s.",
+	LOGF(info)(LOGL, "External clock = %s.",
 	    a_mdpp->config.use_ext_clk ? "yes" : "no");
 	if (a_mdpp->config.use_ext_clk) {
 		int srcs;
@@ -358,7 +358,7 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 	    a_mdpp->config.pulser_amplitude);
 	time_sleep(init_sleep);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 }
 
 void
@@ -368,11 +368,11 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 	uint16_t trig_out, trig_source, trig_source_2;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	mesytec_mxdc32_init_slow(&a_mdpp->mxdc32);
 
-	LOGF(verbose)(LOGL, NAME" Firmware = 0x%04x.",
+	LOGF(info)(LOGL, NAME" Firmware = 0x%04x.",
 	    MAP_READ(a_mdpp->mxdc32.sicy_map, firmware_revision));
 
 	/*
@@ -388,7 +388,7 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 		a_mdpp->config.trigger_output =
 		    MIN(a_mdpp->config.trigger_output, 16);
 	}
-	LOGF(verbose)(LOGL, "trigger_output (TO) = %d.",
+	LOGF(info)(LOGL, "Trigger_output (TO) = %d.",
 	    a_mdpp->config.trigger_output);
 
 	if (-1 == a_mdpp->config.trigger_output) {
@@ -420,13 +420,13 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 		    "ch_num=%d trigger_output=%d.",
 		    a_mdpp->config.ch_num, a_mdpp->config.trigger_output);
 	}
-	LOGF(verbose)(LOGL, "trig_out = 0x%04x.", trig_out);
+	LOGF(info)(LOGL, "Trig_out = 0x%04x.", trig_out);
 	MAP_WRITE(a_mdpp->mxdc32.sicy_map, trigger_output, trig_out);
 
 	a_mdpp->config.trigger_input = config_get_int32(
 	    a_mdpp->mxdc32.module.config, KW_TRIGGER_INPUT, CONFIG_UNIT_NONE,
 	    -1, a_mdpp->config.ch_num + 4);
-	LOGF(verbose)(LOGL, "trigger_input (TI) = %d.",
+	LOGF(info)(LOGL, "Trigger_input (TI) = %d.",
 	    a_mdpp->config.trigger_input);
 
 	if (-1 == a_mdpp->config.trigger_input) {
@@ -459,7 +459,7 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 		    "ch_num=%d trigger_input=%d.",
 		    a_mdpp->config.ch_num, a_mdpp->config.trigger_input);
 	}
-	LOGF(verbose)(LOGL, "trig_source = 0x%04x.", trig_source);
+	LOGF(info)(LOGL, "Trig_source = 0x%04x.", trig_source);
 	MAP_WRITE(a_mdpp->mxdc32.sicy_map, trig_source, trig_source);
 
 	if (KW_MESYTEC_MDPP16SCP == a_mdpp->mxdc32.module.type ||
@@ -467,7 +467,7 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 		a_mdpp->config.trigger_mask = config_get_bitmask(
 		    a_mdpp->mxdc32.module.config, KW_TRIGGER_CHANNEL,
 		    0, a_mdpp->config.ch_num - 1);
-		LOGF(verbose)(LOGL, "trigger_channel mask = 0x%04x.",
+		LOGF(info)(LOGL, "Trigger_channel mask = 0x%04x.",
 		    a_mdpp->config.trigger_mask);
 
 		if (-1 != a_mdpp->config.trigger_input &&
@@ -483,13 +483,13 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 		}
 
 		trig_source_2 = a_mdpp->config.trigger_mask;
-		LOGF(verbose)(LOGL, "trig_source_2 = 0x%04x.",
+		LOGF(info)(LOGL, "Trig_source_2 = 0x%04x.",
 		    trig_source_2);
 		MAP_WRITE(a_mdpp->mxdc32.sicy_map, trig_source_2,
 		    trig_source_2);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 }
 
 void
@@ -551,6 +551,7 @@ mesytec_mdpp_use_pedestals(struct MesytecMdppModule *a_mdpp)
 	if (!a_mdpp->config.do_auto_pedestals) {
 		return;
 	}
+	LOGF(verbose)(LOGL, NAME" use_pedestals {");
 	pedestal_array = a_mdpp->mxdc32.module.pedestal.array;
 	if (a_mdpp->config.ch_num != a_mdpp->mxdc32.module.pedestal.array_len)
 	{
@@ -560,6 +561,7 @@ mesytec_mdpp_use_pedestals(struct MesytecMdppModule *a_mdpp)
 		arr[i] = pedestal_array[i].threshold;
 	}
 	thresholds_set(a_mdpp, arr);
+	LOGF(verbose)(LOGL, NAME" use_pedestals }");
 }
 
 void
@@ -572,10 +574,12 @@ mesytec_mdpp_zero_suppress(struct MesytecMdppModule *a_mdpp, int a_yes)
 	if (!a_mdpp->config.do_auto_pedestals) {
 		return;
 	}
+	LOGF(verbose)(LOGL, NAME" zero_suppress {");
 	for (i = 0; i < a_mdpp->config.ch_num; ++i) {
 		arr[i] = a_yes ? a_mdpp->config.threshold[i] : 0;
 	}
 	thresholds_set(a_mdpp, arr);
+	LOGF(verbose)(LOGL, NAME" zero_suppress }");
 }
 
 void
@@ -584,44 +588,53 @@ thresholds_set(struct MesytecMdppModule *a_mdpp, uint16_t const *a_array)
 	double init_sleep;
 	unsigned i;
 
+	LOGF(verbose)(LOGL, NAME" thresholds_set {");
+
 	init_sleep = mesytec_mxdc32_sleep_get(&a_mdpp->mxdc32);
 
-        if (a_mdpp->config.ch_num == 16){
-          for (i = 0; a_mdpp->config.ch_num / 2 > i; ++i) {
-            uint16_t t0, t1;
+	if (16 == a_mdpp->config.ch_num) {
+		for (i = 0; a_mdpp->config.ch_num / 2 > i; ++i) {
+			uint16_t t0, t1;
 
-            t0 = a_array[i * 2 + 0];
-            t1 = a_array[i * 2 + 1];
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, select_chan_pair, i);
-            time_sleep(init_sleep);
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold0, t0);
-            time_sleep(init_sleep);
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold1, t1);
-            time_sleep(init_sleep);
-            LOGF(verbose)(LOGL,
-                          "threshold0[%u]=0x%04x threshold1[%u]=0x%04x.",
-                          i, t0, i, t1);
-          }
-        }else if (a_mdpp->config.ch_num == 32){
-          for (i = 0; a_mdpp->config.ch_num / 4 > i; ++i) {
-            uint16_t t0, t1, t2, t3;
-            t0 = a_array[i * 4 + 0];
-            t1 = a_array[i * 4 + 1];
-            t2 = a_array[i * 4 + 2];
-            t3 = a_array[i * 4 + 3];
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, select_chan_pair, i);
-            time_sleep(init_sleep);
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold0, t0);
-            time_sleep(init_sleep);
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold1, t1);
-            time_sleep(init_sleep);
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold2, t2);
-            time_sleep(init_sleep);
-            MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold3, t3);
-            time_sleep(init_sleep);
-            LOGF(verbose)(LOGL,
-                          "threshold0[%u]=0x%04x threshold1[%u]=0x%04x threshold2[%u]=0x%04x threshold3[%u]=0x%04x.",
-                          i, t0, i, t1, i, t2, i, t3);
-          }
-        }
+			t0 = a_array[i * 2 + 0];
+			t1 = a_array[i * 2 + 1];
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, select_chan_pair,
+			    i);
+			time_sleep(init_sleep);
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold0, t0);
+			time_sleep(init_sleep);
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold1, t1);
+			time_sleep(init_sleep);
+			LOGF(verbose)(LOGL,
+			    "thr0[%u]=0x%04x thr1[%u]=0x%04x.",
+			    i, t0, i, t1);
+		}
+	} else if (32 == a_mdpp->config.ch_num) {
+		for (i = 0; a_mdpp->config.ch_num / 4 > i; ++i) {
+			uint16_t t0, t1, t2, t3;
+
+			t0 = a_array[i * 4 + 0];
+			t1 = a_array[i * 4 + 1];
+			t2 = a_array[i * 4 + 2];
+			t3 = a_array[i * 4 + 3];
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, select_chan_pair,
+			    i);
+			time_sleep(init_sleep);
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold0, t0);
+			time_sleep(init_sleep);
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold1, t1);
+			time_sleep(init_sleep);
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold2, t2);
+			time_sleep(init_sleep);
+			MAP_WRITE(a_mdpp->mxdc32.sicy_map, threshold3, t3);
+			time_sleep(init_sleep);
+			LOGF(verbose)(LOGL,
+			    "thr0[%u]=0x%04x thr1[%u]=0x%04x "
+			    "thr2[%u]=0x%04x thr3[%u]=0x%04x.",
+			    i, t0, i, t1,
+			    i, t2, i, t3);
+		}
+	}
+
+	LOGF(verbose)(LOGL, NAME" thresholds_set }");
 }

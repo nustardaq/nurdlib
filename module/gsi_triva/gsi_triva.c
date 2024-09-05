@@ -42,9 +42,10 @@ cvt_set(struct Module *a_module, unsigned a_cvt_ns)
 	struct GsiTrivaModule *triva;
 	unsigned cvt;
 
+	LOGF(verbose)(LOGL, NAME" cvt_set(%u ns) {", a_cvt_ns);
 	cvt = (a_cvt_ns + 99) / 100;
 	cvt = 0xffff - MIN(cvt, 0xfffe);
-	LOGF(verbose)(LOGL, NAME" cvt_set(%u ns = 0x%x) {", a_cvt_ns, cvt);
+	LOGF(verbose)(LOGL, "Raw=0x%x.", cvt);
 	MODULE_CAST(KW_GSI_TRIVA, triva, a_module);
 	MAP_WRITE(triva->sicy_map, ctime, cvt);
 	LOGF(verbose)(LOGL, NAME" cvt_set }");
@@ -66,7 +67,7 @@ gsi_triva_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	LOGF(verbose)(LOGL, NAME" create {");
 	MODULE_CREATE(triva);
 	triva->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", triva->address);
+	LOGF(info)(LOGL, "Address=%08x.", triva->address);
 	triva->acvt_has = config_get_boolean(a_block, KW_ACVT);
 	if (triva->acvt_has) {
 		crate_acvt_set(a_crate, &triva->module, cvt_set);
@@ -91,7 +92,6 @@ void
 gsi_triva_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -127,11 +127,11 @@ gsi_triva_init_slow(struct Crate *a_crate, struct Module *a_module)
 	struct GsiTrivaModule *triva;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_TRIVA, triva, a_module);
 	triva->sicy_map = map_map(triva->address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(ctime), MAP_POKE_REG(ctime), 50);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 

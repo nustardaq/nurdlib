@@ -153,7 +153,7 @@ gsi_ctdc_proto_init_fast(struct Crate *a_crate, struct GsiCTDCProtoModule
 	int clock_i, ret;
 	uint16_t threshold_offset;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	pex = crate_gsi_pex_get(a_crate);
 	sfp_i = a_ctdcp->sfp_i;
@@ -320,7 +320,7 @@ gsi_ctdc_proto_init_fast(struct Crate *a_crate, struct GsiCTDCProtoModule
 
 	ret = 1;
 ctdc_init_fast_done:
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return ret;
 }
 
@@ -332,13 +332,13 @@ gsi_ctdc_proto_init_slow(struct Crate *a_crate, struct GsiCTDCProtoModule
 	unsigned card_num, sfp_i;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	pex = crate_gsi_pex_get(a_crate);
 	sfp_i = a_ctdcp->sfp_i;
 	card_num = a_ctdcp->card_num;
 	LOGF(verbose)(LOGL, "SFP=%u:cards=%u.", sfp_i, card_num);
 	gsi_pex_sfp_tag(pex, a_ctdcp->sfp_i);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 }
 
 uint32_t
@@ -451,7 +451,7 @@ gsi_ctdc_proto_parse_data(struct Crate const *a_crate, struct
 	}
 
 gsi_ctdc_proto_parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse }");
+	LOGF(spam)(LOGL, NAME" parse(0x%08x) }", ret);
 	return ret;
 }
 
@@ -593,7 +593,7 @@ gsi_ctdc_proto_readout(struct Crate *a_crate, struct GsiCTDCProtoModule
 	++a_ctdcp->module.event_counter.value;
 
 gsi_ctdc_proto_readout_done:
-	LOGF(spam)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", ret);
 	return ret;
 }
 

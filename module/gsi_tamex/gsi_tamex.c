@@ -143,7 +143,6 @@ void
 gsi_tamex_deinit(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" deinit.");
 }
 
 void
@@ -161,7 +160,6 @@ struct Map *
 gsi_tamex_get_map(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return NULL;
 }
 
@@ -178,10 +176,10 @@ gsi_tamex_get_submodule_config(struct Module *a_module, unsigned a_i)
 	struct GsiTamexModule *tam;
 	struct ConfigBlock *config;
 
-	LOGF(verbose)(LOGL, NAME" get_submodule_config(%u) {", a_i);
+	LOGF(debug)(LOGL, NAME" get_submodule_config(%u) {", a_i);
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
 	config = a_i < tam->card_num ? tam->card_array[a_i].config : NULL;
-	LOGF(verbose)(LOGL, NAME" get_submodule_config }");
+	LOGF(debug)(LOGL, NAME" get_submodule_config }");
 	return config;
 }
 
@@ -212,7 +210,7 @@ gsi_tamex_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    do_long_range, ret;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	ret = 0;
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
 	pex = crate_gsi_pex_get(a_crate);
@@ -271,6 +269,7 @@ gsi_tamex_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}\
 	} while (0)
 
+		/* TODO: Clean up this mess. */
 	{
 uint32_t buf_i, ofs;
 
@@ -410,7 +409,7 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 	tam->pex_buf_idx = pex->buf_idx;
 	ret = 1;
 tamex_init_fast_done:
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return ret;
 }
 
@@ -421,14 +420,14 @@ gsi_tamex_init_slow(struct Crate *a_crate, struct Module *a_module)
 	struct GsiPex *pex;
 	size_t card_num, sfp_i;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
 	pex = crate_gsi_pex_get(a_crate);
 	sfp_i = tam->sfp_i;
 	card_num = tam->card_num;
 	LOGF(verbose)(LOGL, "SFP=%"PRIz", cards=%"PRIz".", sfp_i, card_num);
 	gsi_pex_sfp_tag(pex, sfp_i);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -636,7 +635,7 @@ gsi_tamex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 		crate_sync_push(a_crate, tot);
 	}
 gsi_tamex_parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse }");
+	LOGF(spam)(LOGL, NAME" parse(0x%08x) }", ret);
 	return ret;
 }
 
@@ -804,7 +803,7 @@ if (1) {
 	    bytes);
 
 gsi_tamex_readout_done:
-	LOGF(spam)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", ret);
 	return ret;
 }
 
@@ -933,7 +932,7 @@ gsi_tamex_crate_add(struct GsiTamexCrate *a_crate, struct Module *a_module)
 	struct GsiTamexModule *tam;
 	size_t sfp_i;
 
-	LOGF(spam)(LOGL, NAME" crate_add {");
+	LOGF(verbose)(LOGL, NAME" crate_add {");
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
 	sfp_i = tam->sfp_i;
 	if (NULL != a_crate->sfp[sfp_i]) {
@@ -941,7 +940,7 @@ gsi_tamex_crate_add(struct GsiTamexCrate *a_crate, struct Module *a_module)
 		    sfp_i);
 	}
 	a_crate->sfp[sfp_i] = tam;
-	LOGF(spam)(LOGL, NAME" crate_add }");
+	LOGF(verbose)(LOGL, NAME" crate_add }");
 }
 
 void

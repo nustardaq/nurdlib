@@ -31,7 +31,7 @@
 #include <nurdlib/log.h>
 #include <util/string.h>
 
-void
+int
 system_call(char const *a_fmt, ...)
 {
 	va_list args;
@@ -40,27 +40,30 @@ system_call(char const *a_fmt, ...)
 	FILE *fp;
 	int ret;
 
-	LOGF(verbose)(LOGL, "system_call(%s) {", a_fmt);
+	LOGF(info)(LOGL, "system_call(\"%s\", ...) {", a_fmt);
 	va_start(args, a_fmt);
 	ret = vsnprintf_(cmd, sizeof cmd, a_fmt, args);
 	va_end(args);
-	if (ret + 1 == sizeof cmd) {
-		log_die(LOGL, "Command line too long.");
+	if (ret >= (int)sizeof cmd) {
+		log_die(LOGL, "Sys-call command too long.");
 	}
-	LOGF(info)(LOGL, "cmd=\"%s\"", cmd);
+	LOGF(info)(LOGL, "cmd=\"%s\".", cmd);
 	fp = popen(cmd, "r");
 	if (NULL == fp) {
-		log_die(LOGL, "popen(%s): %s.", cmd, strerror(errno));
+		log_error(LOGL, "popen(\"%s\"): %s.", cmd, strerror(errno));
+		return 0;
 	}
 	while (NULL != fgets(line, sizeof line, fp)) {
 		LOGF(info)(LOGL, "> %s", line);
 	}
 	ret = pclose(fp);
 	if (-1 == ret) {
-		log_die(LOGL, "pclose(%s): %s.", cmd, strerror(errno));
+		log_die(LOGL, "pclose(\"%s\"): %s.", cmd, strerror(errno));
 	}
 	if (0 != ret) {
-		log_die(LOGL, "pclose(%s): Exit code=%d.", cmd, ret);
+		log_error(LOGL, "pclose(\"%s\"): Exit code=%d.", cmd, ret);
+		return 0;
 	}
-	LOGF(verbose)(LOGL, "}");
+	LOGF(info)(LOGL, "}");
+	return 1;
 }

@@ -83,7 +83,6 @@ void
 gsi_kilom_deinit(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" deinit.");
 }
 
 void
@@ -101,7 +100,6 @@ struct Map *
 gsi_kilom_get_map(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" get_map.");
 	return NULL;
 }
 
@@ -116,13 +114,9 @@ struct ConfigBlock *
 gsi_kilom_get_submodule_config(struct Module *a_module, unsigned a_i)
 {
 	struct GsiKilomModule *kilom;
-	struct ConfigBlock *config;
 
-	LOGF(verbose)(LOGL, NAME" get_submodule_config(%u) {", a_i);
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
-	config = gsi_ctdc_proto_get_submodule_config(&kilom->ctdcp, a_i);
-	LOGF(verbose)(LOGL, NAME" get_submodule_config }");
-	return config;
+	return gsi_ctdc_proto_get_submodule_config(&kilom->ctdcp, a_i);
 }
 
 int
@@ -135,7 +129,7 @@ gsi_kilom_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int ret;
 
 	ret = 0;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
 	if (!gsi_ctdc_proto_init_fast(a_crate, &kilom->ctdcp, clock_switch)) {
 		goto gsi_kilom_init_fast_done;
@@ -147,12 +141,12 @@ gsi_kilom_init_fast(struct Crate *a_crate, struct Module *a_module)
 		int is_dark;
 
 		is_dark = config_get_boolean(a_module->config, KW_DARK);
-		LOGF(verbose)(LOGL, "Dark mode = %u", is_dark);
+		LOGF(info)(LOGL, "Dark mode = %u", is_dark);
 		KILOM_INIT_WR(0x200114, is_dark, gsi_kilom_init_fast_done);
 	}
 	ret = 1;
 gsi_kilom_init_fast_done:
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return ret;
 }
 
@@ -161,10 +155,8 @@ gsi_kilom_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct GsiKilomModule *kilom;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
 	gsi_ctdc_proto_init_slow(a_crate, &kilom->ctdcp);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -180,15 +172,11 @@ gsi_kilom_parse_data(struct Crate *a_crate, struct Module *a_module, struct
     EventConstBuffer const *a_event_buffer, int a_do_pedestals)
 {
 	struct GsiKilomModule *kilom;
-	int ret;
 
 	(void)a_do_pedestals;
-	LOGF(spam)(LOGL, NAME" parse {");
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
-	ret = gsi_ctdc_proto_parse_data(a_crate, &kilom->ctdcp,
+	return gsi_ctdc_proto_parse_data(a_crate, &kilom->ctdcp,
 	    a_event_buffer);
-	LOGF(spam)(LOGL, NAME" parse }");
-	return ret;
 }
 
 uint32_t
@@ -196,13 +184,9 @@ gsi_kilom_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
 {
 	struct GsiKilomModule *kilom;
-	uint32_t ret;
 
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
-	ret = gsi_ctdc_proto_readout(a_crate, &kilom->ctdcp, a_event_buffer);
-	LOGF(spam)(LOGL, NAME" readout }");
-	return ret;
+	return gsi_ctdc_proto_readout(a_crate, &kilom->ctdcp, a_event_buffer);
 }
 
 uint32_t
@@ -227,10 +211,8 @@ gsi_kilom_sub_module_pack(struct Module *a_module, struct PackerList *a_list)
 {
 	struct GsiKilomModule *kilom;
 
-	LOGF(debug)(LOGL, NAME" sub_module_pack {");
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
 	gsi_ctdc_proto_sub_module_pack(&kilom->ctdcp, a_list);
-	LOGF(debug)(LOGL, NAME" sub_module_pack }");
 }
 
 uint32_t
@@ -242,6 +224,7 @@ gsi_kilom_temp_read(struct Crate *a_crate, struct EventBuffer *a_event_buffer)
 	unsigned sfp_i;
 	uint32_t ret = 0;
 
+	LOGF(spam)(LOGL, NAME" kilom_temp_read {");
 	pex = crate_gsi_pex_get(a_crate);
 	kilom_crate = crate_get_kilom_crate(a_crate);
 	pnum = p32 = a_event_buffer->ptr;
@@ -276,6 +259,7 @@ gsi_kilom_temp_read_ok:
 gsi_kilom_temp_read_abort:
 	*pnum = p32 - pnum - 1;
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32);
+	LOGF(spam)(LOGL, NAME" kilom_temp_read }");
 	return ret;
 }
 
@@ -353,7 +337,7 @@ gsi_kilom_crate_add(struct GsiKilomCrate *a_crate, struct Module *a_module)
 	struct GsiKilomModule *kilom;
 	size_t sfp_i;
 
-	LOGF(spam)(LOGL, NAME" crate_add {");
+	LOGF(verbose)(LOGL, NAME" crate_add {");
 	MODULE_CAST(KW_GSI_KILOM, kilom, a_module);
 	sfp_i = kilom->ctdcp.sfp_i;
 	if (NULL != a_crate->sfp[sfp_i]) {
@@ -361,13 +345,15 @@ gsi_kilom_crate_add(struct GsiKilomCrate *a_crate, struct Module *a_module)
 		    sfp_i);
 	}
 	a_crate->sfp[sfp_i] = kilom;
-	LOGF(spam)(LOGL, NAME" crate_add }");
+	LOGF(verbose)(LOGL, NAME" crate_add }");
 }
 
 void
 gsi_kilom_crate_create(struct GsiKilomCrate *a_crate)
 {
+	LOGF(verbose)(LOGL, NAME" crate_create {");
 	ZERO(*a_crate);
+	LOGF(verbose)(LOGL, NAME" crate_create }");
 }
 
 int
@@ -375,6 +361,7 @@ gsi_kilom_crate_init_slow(struct GsiKilomCrate *a_crate)
 {
 	size_t i;
 
+	LOGF(verbose)(LOGL, NAME" crate_init_slow {");
 	for (i = 0; i < LENGTH(a_crate->sfp); ++i) {
 		struct GsiKilomModule *kilom;
 
@@ -383,5 +370,6 @@ gsi_kilom_crate_init_slow(struct GsiKilomCrate *a_crate)
 			kilom->ctdcp.module.event_counter.value = 0;
 		}
 	}
+	LOGF(verbose)(LOGL, NAME" crate_init_slow }");
 	return 1;
 }

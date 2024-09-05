@@ -129,7 +129,7 @@ mesytec_madc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 	unsigned range_v;
 	enum Keyword nim_busy;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_MESYTEC_MADC32, madc32, a_module);
 
 	mesytec_mxdc32_init_fast(a_crate, &madc32->mxdc32,
@@ -222,7 +222,7 @@ mesytec_madc32_init_fast(struct Crate *a_crate, struct Module *a_module)
 		LOGF(verbose)(LOGL, "nim_busy %"PRIz".", i);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -232,7 +232,7 @@ mesytec_madc32_init_slow(struct Crate *a_crate, struct Module *a_module)
 	struct MesytecMadc32Module *madc32;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	MODULE_CAST(KW_MESYTEC_MADC32, madc32, a_module);
 	mesytec_mxdc32_init_slow(&madc32->mxdc32);
@@ -245,7 +245,7 @@ mesytec_madc32_init_slow(struct Crate *a_crate, struct Module *a_module)
 	    (MAP_READ(madc32->mxdc32.sicy_map, firmware_revision)
 	     < 0x200 ? 1000 : 8000) / 36;
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 

@@ -47,13 +47,13 @@ struct Crate;
 		unsigned ch_i_; \
 		mask_ = config_get_bitmask(trloii->module.config, \
 		    KW_##CONN, 0, T2_NAME##_NUM_MUX_SRC_##CONN - 1); \
-		LOGF(debug)(LOGL, #CONN "-mask = 0x%x.", mask_); \
+		LOGF(verbose)(LOGL, #CONN "-mask = 0x%x.", mask_); \
 		for (ch_i_ = 0; 0 != mask_; ++ch_i_) { \
 			if (0 != (1 & mask_)) { \
 				uint8_t i_; \
 				i_ = T2_NAME##_MUX_SRC_##CONN(ch_i_); \
 				trloii->scaler[trloii->scaler_n] = i_; \
-				LOGF(debug)(LOGL, \
+				LOGF(verbose)(LOGL, \
 				    " " #CONN "[%"PRIz"] = %u.", \
 				    trloii->scaler_n, i_); \
 				++trloii->scaler_n; \
@@ -66,13 +66,13 @@ struct Crate;
 		unsigned ch_i_; \
 		mask_ = config_get_bitmask(trloii->module.config, \
 		    KW_##CONN, 0, T2_NAME##_NUM_MUX_SRC_##CONN##SUFF - 1); \
-		LOGF(debug)(LOGL, #CONN "-mask = 0x%x.", mask_); \
+		LOGF(verbose)(LOGL, #CONN "-mask = 0x%x.", mask_); \
 		for (ch_i_ = 0; 0 != mask_; ++ch_i_) { \
 			if (0 != (1 & mask_)) { \
 				uint8_t i_; \
 				i_ = T2_NAME##_MUX_SRC_##CONN##SUFF(ch_i_); \
 				trloii->scaler[trloii->scaler_n] = i_; \
-				LOGF(debug)(LOGL, \
+				LOGF(verbose)(LOGL, \
 				    " " #CONN "[%"PRIz"] = %u.", \
 				    trloii->scaler_n, i_); \
 				++trloii->scaler_n; \
@@ -139,11 +139,11 @@ gsi_##nlib_name##_deinit(struct Module *a_module) \
 { \
 	struct TRLOIIModule *trloii; \
 \
-	LOGF(verbose)(LOGL, NAME" deinit {"); \
+	LOGF(info)(LOGL, NAME" deinit {"); \
 	MODULE_CAST(KW_GSI_##NLIB_NAME, trloii, a_module); \
 	FREE(trloii->ctrl); \
 	t2_name##_unmap_hardware(trloii->unmapinfo); \
-	LOGF(verbose)(LOGL, NAME" deinit }"); \
+	LOGF(info)(LOGL, NAME" deinit }"); \
 } \
 int \
 gsi_##nlib_name##_init_fast(struct Crate *a_crate, struct Module *a_module) \
@@ -151,7 +151,7 @@ gsi_##nlib_name##_init_fast(struct Crate *a_crate, struct Module *a_module) \
 	struct TRLOIIModule *trloii; \
 \
 	(void)a_crate; \
-	LOGF(verbose)(LOGL, NAME" init_fast {"); \
+	LOGF(info)(LOGL, NAME" init_fast {"); \
 	MODULE_CAST(KW_GSI_##NLIB_NAME, trloii, a_module); \
 	trloii->data_counter = 0; \
 	trloii->module.event_counter.value = 0; \
@@ -166,7 +166,7 @@ gsi_##nlib_name##_init_fast(struct Crate *a_crate, struct Module *a_module) \
 	MAP_INPUTS(trloii, T2_NAME, COINCIDENCE); \
 	MAP_INPUTS(trloii, T2_NAME, INPUT_COINC); \
 	MAP_INPUTS(trloii, T2_NAME, ACCEPT_TRIG); \
-	LOGF(verbose)(LOGL, NAME" init_fast }"); \
+	LOGF(info)(LOGL, NAME" init_fast }"); \
 	return 1; \
 } \
 int \
@@ -176,7 +176,7 @@ gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 	t2_name##_opaque volatile *opaque; \
 \
 	(void)a_crate; \
-	LOGF(verbose)(LOGL, NAME" init_slow {"); \
+	LOGF(info)(LOGL, NAME" init_slow {"); \
 	MODULE_CAST(KW_GSI_##NLIB_NAME, trloii, a_module); \
 	opaque = t2_name##_setup_map_hardware(trloii->address >> 24, \
 	    &trloii->unmapinfo); \
@@ -193,7 +193,7 @@ gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 	T2_NAME##_WRITE(opaque, pulse.pulse, \
 	    T2_NAME##_PULSE_SERIAL_TSTAMP_FAIL_CLEAR);\
 	SERIALIZE_IO;\
-	LOGF(verbose)(LOGL, NAME" init_slow }"); \
+	LOGF(info)(LOGL, NAME" init_slow }"); \
 	return 1; \
 } \
 uint32_t \
@@ -468,13 +468,11 @@ void \
 gsi_##nlib_name##_destroy(struct Module *a_module) \
 { \
 	(void)a_module; \
-	LOGF(verbose)(LOGL, NAME" destroy."); \
 } \
 struct Map * \
 gsi_##nlib_name##_get_map(struct Module *a_module) \
 { \
 	(void)a_module; \
-	LOGF(verbose)(LOGL, NAME" get_map."); \
 	return NULL; \
 } \
 void \

@@ -80,7 +80,7 @@ sis_3820_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	MODULE_CREATE(m);
 	m->module.event_max = 1e6;
 	m->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address = %08x", m->address);
+	LOGF(info)(LOGL, "Address = %08x", m->address);
 
 	LOGF(verbose)(LOGL, NAME" create }");
 	return (void *)m;
@@ -91,10 +91,10 @@ sis_3820_deinit(struct Module *a_module)
 {
 	struct Sis3820Module *m;
 
-	LOGF(verbose)(LOGL, NAME"deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_SIS_3820, m, a_module);
 	map_unmap(&m->sicy_map);
-	LOGF(verbose)(LOGL, NAME"deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
@@ -132,7 +132,7 @@ sis_3820_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	(void)a_crate;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_SIS_3820, m, a_module);
 
@@ -176,7 +176,7 @@ sis_3820_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	MAP_WRITE(m->sicy_map, control_status, 1 << 15); /* General enable. */
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -188,7 +188,7 @@ sis_3820_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	(void)a_crate;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	MODULE_CAST(KW_SIS_3820, m, a_module);
 
@@ -202,19 +202,17 @@ sis_3820_init_slow(struct Crate *a_crate, struct Module *a_module)
 		log_die(LOGL, NAME"Actual firmware=%08x < required firmware="
 		    "%08x.", firmware, REQUIRED_FIRMWARE);
 	}
-	LOGF(verbose)(LOGL, "id+firmware=0x%08x", firmware);
+	LOGF(info)(LOGL, "id+firmware=0x%08x.", firmware);
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
 void
 sis_3820_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 {
-	LOGF(verbose)(LOGL, NAME" memtest {");
 	(void)a_module;
 	(void)a_memtest_mode;
-	LOGF(verbose)(LOGL, NAME" memtest }");
 }
 
 uint32_t
@@ -235,7 +233,6 @@ sis_3820_readout(struct Crate *a_crate, struct Module *a_module, struct
 	(void)a_crate;
 	(void)a_module;
 	(void)a_event_buffer;
-	LOGF(debug)(LOGL, NAME" readout.");
 	return 0;
 }
 

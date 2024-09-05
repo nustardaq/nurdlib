@@ -197,9 +197,9 @@ main(int argc, char *argv[])
 		} else if (arg_match(argc, argv, 'l', "list", NULL)) {
 			size_t i;
 
-			printf("Module type names for '-t':\n");
+			LOGF(info)(LOGL, "Module type names for -t:");
 			for (i = 0; KW_NONE != c_module_list_[i].type; ++i) {
-				printf(" %s\n", keyword_get_string(
+				LOGF(info)(LOGL, " %s", keyword_get_string(
 				    c_module_list_[i].type));
 			}
 			exit(EXIT_SUCCESS);
@@ -216,7 +216,7 @@ main(int argc, char *argv[])
 					break;
 				}
 			}
-			printf("Type %s=%d\n", str, type);
+			LOGF(info)(LOGL, "Type %s=%d.", str, type);
 		} else if (arg_match(argc, argv, 'a', "addr", &str)) {
 			char const *p;
 			unsigned base;
@@ -229,7 +229,7 @@ main(int argc, char *argv[])
 				base = 10;
 			}
 			address = strtoi32(p, NULL, base);
-			printf("Address=0x%08x\n", address);
+			LOGF(info)(LOGL, "Address=0x%08x.", address);
 		} else if (arg_match(argc, argv, 'd', "register-dump", NULL))
 		{
 			struct ModuleProps props;
@@ -298,15 +298,14 @@ main(int argc, char *argv[])
 			map = map_map(address, sizeof(uint32_t), KW_NOBLT, 0,
 			    0,
 			    3, 0, bits, 0, 0, 0, 0);
-			printf("Raw-read value=");
-			fflush(stdout);
+			LOGF(info)(LOGL, "Raw-read.");
 			switch (bits) {
 			case 16:
-				 printf("0x%04x\n",
+				 LOGF(info)(LOGL, "Value=0x%04x.",
 				     map_sicy_read(map, 3, 16, 0));
 				 break;
 			case 32:
-				 printf("0x%08x\n",
+				 LOGF(info)(LOGL, "Value=0x%08x.",
 				     map_sicy_read(map, 3, 32, 0));
 				 break;
 			}
@@ -339,8 +338,7 @@ main(int argc, char *argv[])
 			map = map_map(address, sizeof(uint32_t), KW_NOBLT, 0,
 			    0,
 			    0, 0, 0, 4, 0, bits, 0);
-			printf("Raw-write");
-			fflush(stdout);
+			LOGF(info)(LOGL, "Raw-write.");
 			switch (bits) {
 			case 16:
 				map_sicy_write(map, 4, 16, 0, value);
@@ -349,7 +347,7 @@ main(int argc, char *argv[])
 				map_sicy_write(map, 4, 32, 0, value);
 				break;
 			}
-			printf(" done.\n");
+			LOGF(info)(LOGL, "Done.");
 			map_unmap(&map);
 			map_deinit();
 			map_shutdown();

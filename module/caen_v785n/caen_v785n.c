@@ -33,13 +33,9 @@ uint32_t
 caen_v785n_check_empty(struct Module *a_module)
 {
 	struct CaenV785NModule *v785n;
-	uint32_t result;
 
-	LOGF(spam)(LOGL, NAME" check_empty {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
-	result = caen_v7nn_check_empty(&v785n->v7nn);
-	LOGF(spam)(LOGL, NAME" check_empty(0x%08x) }", result);
-	return result;
+	return caen_v7nn_check_empty(&v785n->v7nn);
 }
 
 struct Module *
@@ -63,10 +59,8 @@ caen_v785n_deinit(struct Module *a_module)
 {
 	struct CaenV785NModule *v785n;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_deinit(&v785n->v7nn);
-	LOGF(verbose)(LOGL, NAME" deinit }");
 }
 
 void
@@ -74,10 +68,8 @@ caen_v785n_destroy(struct Module *a_module)
 {
 	struct CaenV785NModule *v785n;
 
-	LOGF(verbose)(LOGL, NAME" destroy {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_destroy(&v785n->v7nn);
-	LOGF(verbose)(LOGL, NAME" destroy }");
 }
 
 struct Map *
@@ -100,10 +92,8 @@ caen_v785n_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
 	struct CaenV785NModule *v785n;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_init_fast(a_crate, &v785n->v7nn);
-	LOGF(verbose)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -112,10 +102,8 @@ caen_v785n_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct CaenV785NModule *v785n;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_init_slow(a_crate, &v785n->v7nn);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -131,15 +119,11 @@ caen_v785n_parse_data(struct Crate *a_crate, struct Module *a_module, struct
     EventConstBuffer const *a_event_buffer, int a_do_pedestals)
 {
 	struct CaenV785NModule *v785n;
-	uint32_t result;
 
 	(void)a_crate;
-	LOGF(spam)(LOGL, NAME" parse_data {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
-	result = caen_v7nn_parse_data(&v785n->v7nn, a_event_buffer,
+	return caen_v7nn_parse_data(&v785n->v7nn, a_event_buffer,
 	    a_do_pedestals);
-	LOGF(spam)(LOGL, NAME" parse_data }");
-	return result;
 }
 
 uint32_t
@@ -147,13 +131,9 @@ caen_v785n_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
 {
 	struct CaenV785NModule *v785n;
-	uint32_t result;
 
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
-	result = caen_v7nn_readout(a_crate, &v785n->v7nn, a_event_buffer);
-	LOGF(spam)(LOGL, NAME" readout*0x%08x) }", result);
-	return result;
+	return caen_v7nn_readout(a_crate, &v785n->v7nn, a_event_buffer);
 }
 
 uint32_t
@@ -162,10 +142,8 @@ caen_v785n_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	struct CaenV785NModule *v785n;
 
 	(void)a_crate;
-	LOGF(spam)(LOGL, NAME" readout {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_readout_dt(&v785n->v7nn);
-	LOGF(spam)(LOGL, NAME" readout }");
 	return 0;
 }
 
@@ -182,10 +160,8 @@ caen_v785n_use_pedestals(struct Module *a_module)
 {
 	struct CaenV785NModule *v785n;
 
-	LOGF(spam)(LOGL, NAME" use_pedestals {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_use_pedestals(&v785n->v7nn);
-	LOGF(spam)(LOGL, NAME" use_pedestals }");
 }
 
 void
@@ -193,8 +169,6 @@ caen_v785n_zero_suppress(struct Module *a_module, int a_yes)
 {
 	struct CaenV785NModule *v785n;
 
-	LOGF(spam)(LOGL, NAME" zero_suppress {");
 	MODULE_CAST(KW_CAEN_V785N, v785n, a_module);
 	caen_v7nn_zero_suppress(&v785n->v7nn, a_yes);
-	LOGF(spam)(LOGL, NAME" zero_suppress }");
 }

@@ -31,7 +31,7 @@ struct CrateTag;
 struct Packer;
 struct PackerList;
 
-void	crate_config_write(int, int, int, struct Packer *);
+int	crate_config_write(int, int, int, struct Packer *) FUNC_RETURNS;
 void	crate_gsi_pex_goc_read(uint8_t, uint8_t, uint16_t, uint32_t, uint16_t,
     uint32_t *);
 void	crate_gsi_pex_goc_write(uint8_t, uint8_t, uint16_t, uint32_t,

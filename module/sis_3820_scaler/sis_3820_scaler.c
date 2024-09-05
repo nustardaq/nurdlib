@@ -69,7 +69,7 @@ sis_3820_scaler_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	m->module.event_max = 1024;
 
 	m->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address = 0x%x", m->address);
+	LOGF(info)(LOGL, "Address = 0x%x", m->address);
 
 	m->blt_mode = CONFIG_GET_KEYWORD(a_block, KW_BLT_MODE, c_blt_mode);
 	LOGF(verbose)(LOGL, "BLT mode=%s.", keyword_get_string(m->blt_mode));
@@ -79,7 +79,7 @@ sis_3820_scaler_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 		m->module.event_counter.mask = 0;
 	}
 
-	LOGF(verbose)(LOGL, NAME"create }");
+	LOGF(verbose)(LOGL, NAME" create }");
 	return (void *)m;
 }
 
@@ -88,17 +88,16 @@ sis_3820_scaler_deinit(struct Module *a_module)
 {
 	struct Sis3820ScalerModule *m;
 
-	LOGF(verbose)(LOGL, NAME"deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_SIS_3820_SCALER, m, a_module);
 	map_unmap(&m->sicy_map);
-	LOGF(verbose)(LOGL, NAME"deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 sis_3820_scaler_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 void
@@ -106,7 +105,6 @@ sis_3820_scaler_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 {
 	(void)a_module;
 	(void)a_memtest_mode;
-	LOGF(verbose)(LOGL, NAME" memtest.");
 }
 
 struct Map *
@@ -135,7 +133,7 @@ sis_3820_scaler_init_fast(struct Crate *a_crate, struct Module *a_module)
 	uint32_t i;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_SIS_3820_SCALER, m, a_module);
 
 	MAP_WRITE(m->sicy_map, key_reset, 1);
@@ -186,7 +184,7 @@ sis_3820_scaler_init_fast(struct Crate *a_crate, struct Module *a_module)
 	MAP_WRITE(m->sicy_map, copy_disable, ~m->channel_mask);
 	m->module.event_counter.value = MAP_READ(m->sicy_map, acq_count);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -198,7 +196,7 @@ sis_3820_scaler_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	(void)a_crate;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_SIS_3820_SCALER, m, a_module);
 
 	m->sicy_map = map_map(m->address, MAP_SIZE, KW_NOBLT, 0, 0,
@@ -212,7 +210,7 @@ sis_3820_scaler_init_slow(struct Crate *a_crate, struct Module *a_module)
 	}
 
 	id_fw = MAP_READ(m->sicy_map, id_and_firmware);
-	LOGF(verbose)(LOGL, "id_fw = 0x%08x.", id_fw);
+	LOGF(info)(LOGL, "id_fw = 0x%08x.", id_fw);
 	id = id_fw >> 16;
 	if (0x3820 != id) {
 		log_die(LOGL, NAME" Invalid module id = 0x%04x (0x%08x)!",
@@ -220,7 +218,7 @@ sis_3820_scaler_init_slow(struct Crate *a_crate, struct Module *a_module)
 	}
 	/* TODO: Check FW! */
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -289,7 +287,7 @@ sis_3820_scaler_parse_data(struct Crate *a_crate, struct Module *a_module,
 	}
 
 parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }
 
@@ -378,7 +376,7 @@ sis_3820_scaler_readout(struct Crate *a_crate, struct Module *a_module, struct
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
 
 sis_3820_scaler_readout_done:
-	LOGF(spam)(LOGL, NAME" readout }");
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
 	return result;
 }
 

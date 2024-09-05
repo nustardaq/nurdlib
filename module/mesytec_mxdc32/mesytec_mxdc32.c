@@ -65,7 +65,7 @@ mesytec_mxdc32_check_empty(struct MesytecMxdc32Module *a_mxdc32)
 
 	LOGF(spam)(LOGL, NAME" check_empty {");
 	buffer_data_length = MAP_READ(a_mxdc32->sicy_map, buffer_data_length);
-	LOGF(spam)(LOGL, "buffer_data_length = %u", buffer_data_length);
+	LOGF(spam)(LOGL, "buffer_data_length = %u.", buffer_data_length);
 	result = 0 == buffer_data_length ? 0 :
 	    CRATE_READOUT_FAIL_DATA_TOO_MUCH;
 	LOGF(spam)(LOGL, NAME" check_empty(0x%08x) }", result);
@@ -79,7 +79,7 @@ mesytec_mxdc32_create(struct ConfigBlock const *a_block, struct
 	LOGF(verbose)(LOGL, NAME" create {");
 
 	a_mxdc32->address = config_get_block_param_int32(a_block, 0);
-	LOGF(verbose)(LOGL, "Address=%08x.", a_mxdc32->address);
+	LOGF(info)(LOGL, "Address=%08x.", a_mxdc32->address);
 
 	/* This is the data event counter mask, necessary for shadow. */
 	a_mxdc32->module.event_counter.mask = BITS_MASK_TOP(29);
@@ -103,7 +103,6 @@ void
 mesytec_mxdc32_destroy(struct MesytecMxdc32Module *a_mxdc32)
 {
 	(void)a_mxdc32;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -120,9 +119,9 @@ mesytec_mxdc32_init_fast(struct Crate *a_crate, struct MesytecMxdc32Module
 	enum Keyword banks_operation;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
-	LOGF(verbose)(LOGL, "Firmware revision = 0x%04x.",
+	LOGF(info)(LOGL, "Firmware revision = 0x%04x.",
 	    MAP_READ(a_mxdc32->sicy_map, firmware_revision));
 
 	MAP_WRITE(a_mxdc32->sicy_map, module_id, a_mxdc32->module.id);
@@ -184,7 +183,7 @@ mesytec_mxdc32_init_fast(struct Crate *a_crate, struct MesytecMxdc32Module
 	MAP_WRITE(a_mxdc32->sicy_map, readout_reset, 0);
 	MAP_WRITE(a_mxdc32->sicy_map, reset_ctr_ab, 3);
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 }
 
 void
@@ -197,7 +196,7 @@ mesytec_mxdc32_init_slow(struct MesytecMxdc32Module *a_mxdc32)
 		KW_NOBLT
 	};
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	a_mxdc32->sicy_map = map_map(a_mxdc32->address, MAP_SIZE, KW_NOBLT, 0,
 	    0, MAP_POKE_REG(module_id), MAP_POKE_REG(module_id), 0);
@@ -220,7 +219,7 @@ mesytec_mxdc32_init_slow(struct MesytecMxdc32Module *a_mxdc32)
 	}
 	SERIALIZE_IO;
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 }
 
 uint32_t
@@ -411,7 +410,7 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 	}
 mesytec_mxdc32_parse_data_done:
 	a_mxdc32->parse_counter = a_mxdc32->module.event_counter.value;
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }
 
@@ -663,7 +662,7 @@ mesytec_mxdc32_sleep_get(struct MesytecMxdc32Module *a_mxdc32)
 void
 mesytec_mxdc32_zero_suppress(struct MesytecMxdc32Module *a_mxdc32, int a_yes)
 {
-	LOGF(debug)(LOGL, NAME" zero_suppress {");
+	LOGF(verbose)(LOGL, NAME" zero_suppress {");
 	MAP_WRITE(a_mxdc32->sicy_map, ignore_thresholds, a_yes ? 0 : 1);
-	LOGF(debug)(LOGL, NAME" zero_suppress }");
+	LOGF(verbose)(LOGL, NAME" zero_suppress }");
 }

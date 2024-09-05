@@ -2100,7 +2100,7 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 		log_error(LOGL, "Could not unpack item_num.");
 		return 0;
 	}
-	LOGF(verbose)(LOGL, "item_num=%d", item_num);
+	LOGF(debug)(LOGL, "item_num=%d", item_num);
 
 	TAILQ_INIT(&scalar_list);
 	for (item_i = 0; item_i < item_num; ++item_i) {
@@ -2119,7 +2119,7 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 			    ? "config" : "block");
 			return 0;
 		}
-		LOGF(verbose)(LOGL, "item_type=%s.",
+		LOGF(debug)(LOGL, "item_type=%s.",
 		    (item_type == CONFIG_CONFIG) ? "config" : "block");
 		if (!unpack16(a_packer, &name) ||
 		    (KW_NONE >= name || KW_THIS_IS_ALWAYS_LAST <= name)) {
@@ -2128,12 +2128,12 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 			    keyword_get_string(name));
 			return 0;
 		}
-		LOGF(verbose)(LOGL, "name=%s.", keyword_get_string(name));
+		LOGF(debug)(LOGL, "name=%s.", keyword_get_string(name));
 		if (!unpack8(a_packer, &scalar_num)) {
 			log_error(LOGL, "Could not unpack scalar_num.");
 			return 0;
 		}
-		LOGF(verbose)(LOGL, "scalar_num=%d.", scalar_num);
+		LOGF(debug)(LOGL, "scalar_num=%d.", scalar_num);
 
 		item = TAILQ_END(item_list);
 		scalar = NULL;

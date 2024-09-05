@@ -101,7 +101,7 @@ gsi_siderem_crate_init_slow(struct GsiSideremCrate *a_crate)
 		return 1;
 	}
 
-	LOGF(verbose)(LOGL, NAME" crate_init_slow {");
+	LOGF(info)(LOGL, NAME" crate_init_slow {");
 	ret = 0;
 
 	TAILQ_FOREACH(siderem, &a_crate->list, next) {
@@ -130,19 +130,23 @@ gsi_siderem_crate_init_slow(struct GsiSideremCrate *a_crate)
 			 * register write has to pass before we can at all
 			 * touch anything else on the SAM.
 			 */
-			system_call("%s/hstart %u", a_crate->util_path,
-			    sam_i);
+			if (!system_call("%s/hstart %u", a_crate->util_path,
+			    sam_i)) {
+				goto gsi_siderem_crate_init_slow_done;
+			}
 		}
-		system_call("%s/paraload2s 0 %s/sidped_%u.txt",
-		    a_crate->util_path, a_crate->data_path, sam_i);
-		system_call("%s/paraload2s 1 %s/sidsig_%u.txt",
-		    a_crate->util_path, a_crate->data_path, sam_i);
-		system_call("%s/paraload2s 2 %s/sidsig_r_%u.txt",
-		    a_crate->util_path, a_crate->data_path, sam_i);
-		system_call("%s/sideload2 %u %s/readout.m0",
-		    a_crate->util_path, sam_i, a_crate->data_path);
-		system_call("%s/hpistart2 %u %s/sidesam5_sdram.m0",
-		    a_crate->util_path, sam_i, a_crate->data_path);
+		if (!system_call("%s/paraload2s 0 %s/sidped_%u.txt",
+		    a_crate->util_path, a_crate->data_path, sam_i) ||
+		    !system_call("%s/paraload2s 1 %s/sidsig_%u.txt",
+		    a_crate->util_path, a_crate->data_path, sam_i) ||
+		    !system_call("%s/paraload2s 2 %s/sidsig_r_%u.txt",
+		    a_crate->util_path, a_crate->data_path, sam_i) ||
+		    !system_call("%s/sideload2 %u %s/readout.m0",
+		    a_crate->util_path, sam_i, a_crate->data_path) ||
+		    !system_call("%s/hpistart2 %u %s/sidesam5_sdram.m0",
+		    a_crate->util_path, sam_i, a_crate->data_path)) {
+			goto gsi_siderem_crate_init_slow_done;
+		}
 	}
 
 	TAILQ_FOREACH(siderem, &a_crate->list, next) {
@@ -174,7 +178,7 @@ gsi_siderem_crate_init_slow(struct GsiSideremCrate *a_crate)
 	ret = 1;
 
 gsi_siderem_crate_init_slow_done:
-	LOGF(verbose)(LOGL, NAME" crate_init_slow }");
+	LOGF(info)(LOGL, NAME" crate_init_slow }");
 	return ret;
 }
 
@@ -272,6 +276,6 @@ parse_data(struct Crate const *a_crate, struct GsiSamGtbClient *a_client,
 	siderem->lec = 0xf & (1 + siderem->lec);
 	result = 0;
 gsi_siderem_parse_data_done:
-	LOGF(spam)(LOGL, NAME" parse_data }");
+	LOGF(spam)(LOGL, NAME" parse_data(0x%08x) }", result);
 	return result;
 }

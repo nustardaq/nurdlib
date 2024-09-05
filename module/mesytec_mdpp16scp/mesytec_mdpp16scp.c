@@ -111,7 +111,7 @@ mesytec_mdpp16scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	double init_sleep;
 	unsigned i;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_MESYTEC_MDPP16SCP, mdpp16scp, a_module);
 	mesytec_mdpp_init_fast(a_crate, &mdpp16scp->mdpp);
@@ -152,7 +152,7 @@ mesytec_mdpp16scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    mdpp16scp->mdpp.mxdc32.module.config,
 	    KW_SIGNAL_RISETIME, CONFIG_UNIT_NS, 0, 1580);
 	for (i = 0; i < MDPP16SCP_PR_N; ++i) {
-		LOGF(verbose)(LOGL, "Input gain[%d] = %.2f (= %d/100)", i,
+		LOGF(verbose)(LOGL, "Input gain[%d] = %.2f (= %d/100).", i,
 		    mdpp16scp->config.gain[i] / 100.,
 		    mdpp16scp->config.gain[i]);
 	}
@@ -205,7 +205,8 @@ mesytec_mdpp16scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 			gate_max = 0xffff * 25 / res_div;
 			log_die(LOGL, "Window width=0x%08x (%d ns) "
 			    "does not work with TDC resolution=%d "
-			    "(max gate width=%d ns, or change TDC resolution)!",
+			    "(max gate width=%d ns, "
+			    "or change TDC resolution)!",
 			    mdpp16scp->mdpp.config.gate_width,
 			    mdpp16scp->mdpp.config.gate_width * 25 / 16,
 			    mdpp16scp->config.resolution[RT_TDC],
@@ -227,7 +228,7 @@ mesytec_mdpp16scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(mdpp16scp->mdpp.mxdc32.sicy_map, output_format, 4);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 

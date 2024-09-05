@@ -64,7 +64,7 @@ caen_v830_check_empty(struct Module *a_module)
 	status = MAP_READ(v830->v8n0.sicy_map, status);
 	result = 0 == (status & 0x1) ? 0 : CRATE_READOUT_FAIL_DATA_TOO_MUCH;
 	if (0 != result) {
-		LOGF(info)(LOGL, "Non-empty V830: 0x%08x",
+		log_error(LOGL, "Non-empty V830, meb=0x%08x.",
 		    MAP_READ(v830->v8n0.sicy_map, meb));
 	}
 	LOGF(spam)(LOGL, NAME" check_empty(status=0x%08x) }", status);
@@ -91,17 +91,14 @@ caen_v830_deinit(struct Module *a_module)
 {
 	struct CaenV830Module *v830;
 
-	LOGF(verbose)(LOGL, NAME" destroy {");
 	MODULE_CAST(KW_CAEN_V830, v830, a_module);
 	caen_v8n0_deinit(&v830->v8n0);
-	LOGF(verbose)(LOGL, NAME" destroy }");
 }
 
 void
 caen_v830_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -116,6 +113,7 @@ caen_v830_get_map(struct Module *a_module)
 void
 caen_v830_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(27, 31),
@@ -126,6 +124,7 @@ caen_v830_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 		BITS_MASK(0, 31),
 		DMA_FILLER)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -136,7 +135,7 @@ caen_v830_init_fast(struct Crate *a_crate, struct Module *a_module)
 	uint16_t control;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_CAEN_V830, v830, a_module);
 
@@ -174,8 +173,7 @@ caen_v830_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	SERIALIZE_IO;
 
-
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -185,10 +183,8 @@ caen_v830_init_slow(struct Crate *a_crate, struct Module *a_module)
 	struct CaenV830Module *v830;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_CAEN_V830, v830, a_module);
 	caen_v8n0_init_slow(&v830->v8n0);
-	LOGF(verbose)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -366,7 +362,7 @@ caen_v830_readout(struct Crate *a_crate, struct Module *a_module, struct
 			header = MAP_READ(v830->v8n0.sicy_map, meb);
 			*outp++ = header;
 			word_count = (0x3f & (header >> 18));
-			LOGF(spam)(LOGL, "Event %d, reading %d words",
+			LOGF(spam)(LOGL, "Event %d, reading %d words.",
 			    event, word_count);
 			if (!MEMORY_CHECK(*a_event_buffer, &outp[word_count -
 			    1])) {

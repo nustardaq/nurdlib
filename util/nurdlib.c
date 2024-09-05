@@ -44,7 +44,7 @@ nurdlib_setup(LogCallback a_log_callback, char const *a_config_path)
 		log_die(LOGL, "nurdlib_setup called twice in a row!");
 	}
 	log_callback_set(a_log_callback);
-	LOGF(verbose)(LOGL, "Using config '%s'.", a_config_path);
+	LOGF(info)(LOGL, "Using config '%s'.", a_config_path);
 	err_set_printer(log_printerv);
 	sigbus_setup();
 	crate_setup();

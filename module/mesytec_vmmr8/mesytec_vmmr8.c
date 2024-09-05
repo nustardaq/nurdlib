@@ -218,6 +218,7 @@ void
 mesytec_vmmr8_get_signature(struct ModuleSignature const **a_array, size_t
     *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		BITS_MASK(16, 23),
@@ -228,6 +229,7 @@ mesytec_vmmr8_get_signature(struct ModuleSignature const **a_array, size_t
 		BITS_MASK(0, 31),
 		DMA_FILLER)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 int
@@ -238,7 +240,7 @@ mesytec_vmmr8_init_fast(struct Crate *a_crate, struct Module *a_module)
 	unsigned i;
 	uint16_t mask;
 
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_MESYTEC_VMMR8, vmmr8, a_module);
 	mesytec_mxdc32_init_fast(a_crate, &vmmr8->mxdc32, 0);
 
@@ -311,7 +313,7 @@ mesytec_vmmr8_init_fast(struct Crate *a_crate, struct Module *a_module)
 		time_sleep(init_sleep);
 	}
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 

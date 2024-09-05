@@ -48,7 +48,6 @@ uint32_t
 caen_v820_check_empty(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(spam)(LOGL, NAME" check_empty.");
 	return 0;
 }
 
@@ -72,17 +71,14 @@ caen_v820_deinit(struct Module *a_module)
 {
 	struct CaenV820Module *v820;
 
-	LOGF(verbose)(LOGL, NAME" destroy {");
 	MODULE_CAST(KW_CAEN_V820, v820, a_module);
 	caen_v8n0_deinit(&v820->v8n0);
-	LOGF(verbose)(LOGL, NAME" destroy }");
 }
 
 void
 caen_v820_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -107,14 +103,14 @@ caen_v820_init_fast(struct Crate *a_crate, struct Module *a_module)
 	struct CaenV820Module *v820;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 	MODULE_CAST(KW_CAEN_V820, v820, a_module);
 	v820->channel_mask = config_get_bitmask(a_module->config,
 	    KW_CHANNEL_ENABLE, 0, 31);
 	v820->channel_num = bits_get_count(v820->channel_mask);
 	LOGF(verbose)(LOGL, "channel_mask = %08x, channel_num = %u",
 	    v820->channel_mask, v820->channel_num);
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -125,7 +121,7 @@ caen_v820_init_slow(struct Crate *a_crate, struct Module *a_module)
 	uint16_t control;
 
 	(void)a_crate;
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 	MODULE_CAST(KW_CAEN_V820, v820, a_module);
 
 	caen_v8n0_init_slow(&v820->v8n0);
@@ -141,7 +137,7 @@ caen_v820_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	SERIALIZE_IO;
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -200,7 +196,6 @@ caen_v820_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	(void)a_crate;
 	(void)a_module;
-	LOGF(spam)(LOGL, NAME" readout_dt.");
 	return 0;
 }
 
