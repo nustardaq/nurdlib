@@ -195,12 +195,12 @@ sis_3316_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	(void)a_crate;
 	(void)a_event_buffer;
 	(void)a_do_pedestals;
-	LOGF(debug)(LOGL, NAME" parse_data {");
+	LOGF(verbose)(LOGL, NAME" parse_data {");
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 	if (m->config.run_mode == RM_ASYNC) {
 		++a_module->event_counter.value;
 	}
-	LOGF(debug)(LOGL, NAME" parse_data }");
+	LOGF(verbose)(LOGL, NAME" parse_data }");
 	return 0;
 }
 
@@ -215,7 +215,7 @@ sis_3316_post_init(struct Crate *a_crate, struct Module *a_module)
 	struct Sis3316Module *m;
 	(void) a_crate;
 
-	LOGF(verbose)(LOGL, NAME" post_init {");
+	LOGF(info)(LOGL, NAME" post_init {");
 
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 
@@ -224,7 +224,7 @@ sis_3316_post_init(struct Crate *a_crate, struct Module *a_module)
 	 * if this module is fp bus master.
 	 */
 	if (m->config.is_fpbus_master) {
-		LOGF(verbose)(LOGL, "clear timestamp");
+		LOGF(verbose)(LOGL, "clear timestamp.");
 		sis_3316_clear_timestamp(m);
 	}
 
@@ -248,7 +248,7 @@ sis_3316_post_init(struct Crate *a_crate, struct Module *a_module)
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
 	}
 
-	LOGF(verbose)(LOGL, NAME" post_init(ctr=0x%08x) }",
+	LOGF(info)(LOGL, NAME" post_init(ctr=0x%08x) }",
 	    a_module->event_counter.value);
 
 	return 1;
@@ -290,18 +290,17 @@ sis_3316_deinit(struct Module *a_module)
 {
 	struct Sis3316Module* m;
 
-	LOGF(verbose)(LOGL, NAME" deinit {");
+	LOGF(info)(LOGL, NAME" deinit {");
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 	map_unmap(&m->sicy_map);
 	map_unmap(&m->dma_map);
-	LOGF(verbose)(LOGL, NAME" deinit }");
+	LOGF(info)(LOGL, NAME" deinit }");
 }
 
 void
 sis_3316_destroy(struct Module *a_module)
 {
 	(void)a_module;
-	LOGF(verbose)(LOGL, NAME" destroy.");
 }
 
 struct Map *
@@ -318,6 +317,7 @@ sis_3316_get_map(struct Module *a_module)
 void
 sis_3316_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 {
+	LOGF(verbose)(LOGL, NAME" get_signature {");
 	MODULE_SIGNATURE_BEGIN
 	    MODULE_SIGNATURE(
 		/* This module uses the address, not module id! Hmm... */
@@ -325,6 +325,7 @@ sis_3316_get_signature(struct ModuleSignature const **a_array, size_t *a_num)
 		BITS_MASK(16, 31),
 		0x3316 << 16)
 	MODULE_SIGNATURE_END(a_array, a_num)
+	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
 void
@@ -342,7 +343,7 @@ sis_3316_reset(struct Sis3316Module* m)
 
 	/* Clear error bits */
 	MAP_WRITE(m->sicy_map, data_link_status, 0xE0E0E0E0);
-	LOGF(verbose)(LOGL, "Data link status: 0x%08x",
+	LOGF(verbose)(LOGL, "Data link status: 0x%08x.",
 	    MAP_READ(m->sicy_map, data_link_status));
 
 	/* Wait a short while for things to settle */
@@ -351,7 +352,7 @@ sis_3316_reset(struct Sis3316Module* m)
 	/* ADC status */
 	/* TODO: Occurrence 2/4 of this dumping in the file! */
 	for (i = 0; i < 4; ++i) {
-		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
+		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x.", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
 	}
 
@@ -366,20 +367,20 @@ sis_3316_reset(struct Sis3316Module* m)
 	    MAP_READ(m->sicy_map, channel_actual_sample_address(0))
 	    >> 24) & 0x1);
 
-	LOGF(debug)(LOGL, "current_bank = %d", m->current_bank);
+	LOGF(debug)(LOGL, "current_bank = %d.", m->current_bank);
 
 	sis_3316_swap_banks(m);
 
 	time_sleep(1e-3);
 
-	LOGF(debug)(LOGL, "current_bank after initial swap (1) = %d",
+	LOGF(debug)(LOGL, "current_bank after initial swap (1) = %d.",
 	    m->current_bank);
 
 	m->current_bank = ((
 	    MAP_READ(m->sicy_map, channel_actual_sample_address(0))
 	    >> 24) & 0x1);
 
-	LOGF(debug)(LOGL, "current_bank after initial swap (2) = %d",
+	LOGF(debug)(LOGL, "current_bank after initial swap (2) = %d.",
 	    m->current_bank);
 
 	sis_3316_clear_timestamp(m);
@@ -418,7 +419,7 @@ sis_3316_set_iob_delay_logic(struct Sis3316Module *m, int i)
 
 	MAP_WRITE(m->sicy_map, fpga_adc_tap_delay(i), data);
 	CHECK_REG_SET(fpga_adc_tap_delay(i), data);
-	LOGF(verbose)(LOGL, "Tap delay ADC %d: 0x%08x", i,
+	LOGF(verbose)(LOGL, "Tap delay ADC %d: 0x%08x.", i,
 	    MAP_READ(m->sicy_map, fpga_adc_tap_delay(i)));
 }
 
@@ -472,7 +473,7 @@ sis_3316_configure_external_clock_input(struct Sis3316Module *m)
 	 */
 	if (clk_from == 0 || m->config.use_rataclock == 1) {
 		LOGF(verbose)(LOGL,
-		    "Leaving clock input multiplier unconfigured");
+		    "Leaving clock input multiplier unconfigured.");
 		sis_3316_si5325_clk_multiplier_bypass(m);
 	} else {
 		if (clk_to == 25) {
@@ -515,7 +516,7 @@ sis_3316_set_clock_frequency(struct Sis3316Module *m)
 		log_die(LOGL, "Frequency %d MHz not supported.",
 		    m->config.clk_freq);
 	}
-	LOGF(verbose)(LOGL, "Setting frequency to %d MHz",
+	LOGF(verbose)(LOGL, "Setting frequency to %d MHz.",
 	    m->config.clk_freq);
 	sis_3316_change_frequency(m, 0, clk_hsdiv, clk_n1div);
 
@@ -546,7 +547,7 @@ sis_3316_set_offset(struct Sis3316Module *m, int i)
                 data = 0x82000000 + (j << 20) +
                     ((0x8000 + m->config.dac_offset[i*4 + j]) << 4);
 		MAP_WRITE(m->sicy_map, fpga_adc_offset_dac_control(i), data);
-                LOGF(verbose)(LOGL, "DAC offset %d = %08x", (i*4+j), data);
+                LOGF(verbose)(LOGL, "DAC offset %d = %08x.", (i*4+j), data);
                 time_sleep(1e-3);
         }
         time_sleep(1e-3);
@@ -658,7 +659,7 @@ sis_3316_setup_event_config(struct Sis3316Module *m)
 		CHECK_REG_SET(fpga_adc_event_config(i), event_config_data[i]);
 	}
 	LOGF(verbose)(LOGL,
-	    "Event = 0x%08x 0x%08x 0x%08x 0x%08x",
+	    "Event = 0x%08x 0x%08x 0x%08x 0x%08x.",
 	    MAP_READ(m->sicy_map, fpga_adc_event_config(0)),
 	    MAP_READ(m->sicy_map, fpga_adc_event_config(1)),
 	    MAP_READ(m->sicy_map, fpga_adc_event_config(2)),
@@ -677,7 +678,8 @@ sis_3316_setup_averaging_mode(struct Sis3316Module *m)
 		     | (m->config.average_pretrigger[i] << 16)
 		     | (m->config.average_length[i]);
 
-		LOGF(verbose)(LOGL, "Average mode setup[%d] = 0x%08x", i, data);
+		LOGF(verbose)(LOGL, "Average mode setup[%d] = 0x%08x.",
+		    i, data);
 		MAP_WRITE(m->sicy_map, fpga_adc_average_config(i), data);
 		CHECK_REG_SET(fpga_adc_average_config(i), data);
 	}
@@ -729,7 +731,7 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 	/* Apply to all channels */
 	data_format += data_format << 8;
 	data_format += data_format << 16;
-	LOGF(verbose)(LOGL, "Data format = 0x%08x", data_format);
+	LOGF(verbose)(LOGL, "Data format = 0x%08x.", data_format);
 
 	for (i = 0; i < N_ADCS; ++i) {
 		uint32_t data;
@@ -743,9 +745,10 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 		    + m->config.sample_length[i] / 2
 		    + m->config.average_length[i] / 2
 		    + m->config.sample_length_maw[i];
-		LOGF(verbose)(LOGL, "Event length %d = %d (header=%d,raw=%d,avg=%d,maw=%d)",
+		LOGF(verbose)(LOGL,
+		    "Event length %d = %d (header=%d,raw=%d,avg=%d,maw=%d).",
 		    i, m->config.event_length[i],
-			m->config.header_length[i],
+		    m->config.header_length[i],
 		    m->config.sample_length[i] / 2,
 		    m->config.average_length[i] / 2,
 		    m->config.sample_length_maw[i]);
@@ -755,7 +758,8 @@ sis_3316_setup_data_format(struct Sis3316Module *m)
 		CHECK_REG_SET(fpga_adc_data_format_config(i), data_format);
 		data = m->config.sample_length_maw[i]
 		    + (m->config.pretrigger_delay_maw[i] << 16);
-		LOGF(verbose)(LOGL, "Maw buffer setup[%d] = 0x%08x", i, data);
+		LOGF(verbose)(LOGL, "Maw buffer setup[%d] = 0x%08x.",
+		    i, data);
 		MAP_WRITE(m->sicy_map, fpga_adc_maw_test_config(i), data);
 		CHECK_REG_SET(fpga_adc_maw_test_config(i), data);
 	}
@@ -776,7 +780,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	(void)a_crate;
 	
-	LOGF(verbose)(LOGL, NAME" init_fast {");
+	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 
@@ -832,7 +836,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		/* Configure external clock multiplier */
 		sis_3316_configure_external_clock_input(m);
 
-		LOGF(verbose)(LOGL, "sis3316: wait for clock to stabilise");
+		LOGF(verbose)(LOGL, "sis3316: wait for clock to stabilise.");
 		time_sleep(1.2);
 
 		/* PLL Lock */
@@ -848,7 +852,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	/* ADC status. */
 	/* TODO: Occurrence 3/4 of this dumping in the file! */
 	for (i = 0; i < N_ADCS; ++i) {
-		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
+		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x.", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
 	}
 
@@ -939,13 +943,13 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			MAP_WRITE(m->sicy_map, fpga_adc_trigger_setup_sum(i),
 			    data);
 			LOGF(verbose)(LOGL, "T gap  %d= 0x%02x "
-			    "%d= 0x%02x %d= 0x%02x %d= 0x%02x",
+			    "%d= 0x%02x %d= 0x%02x %d= 0x%02x.",
 			    i, m->config.gap[i],
 			    i+4, m->config.gap[i+4],
 			    i+8, m->config.gap[i+8],
 			    i+12, m->config.gap[i+12]);
 			LOGF(verbose)(LOGL, "T peak %d= 0x%02x "
-			    "%d= 0x%02x %d= 0x%02x %d= 0x%02x",
+			    "%d= 0x%02x %d= 0x%02x %d= 0x%02x.",
 			    i, m->config.peak[i],
 			    i+4, m->config.peak[i+4],
 			    i+8, m->config.peak[i+8],
@@ -969,7 +973,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    | (cfd_bits << 28)
 		    | m->config.threshold[i]);
 		SERIALIZE_IO;
-		LOGF(verbose)(LOGL, "Threshold %d = 0x%08x", i,
+		LOGF(verbose)(LOGL, "Threshold %d = 0x%08x.", i,
 		    MAP_READ(m->sicy_map, channel_trigger_threshold(i)));
 	}
 
@@ -979,7 +983,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		data = (m->config.energy_pickup[i] & 0x7ff) << 16;
 		MAP_WRITE(m->sicy_map, channel_energy_pickup_config(i), data);
 		CHECK_REG_SET(channel_energy_pickup_config(i), data);
-		LOGF(verbose)(LOGL, "energy_pickup[%02d] = %08x", i, data);
+		LOGF(verbose)(LOGL, "energy_pickup[%02d] = %08x.", i, data);
 	}
 
 	/* FIR energy setup. */
@@ -992,25 +996,26 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		     | ((m->config.tau_table[i] & 0x3) << 30));
 		MAP_WRITE(m->sicy_map, channel_fir_energy_setup(i), data);
 		CHECK_REG_SET(channel_fir_energy_setup(i), data);
-		LOGF(verbose)(LOGL, "fir_energy_setup[%02d] = %08x",i,data);
+		LOGF(verbose)(LOGL, "fir_energy_setup[%02d] = %08x.",
+		    i, data);
 		if (i%4 == 3) {
 			LOGF(verbose)(LOGL,
 			    "Gap time E  %d= 0x%03x %d= 0x%03x "
-			    "%d= 0x%03x %d= 0x%03x",
+			    "%d= 0x%03x %d= 0x%03x.",
 			    i-3, m->config.gap_e[i-3],
 			    i-2, m->config.gap_e[i-2],
 			    i-1, m->config.gap_e[i-1],
 			    i, m->config.gap_e[i]);
 			LOGF(verbose)(LOGL,
 			    "Peak time E %d= 0x%03x %d= 0x%03x "
-			    "%d= 0x%03x %d= 0x%03x",
+			    "%d= 0x%03x %d= 0x%03x.",
 			    i-3, m->config.peak_e[i-3],
 			    i-2, m->config.peak_e[i-2],
 			    i-1, m->config.peak_e[i-1],
 			    i, m->config.peak_e[i]);
 			LOGF(verbose)(LOGL,
 			    "Tau config  %d= %d,%d %d= %d,%d %d= "
-			    "%d,%d %d= %d,%d",
+			    "%d,%d %d= %d,%d.",
 			    i-3, m->config.tau_table[i-3],
 			    m->config.tau_factor[i-3],
 			    i-2, m->config.tau_table[i-2],
@@ -1078,11 +1083,12 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 				    m->config.sample_length[i]);
                         }
 
-			LOGF(verbose)(LOGL, "Sample Length [%d] = %d samples",
+			LOGF(verbose)(LOGL,
+			    "Sample Length [%d] = %d samples.",
 			    i, m->config.sample_length[i]);
 			LOGF(verbose)(LOGL,
-			    "trigger_gate_window_length[%d] = %d", i,
-			    trigger_gate_window_length);
+			    "trigger_gate_window_length[%d] = %d.",
+			    i, trigger_gate_window_length);
 		}
 	}
 
@@ -1110,7 +1116,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			      m->config.gate[5].delay);
 			for (j = 0; j < 6; ++j) {
 				LOGF(verbose)(LOGL, "ADC[%d] Gate%d = "
-				    "(width = %d, delay = %d)",
+				    "(width = %d, delay = %d).",
 				    i, j, m->config.gate[j].width,
 				    m->config.gate[j].delay);
 			}
@@ -1128,7 +1134,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    + m->config.gate[7].delay);
 			for (j = 6; j < N_GATES; ++j) {
 				LOGF(verbose)(LOGL, "ADC[%d] Gate%d = "
-				    "(width = %d, delay = %d)",
+				    "(width = %d, delay = %d).",
 				    i, j, m->config.gate[j].width,
 				    m->config.gate[j].delay);
 			}
@@ -1147,8 +1153,8 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 			data |= val;
 		}
 		MAP_WRITE(m->sicy_map, fpga_adc_int_trigger_delay(i), data);
-		LOGF(verbose)(LOGL, "ADC[%d] internal_delay = 0x%08x", i,
-		    data);
+		LOGF(verbose)(LOGL, "ADC[%d] internal_delay = 0x%08x.",
+		    i, data);
 	}
 
 	/* Set up pretrigger and pileup lengths. */
@@ -1168,7 +1174,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(m->sicy_map, fpga_adc_pileup_config(i), data);
 		CHECK_REG_SET(fpga_adc_pileup_config(i), data);
 	}
-	LOGF(verbose)(LOGL, "Pretrigger delay 0= %d 1= %d 2= %d 3= %d",
+	LOGF(verbose)(LOGL, "Pretrigger delay 0= %d 1= %d 2= %d 3= %d.",
 	    m->config.pretrigger_delay[0],
 	    m->config.pretrigger_delay[1],
 	    m->config.pretrigger_delay[2],
@@ -1261,7 +1267,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    | m->config.rataclock_expect_edge;
 		MAP_WRITE(m->sicy_map, fpga_adc_rataser_control2(i), data);
 	}
-	LOGF(verbose)(LOGL, "rataser control1 = 0x%08x, control2 = %08x",
+	LOGF(verbose)(LOGL, "rataser control1 = 0x%08x, control2 = %08x.",
 		MAP_READ(m->sicy_map, fpga_adc_rataser_control1(0)),
 		MAP_READ(m->sicy_map, fpga_adc_rataser_control1(1)));
 
@@ -1329,7 +1335,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	} else {
 		num_hits = m->config.async_max_events;
 	}
-	LOGF(verbose)(LOGL, "Configured num_hits per channel %d", num_hits);
+	LOGF(verbose)(LOGL, "Configured num_hits per channel %d.", num_hits);
 
 	/*
 	 * Maximum number of hits is limited by the maximum
@@ -1359,7 +1365,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	if (min_hits < num_hits) {
 		num_hits = min_hits;
-		LOGF(verbose)(LOGL, "Restricting number of hits to %d",
+		LOGF(verbose)(LOGL, "Restricting number of hits to %d.",
 		    num_hits);
 	} else {
 	}
@@ -1372,10 +1378,10 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	max_bytes *= num_hits * g_n_channels;
 
-	LOGF(verbose)(LOGL, "Maximum possible number of hits %d",
+	LOGF(verbose)(LOGL, "Maximum possible number of hits %d.",
 	    m->max_num_hits);
-	LOGF(verbose)(LOGL, "Using at most %d bytes per readout", max_bytes);
-	LOGF(verbose)(LOGL, "Channels enabled: %d", g_n_channels);
+	LOGF(verbose)(LOGL, "Using at most %d bytes per readout.", max_bytes);
+	LOGF(verbose)(LOGL, "Channels enabled: %d.", g_n_channels);
 
 	sis_3316_adjust_address_threshold(m, 1.0);
 
@@ -1411,8 +1417,9 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		 * To start acquisition, the KA: 0x428 must be issued.
 		 */
 		if (m->config.run_mode == RM_ASYNC_AUTO_BANK_SWITCH) {
-			LOGF(verbose)(LOGL, "%d enable UI as bank switch "
-			    "input.", m->module.id);
+			LOGF(verbose)(LOGL,
+			    "%d enable UI as bank switch input.",
+			    m->module.id);
 			data |= (1 << 13); /* UI as bank swap. */
 			/* data |= (1 << 12); */ /* TI as bank swap. */
 		}
@@ -1436,12 +1443,12 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    enable_sample_bank_swap_control_with_nim_input, 1);
 	}
 
-	LOGF(verbose)(LOGL, "May discard data for channels: %08x",
+	LOGF(verbose)(LOGL, "May discard data for channels: %08x.",
 	    m->config.discard_data);
 	
 	/* Note: Timestamp clear is now done in post_init function. */
 
-	LOGF(verbose)(LOGL, NAME" init_fast }");
+	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
 
@@ -1457,7 +1464,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	(void)a_crate;
 
-	LOGF(verbose)(LOGL, NAME" init_slow {");
+	LOGF(info)(LOGL, NAME" init_slow {");
 
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 
@@ -1534,7 +1541,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 		/* Configure external clock multiplier */
 		sis_3316_configure_external_clock_input(m);
 
-		LOGF(verbose)(LOGL, "sis3316: wait for clock to stabilise");
+		LOGF(verbose)(LOGL, "sis3316: wait for clock to stabilise.");
 		time_sleep(1.2);
 
 		/* PLL Lock */
@@ -1550,7 +1557,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 	/* ADC status. */
 	/* TODO: Occurrence 4/4 of this dumping in the file! */
 	for (i = 0; i < N_ADCS; ++i) {
-		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x", i,
+		LOGF(verbose)(LOGL, "ADC %d status: 0x%08x.", i,
 		    MAP_READ(m->sicy_map, fpga_adc_status(i)));
 	}
 
@@ -1573,9 +1580,9 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 		data = m->config.address + ((i*4) << 20);
 		MAP_WRITE(m->sicy_map, fpga_adc_header_id(i), data);
 		CHECK_REG_SET(fpga_adc_header_id(i), data);
-		LOGF(verbose)(LOGL, "Base address #%d: 0x%08x", i,
+		LOGF(verbose)(LOGL, "Base address #%d: 0x%08x.", i,
 		    m->config.address);
-		LOGF(verbose)(LOGL, "Header ID #%d: 0x%08x", i,
+		LOGF(verbose)(LOGL, "Header ID #%d: 0x%08x.", i,
 		    MAP_READ(m->sicy_map, fpga_adc_header_id(i)));
 	}
 
@@ -1592,7 +1599,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	/* The rest of the setup is done in init_fast */
 
-	LOGF(verbose)(LOGL, NAME" init_slow }");
+	LOGF(info)(LOGL, NAME" init_slow }");
 	return 1;
 }
 
@@ -1650,7 +1657,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 		log_die(LOGL, "block_size > ADC_MEM_MAX_BLOCK_SIZE");
 	}
 
-	LOGF(verbose)(LOGL, "n_memtest_bursts = %u",
+	LOGF(verbose)(LOGL, "n_memtest_bursts = %u.",
 	    m->config.n_memtest_bursts);
 
 	if (NULL == data) {
@@ -1690,7 +1697,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 		for (chunk = 0; chunk < chunks; ++chunk) {
 			LOGF(spam)(LOGL, "chunk wr %d {", chunk);
 			for (i = 0; i < block_size; ++i) {
-				LOGF(spam)(LOGL, "write from data[%u]", i);
+				LOGF(spam)(LOGL, "write from data[%u].", i);
 				MAP_WRITE(m->sicy_map,
 				    adc_fifo_memory_fifo(adc), data[i]);
 			}
@@ -1702,7 +1709,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 		t_end = time_getd();
 		SERIALIZE_IO;
 
-		LOGF(verbose)(LOGL, "wrote %u bytes in %f us.\n", bytes,
+		LOGF(verbose)(LOGL, "wrote %u bytes in %f us.", bytes,
 		    (t_end - t_start) * 1e6);
 
 		/* Start FSM read */
@@ -1722,7 +1729,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 
 			if (KW_NOBLT == m->config.blt_mode) {
 			for (i = 0; i < block_size; ++i) {
-				LOGF(spam)(LOGL, "read to data[%u]", i);
+				LOGF(spam)(LOGL, "read to data[%u].", i);
 				data_read[i] = MAP_READ(m->sicy_map,
 				    adc_fifo_memory_fifo(adc));
 			}
@@ -1737,7 +1744,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 			SERIALIZE_IO;
 			t_end = time_getd();
 			SERIALIZE_IO;
-			LOGF(verbose)(LOGL, "read %u bytes in %f us.\n",
+			LOGF(verbose)(LOGL, "read %u bytes in %f us.",
 			    block_size, (t_end - t_start) * 1e6);
 
 			LOGF(spam)(LOGL, "chunk rd %d }", chunk);
@@ -1762,7 +1769,7 @@ sis_3316_memtest(struct Module *a_module, enum Keyword a_memtest_mode)
 		}
 		LOGF(verbose)(LOGL, "adc[%d] }", adc);
 	}
-	LOGF(verbose)(LOGL, "passed OK");
+	LOGF(verbose)(LOGL, "passed OK.");
 	LOGF(verbose)(LOGL, NAME" memtest }");
 }
 
@@ -1786,7 +1793,7 @@ sis_3316_get_event_counter(struct Sis3316Module *m)
 	int tries = 0;
 	const int tries_max = 3;
 
-	LOGF(debug)(LOGL, "get_event_counter {");
+	LOGF(spam)(LOGL, "get_event_counter {");
 
 get_event_counter_retry:
 
@@ -1875,12 +1882,12 @@ get_event_counter_retry:
 
 	if (tries > 0) {
 		LOGF(info)(LOGL, "event counter ok after %d tries.", tries);
-		LOGF(info)(LOGL, "event counter = %u", count);
+		LOGF(info)(LOGL, "event counter = %u.", count);
 	}
 
-	LOGF(debug)(LOGL, "event counter = %u", count);
+	LOGF(spam)(LOGL, "event counter = %u.", count);
 
-	LOGF(debug)(LOGL, "get_event_counter }");
+	LOGF(spam)(LOGL, "get_event_counter }");
 
 	return count;
 }
@@ -1980,10 +1987,10 @@ sis_3316_read_stat_counters(struct Sis3316Module *m)
 		}
 		if (max_hit_increase > m->max_num_hits) {
 			LOGF(verbose)(LOGL, " max_hit_increase > max_num_hits"
-			    " (%u > %u)", max_hit_increase,
+			    " (%u > %u).", max_hit_increase,
 			    m->max_num_hits);
 		} else {
-			LOGF(spam)(LOGL, " max_hit_increase = %u",
+			LOGF(spam)(LOGL, " max_hit_increase = %u.",
 			    max_hit_increase);
 		}
 	}
@@ -2010,9 +2017,9 @@ sis_3316_dump_stat_counters(struct Sis3316Module *m, int a_show_rate)
 
 	ZERO(total);
 
-	LOGF(debug)(LOGL, NAME"[%d] dump_stat_counters {", m->module.id);
+	LOGF(verbose)(LOGL, NAME"[%d] dump_stat_counters {", m->module.id);
 
-	LOGF(verbose)(LOGL, "ch internal      hit   dtime  pileup (%s)",
+	LOGF(verbose)(LOGL, "ch internal      hit   dtime  pileup (%s).",
 	    (a_show_rate == 1) ? "rate" : "count");
 	for (i = 0; i < N_CHANNELS; ++i) {
 		struct Sis3316ChannelCounters rate;
@@ -2027,10 +2034,12 @@ sis_3316_dump_stat_counters(struct Sis3316Module *m, int a_show_rate)
 			- m->stat_prev_dump.ch[i].pileup;
 
 		if (a_show_rate == 1) {
-			LOGF(verbose)(LOGL, "%2d %8d %8d %7d %7d", i, rate.internal,
+			LOGF(verbose)(LOGL, "%2d %8d %8d %7d %7d.",
+			    i, rate.internal,
 			    rate.hit, rate.deadtime, rate.pileup);
 		} else {
-			LOGF(verbose)(LOGL, "%2d %8x %8x %8x %8x hex", i,
+			LOGF(verbose)(LOGL, "%2d %8x %8x %8x %8x hex.",
+			    i,
 			    m->stat.ch[i].internal,
 			    m->stat.ch[i].hit,
 			    m->stat.ch[i].deadtime,
@@ -2043,13 +2052,13 @@ sis_3316_dump_stat_counters(struct Sis3316Module *m, int a_show_rate)
 		total.pileup += rate.pileup;
 	}
 	LOGF(verbose)(LOGL, "------------------------------------");
-	LOGF(verbose)(LOGL, "[%d] t: %7.1fk %7.1fk %6.1fk %6.1fk",
+	LOGF(verbose)(LOGL, "[%d] t: %7.1fk %7.1fk %6.1fk %6.1fk.",
 	    m->module.id, total.internal / 1000., total.hit / 1000.,
 	    total.deadtime / 1000., total.pileup / 1000.);
 
 	COPY(m->stat_prev_dump, m->stat_prev);
 
-	LOGF(debug)(LOGL, NAME"[%d] dump_stat_counters }", m->module.id);
+	LOGF(verbose)(LOGL, NAME"[%d] dump_stat_counters }", m->module.id);
 }
 
 uint32_t
@@ -2058,7 +2067,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	uint32_t result = 0;
 	struct Sis3316Module *m;
 
-	LOGF(debug)(LOGL, NAME" readout_dt {");
+	LOGF(spam)(LOGL, NAME" readout_dt {");
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 
 	if (m->config.do_readout == 0) {
@@ -2073,7 +2082,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 		unsigned gsi_mbs_trigger;
 		gsi_mbs_trigger = crate_gsi_mbs_trigger_get(a_crate);
 		if (gsi_mbs_trigger != 1) {
-			LOGF(debug)(LOGL, NAME"skipping trigger = %d",
+			LOGF(spam)(LOGL, NAME"skipping trigger = %d",
 			    gsi_mbs_trigger);
 			goto sis_3316_readout_done;
 		}
@@ -2096,9 +2105,9 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 			goto sis_3316_readout_done;
 		}
 	} else if (m->config.run_mode == RM_ASYNC) {
-		LOGF(debug)(LOGL, NAME"not polling in ASYNC mode.");
+		LOGF(spam)(LOGL, NAME"not polling in ASYNC mode.");
 	} else if (m->config.run_mode == RM_ASYNC_EXTERNAL_GATE) {
-		LOGF(debug)(LOGL, NAME"not polling in ASYNC_EXTERNAL mode.");
+		LOGF(spam)(LOGL, NAME"not polling in ASYNC_EXTERNAL mode.");
 	} else if (m->config.run_mode == RM_ASYNC_AUTO_BANK_SWITCH) {
 		/*
 		 * In automatic bank switch mode the addr threshold flag
@@ -2125,7 +2134,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 			if (m->last_read != 0) {
 				if (no_read_interval > 1
 				    && now - m->last_dumped > 1) {
-					LOGF(info)(LOGL, "[%d] No data for %d"
+					log_error(LOGL, "[%d] No data for %d"
 						" second(s). "
 						"Is the module triggering?",
 						m->module.id,
@@ -2135,11 +2144,12 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 				}
 				if (no_read_interval > 10) {
 					result |=
-						CRATE_READOUT_FAIL_DATA_MISSING;
-					LOGF(info)(LOGL,
-					    NAME"no_read_interval > 10");
-					log_error(LOGL,"[%d] Re-initialising.",
-						m->module.id);
+					    CRATE_READOUT_FAIL_DATA_MISSING;
+					log_error(LOGL,
+					    NAME"no_read_interval > 10.");
+					log_error(LOGL,
+					    "[%d] Re-initialising.",
+					    m->module.id);
 				}
 			}
 			/*result |= CRATE_READOUT_FAIL_DATA_MISSING;*/
@@ -2287,7 +2297,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 	(void)a_crate;
 
-	LOGF(debug)(LOGL, NAME" readout {");
+	LOGF(spam)(LOGL, NAME" readout {");
 	result = 0;
 
 	now = time_getd();
@@ -2300,7 +2310,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 	ultrastart = a_event_buffer->ptr;
 
-	LOGF(debug)(LOGL, "Current_bank = %d", m->current_bank);
+	LOGF(spam)(LOGL, "Current_bank = %d.", m->current_bank);
 
 	/* calculate number of events */
 	switch (m->config.run_mode) {
@@ -2429,7 +2439,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 			struct EventConstBuffer ebuf;
 			uint32_t words_in_channel;
 
-			LOGF(debug)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
+			LOGF(spam)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
 			    "before readout.", ch, a_event_buffer->bytes);
 
 			words_in_channel = 0;
@@ -2459,8 +2469,8 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 			}
 
 sis_3316_channel_readout_done:
-			LOGF(debug)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
-			    "after readout", ch, a_event_buffer->bytes);
+			LOGF(spam)(LOGL, "Ch[%d]: %"PRIz" bytes buffer left "
+			    "after readout.", ch, a_event_buffer->bytes);
 
 			ebuf.ptr = start;
 			ebuf.bytes = (uintptr_t)(a_event_buffer->ptr) - (uintptr_t)start;
@@ -2510,7 +2520,7 @@ sis_3316_channel_readout_done:
 	}
 
 sis_3316_readout_done:
-	LOGF(debug)(LOGL, NAME" readout(0x%08x) }", result);
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
 	return result;
 }
 
@@ -2555,7 +2565,7 @@ sis_3316_test_clock_sync(struct Sis3316Module *self)
 				tries_left -= 1;
 				time_sleep(1e-3);
 			} else {
-				LOGF(debug)(LOGL, "rataser clock synced.");
+				LOGF(spam)(LOGL, "rataser clock synced.");
 				break;
 			}
 			MAP_WRITE(self->sicy_map, reset_adc_clock, 0x0);
@@ -2592,7 +2602,7 @@ sis_3316_adjust_address_threshold(struct Sis3316Module *m, double a_factor)
 
 	m->num_hits = num_hits;
 
-	LOGF(verbose)(LOGL, "[%d] Adjusting num hits to: %d", m->module.id,
+	LOGF(verbose)(LOGL, "[%d] Adjusting num hits to: %d.", m->module.id,
 	    num_hits);
 
 	/* Address threshold (given in number of words) */
@@ -2602,7 +2612,7 @@ sis_3316_adjust_address_threshold(struct Sis3316Module *m, double a_factor)
 		data |= (1 << 31); /* Enable stop sampling at addr_thr */
 		MAP_WRITE(m->sicy_map, fpga_adc_end_addr_threshold(i), data);
 		CHECK_REG_SET(fpga_adc_end_addr_threshold(i), data);
-		LOGF(debug)(LOGL, "Addr_thr[%d] = 0x%08x", i, data);
+		LOGF(verbose)(LOGL, "Addr_thr[%d] = 0x%08x.", i, data);
 	}
 }
 
@@ -2689,7 +2699,7 @@ sis_3316_test_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 
 	*a_actual_words = words_to_read;
 
-	LOGF(spam)(LOGL, NAME" test_channel %d}", a_ch);
+	LOGF(spam)(LOGL, NAME" test_channel %d }", a_ch);
 	return 0;
 }
 
@@ -2734,11 +2744,11 @@ sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 		float temp_celsius = ((float)((signed short)temp)) / 4.0;
 		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
 
-		LOGF(info)(LOGL, "Temperature: %.2f C", temp_celsius);
+		LOGF(spam)(LOGL, "Temperature: %.2f C.", temp_celsius);
 
 		if (temp_celsius > MAX_TEMP_SAFE) {
-			LOGF(info)(LOGL, "sis3316 temperature is higher than "
-			    "safe limit (%.2f > %.2f)", temp_celsius,
+			log_error(LOGL, "sis3316 temperature is higher than "
+			    "safe limit (%.2f > %.2f).", temp_celsius,
 			    MAX_TEMP_SAFE);
 		}
 	}
@@ -2754,8 +2764,8 @@ sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 		if (word_count == 0 && *outp == 0x0) {
 			LOGF(verbose)(LOGL,
 			    "a_ch: %d data = 0x0, word_count = %d, "
-			    "a_words_to_read = %d, words_to_read = %d", a_ch,
-			    word_count, a_words_to_read, words_to_read);
+			    "a_words_to_read = %d, words_to_read = %d.",
+			    a_ch, word_count, a_words_to_read, words_to_read);
 		}
 		++word_count;
 #endif
@@ -2799,11 +2809,11 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		float temp_celsius = ((float)((signed short)temp)) / 4.0;
 		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
 
-		LOGF(spam)(LOGL, "Temperature: %.2f C", temp_celsius);
+		LOGF(spam)(LOGL, "Temperature: %.2f C.", temp_celsius);
 
 		if (temp_celsius > MAX_TEMP_SAFE) {
-			LOGF(info)(LOGL, "sis3316 temperature is higher than "
-			    "safe limit (%.2f > %.2f)", temp_celsius,
+			log_error(LOGL, "sis3316 temperature is higher than "
+			    "safe limit (%.2f > %.2f).", temp_celsius,
 			    MAX_TEMP_SAFE);
 		}
 	}
@@ -2865,8 +2875,9 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		size_t adc_mem_i;
 
 		LOGF(spam)(LOGL, "Peeking into event header [%d] {", a_ch);
-		LOGF(spam)(LOGL, "a_words_to_read = %d", a_words_to_read);
-		LOGF(spam)(LOGL, "use_maw3 = %d", a_sis3316->config.use_maw3);
+		LOGF(spam)(LOGL, "a_words_to_read = %d.", a_words_to_read);
+		LOGF(spam)(LOGL, "use_maw3 = %d.",
+		    a_sis3316->config.use_maw3);
 
 		/* 
 		 * Have to read a multiple of 4 words in 2eSST mode to stay 
@@ -2915,14 +2926,14 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		*outp++ = baseline;
-		LOGF(spam)(LOGL, "baseline = 0x%08x", baseline);
+		LOGF(spam)(LOGL, "baseline = 0x%08x.", baseline);
 
 		/* energy */
 		energy = MAP_READ_OFS(a_sis3316->sicy_map,
 		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		*outp++ = energy;
-		LOGF(spam)(LOGL, "energy = 0x%08x", energy);
+		LOGF(spam)(LOGL, "energy = 0x%08x.", energy);
 
 		/* header_end */
 		header_end_ptr = outp; /* save this memory location for later */
@@ -2930,7 +2941,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
 		++adc_mem_i;
 		*outp++ = header_end;
-		LOGF(spam)(LOGL, "header_end = 0x%08x", header_end);
+		LOGF(spam)(LOGL, "header_end = 0x%08x.", header_end);
 		assert((header_end & 0xf0000000) == 0xa0000000);
 
 		avg_samples_ptr = outp;
@@ -2969,15 +2980,18 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 			if (status_flag == 1) {
 				LOGF(spam)(LOGL, "Status flag is set!");
 			} else {
-				LOGF(spam)(LOGL, "Status flag is not set! SKIP!");
+				LOGF(spam)(LOGL,
+				    "Status flag is not set! SKIP!");
 
 				/* 
 				 * rewrite *header_end_ptr and *avg_samples_ptr to not confuse 
 				 * the unpacker.
 				 */
-				LOGF(spam)(LOGL, "Rewriting header_end_ptr:  %08x",
+				LOGF(spam)(LOGL,
+				    "Rewriting header_end_ptr:  %08x.",
 				    *header_end_ptr);
-				LOGF(spam)(LOGL, "Rewriting avg_samples_ptr: %08x",
+				LOGF(spam)(LOGL,
+				    "Rewriting avg_samples_ptr: %08x.",
 				    *avg_samples_ptr);
 
 				*header_end_ptr =  0xa2000000; /* status flag always 0 here */
@@ -2994,13 +3008,14 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 			abort();
 		}
 	} else {
-		LOGF(spam)(LOGL, "[%d] This channel data is never discarded", a_ch);
+		LOGF(spam)(LOGL, "[%d] This channel data is never discarded.",
+		    a_ch);
 	}
 
 	offset = ADC_MEM_OFFSET * (adc + 1);
 
 	LOGF(spam)(LOGL, "DMA: target = %p, "
-	    "a_words_to_read = 0x%08x, bytes_to_read = 0x%08x, mode = %d",
+	    "a_words_to_read = 0x%08x, bytes_to_read = 0x%08x, mode = %d.",
 	    (void const *)outp,
 	    a_words_to_read, bytes_to_read, a_sis3316->config.blt_mode);
 
@@ -3061,7 +3076,7 @@ sis_3316_start_fsm(struct Sis3316Module* a_module, int a_fsm_ch, enum
 		addr += 0x10000000;
 	}
 
-	LOGF(spam)(LOGL, "start transfer: adc %d, addr = 0x%08x", adc, addr);
+	LOGF(spam)(LOGL, "start transfer: adc %d, addr = 0x%08x.", adc, addr);
 
 	MAP_WRITE(a_module->sicy_map,
 	    fpga_ctrl_status_data_transfer_control(adc), addr);
@@ -3075,8 +3090,6 @@ sis_3316_start_fsm(struct Sis3316Module* a_module, int a_fsm_ch, enum
 void
 sis_3316_swap_banks(struct Sis3316Module* m)
 {
-
-
 #if 0
 	int prev_bank, cur_bank;
 	cur_bank = (MAP_(m->sicy_map, channel_actual_sample_address[0])
@@ -3088,18 +3101,18 @@ sis_3316_swap_banks(struct Sis3316Module* m)
 
 	m->current_bank = cur_bank;
 #endif
-	LOGF(debug)(LOGL, "swap_banks (current_bank=%d) {", m->current_bank);
+	LOGF(spam)(LOGL, "swap_banks (current_bank=%d) {", m->current_bank);
 
 	if (m->current_bank == 0) {
-		LOGF(debug)(LOGL, NAME" arming bank 1");
+		LOGF(spam)(LOGL, NAME" arming bank 1.");
 		MAP_WRITE(m->sicy_map, disarm_and_arm_bank2, 1);
 		m->current_bank = 1;
 	} else {
-		LOGF(debug)(LOGL, NAME" arming bank 0");
+		LOGF(spam)(LOGL, NAME" arming bank 0.");
 		MAP_WRITE(m->sicy_map, disarm_and_arm_bank1, 1);
 		m->current_bank = 0;
 	}
-	LOGF(debug)(LOGL, "swap_banks }");
+	LOGF(spam)(LOGL, "swap_banks }");
 }
 
 void
@@ -3511,7 +3524,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	/* channels to read */
 	a_module->config.channels_to_read = config_get_bitmask(a_block,
 	    KW_CHANNELS_TO_READ, 0, 15);
-	LOGF(verbose)(LOGL, "channels_to_read = mask 0x%08x",
+	LOGF(verbose)(LOGL, "channels_to_read = mask 0x%08x.",
 	    a_module->config.channels_to_read);
 	g_n_channels = 0;
 	for (i = 0; i < N_CHANNELS; ++i) {
@@ -3523,31 +3536,31 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	/* use tau correction */
 	a_module->config.use_tau_correction = config_get_bitmask(a_block,
 	    KW_USE_TAU_CORRECTION, 0, 15);
-	LOGF(verbose)(LOGL, "use_tau_correction = mask 0x%08x",
+	LOGF(verbose)(LOGL, "use_tau_correction = mask 0x%08x.",
 	    a_module->config.use_tau_correction);
 
 	/* use external trigger */
 	a_module->config.use_external_trigger = config_get_bitmask(a_block,
 	    KW_USE_EXTERNAL_TRIGGER, 0, 15);
-	LOGF(verbose)(LOGL, "use_external_trigger = mask 0x%08x",
+	LOGF(verbose)(LOGL, "use_external_trigger = mask 0x%08x.",
 	    a_module->config.use_external_trigger);
 
 	/* use internal trigger */
 	a_module->config.use_internal_trigger = config_get_bitmask(a_block,
 	    KW_USE_INTERNAL_TRIGGER, 0, 15);
-	LOGF(verbose)(LOGL, "use_internal_trigger = mask 0x%08x",
+	LOGF(verbose)(LOGL, "use_internal_trigger = mask 0x%08x.",
 	    a_module->config.use_internal_trigger);
 
 	/* which channels contribute to TO signal (OR-ed) */
 	a_module->config.trigger_output = config_get_bitmask(a_block,
 	    KW_TRIGGER_OUTPUT, 0, 15);
-	LOGF(verbose)(LOGL, "trigger_output = mask 0x%08x",
+	LOGF(verbose)(LOGL, "trigger_output = mask 0x%08x.",
 	    a_module->config.trigger_output);
 
 	/* use dual threshold trigger */
 	a_module->config.use_dual_threshold = config_get_bitmask(a_block,
 	    KW_USE_DUAL_THRESHOLD, 0, 15);
-	LOGF(verbose)(LOGL, "use_dual_threshold = mask 0x%08x",
+	LOGF(verbose)(LOGL, "use_dual_threshold = mask 0x%08x.",
 	    a_module->config.use_dual_threshold);
 
 	/* TODO: internal gate */
@@ -3567,7 +3580,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	/* use discard data */
 	a_module->config.discard_data = config_get_bitmask(a_block,
 	    KW_DISCARD_DATA, 0, 15);
-	LOGF(verbose)(LOGL, "discard_data = mask 0x%08x",
+	LOGF(verbose)(LOGL, "discard_data = mask 0x%08x.",
 	    a_module->config.discard_data);
 
 	/* discard threshold */
@@ -3686,12 +3699,12 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    && a_module->config.use_auto_bank_switch) {
 		a_module->config.run_mode = RM_ASYNC_AUTO_BANK_SWITCH;
 	}
-	LOGF(verbose)(LOGL, "Run mode = %s %s", (a_module->config.run_mode ==
-	    RM_SYNC) ?  "SYNC" : "ASYNC",
-		(a_module->config.run_mode == RM_ASYNC_AUTO_BANK_SWITCH)
-		? "AUTO_BANK_SWITCH" :
-		(a_module->config.run_mode == RM_ASYNC_EXTERNAL_GATE)
-		? "EXTERNAL_GATE" : "(simple)");
+	LOGF(verbose)(LOGL, "Run mode = %s %s.",
+	    (a_module->config.run_mode == RM_SYNC) ?  "SYNC" : "ASYNC",
+	    (a_module->config.run_mode == RM_ASYNC_AUTO_BANK_SWITCH)
+	    ? "AUTO_BANK_SWITCH" :
+	    (a_module->config.run_mode == RM_ASYNC_EXTERNAL_GATE)
+	    ? "EXTERNAL_GATE" : "(simple)");
 
 	/* Termination */
 	a_module->config.use_termination = config_get_boolean(a_block,
@@ -3732,12 +3745,15 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 				    a_module->config.average_mode[i]);
 				abort();
 		}
-		LOGF(verbose)(LOGL, "average mode[%" PRIz "]       = %d samples (0x%2x)",
+		LOGF(verbose)(LOGL,
+		    "average mode[%" PRIz "]       = %d samples (0x%2x).",
 		    i, a_module->config.average_mode[i], mode_bits);
 		a_module->config.average_mode[i] = mode_bits;
-		LOGF(verbose)(LOGL, "average pretrigger[%" PRIz "] = %d samples",
+		LOGF(verbose)(LOGL,
+		    "average pretrigger[%" PRIz "] = %d samples.",
 		    i, a_module->config.average_pretrigger[i]);
-		LOGF(verbose)(LOGL, "average length[%" PRIz "]     = %d samples",
+		LOGF(verbose)(LOGL,
+		    "average length[%" PRIz "]     = %d samples.",
 		    i, a_module->config.average_length[i]);
 		a_module->config.average_length[i] -=
 		    a_module->config.average_length[i] % 2;
@@ -3760,7 +3776,8 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	/* blt_mode */
 	a_module->config.blt_mode = CONFIG_GET_KEYWORD(a_block, KW_BLT_MODE,
 	    c_blt_mode);
-	LOGF(verbose)(LOGL, "Using BLT mode = %d.", a_module->config.blt_mode);
+	LOGF(verbose)(LOGL, "Using BLT mode = %d.",
+	    a_module->config.blt_mode);
 
 	/* Frequency of internal sampling clock */
 	a_module->config.clk_freq = config_get_int32(a_block, KW_CLK_FREQ,
@@ -4041,8 +4058,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	CONFIG_GET_INT_ARRAY(a_module->config.sample_length_maw,
 	    t_block[1], KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
 	for (i = 0; i < LENGTH(a_module->config.sample_length_maw); ++i) {
-		LOGF(verbose)(LOGL,
-		    "sample_length_maw[%d] = %d.",
+		LOGF(verbose)(LOGL, "sample_length_maw[%d] = %d.",
 		    (int)i, a_module->config.sample_length_maw[i]);
 	}
 
@@ -4050,8 +4066,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	CONFIG_GET_INT_ARRAY(a_module->config.pretrigger_delay_maw,
 	    t_block[1], KW_PRETRIGGER_DELAY, CONFIG_UNIT_NONE, 0, 1022);
 	for (i = 0; i < LENGTH(a_module->config.pretrigger_delay_maw); ++i) {
-		LOGF(verbose)(LOGL,
-		    "pretrigger_delay_maw[%d] = %d.",
+		LOGF(verbose)(LOGL, "pretrigger_delay_maw[%d] = %d.",
 		    (int)i, a_module->config.pretrigger_delay_maw[i]);
 	}
 
@@ -4059,18 +4074,16 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	CONFIG_GET_INT_ARRAY(a_module->config.sample_length_maw_e,
 	    t_block[2], KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, 2048);
 	for (i = 0; i < LENGTH(a_module->config.sample_length_maw_e); ++i) {
-		LOGF(verbose)(LOGL,
-		    "sample_length_maw_e[%d] = %d.", (int)i,
-		    a_module->config.sample_length_maw_e[i]);
+		LOGF(verbose)(LOGL, "sample_length_maw_e[%d] = %d.",
+		    (int)i, a_module->config.sample_length_maw_e[i]);
 	}
 
 	/* Pretrigger MAW */
 	CONFIG_GET_INT_ARRAY(a_module->config.pretrigger_delay_maw_e,
 	    t_block[2], KW_PRETRIGGER_DELAY, CONFIG_UNIT_NONE, 0, 1022);
 	for (i = 0; i < LENGTH(a_module->config.pretrigger_delay_maw_e); ++i) {
-		LOGF(verbose)(LOGL,
-		    "pretrigger_delay_maw_e[%d] = %d.", (int)i,
-		    a_module->config.pretrigger_delay_maw_e[i]);
+		LOGF(verbose)(LOGL, "pretrigger_delay_maw_e[%d] = %d.",
+		    (int)i, a_module->config.pretrigger_delay_maw_e[i]);
 	}
 
 	/* Gate blocks */
@@ -4086,17 +4099,15 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 		    config_get_int32(g_block, KW_TIME_AFTER_TRIGGER,
 			CONFIG_UNIT_NS, 0,
 			(1 << 16) * (1000 / a_module->config.clk_freq));
-		LOGF(verbose)(LOGL,
-		    "gate[%d].delay = %d ns.", (int)i,
-		    a_module->config.gate[i].delay);
+		LOGF(verbose)(LOGL, "gate[%d].delay = %d ns.",
+		    (int)i, a_module->config.gate[i].delay);
 		/* Gate width */
 		a_module->config.gate[i].width =
 		    config_get_int32(g_block, KW_WIDTH,
 			CONFIG_UNIT_NS, 0,
 			(1 << 9) * (1000 / a_module->config.clk_freq));
-		LOGF(verbose)(LOGL,
-		    "gate[%d].width = %d ns.", (int)i,
-		    a_module->config.gate[i].width);
+		LOGF(verbose)(LOGL, "gate[%d].width = %d ns.",
+		    (int)i, a_module->config.gate[i].width);
 
 		g_block = config_get_block_next(g_block, KW_GATE);
 	}
@@ -4142,7 +4153,7 @@ sis_3316_calculate_dac_offsets(struct Sis3316Module *a_module)
 		a_module->config.dac_offset[i] =
 		    (percent * (double)diff) + min;
 
-		LOGF(verbose)(LOGL, "dac_offset[%d] = %d", (int)i,
+		LOGF(verbose)(LOGL, "dac_offset[%d] = %d.", (int)i,
 		    a_module->config.dac_offset[i]);
 	}
 }
@@ -4160,8 +4171,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 
 	/* Values in samples via clock frequency */
 	samples_per_ns = 1000 / a_module->config.clk_freq;
-	LOGF(verbose)(LOGL, "samples_per_ns = %d",
-	    samples_per_ns);
+	LOGF(verbose)(LOGL, "samples_per_ns = %d.", samples_per_ns);
 
 	/*
 	 * Convert signal decay/rise times from ns to samples
@@ -4174,10 +4184,10 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 		/* Signal should be decayed to ~0 within 5 decay times */
 		signal_length_s[i] = decaytime_s[i] * 5;
 
-		LOGF(verbose)(LOGL,
-		    "decaytime_s[%d] = %d", i, decaytime_s[i]);
-		LOGF(verbose)(LOGL,
-		    "signal_length_s[%d] = %d", i, signal_length_s[i]);
+		LOGF(verbose)(LOGL, "decaytime_s[%d] = %d.",
+		    i, decaytime_s[i]);
+		LOGF(verbose)(LOGL, "signal_length_s[%d] = %d.",
+		    i, signal_length_s[i]);
 	}
 
 	/* Convert gate settings from ns to samples */
@@ -4191,8 +4201,8 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	for (i = 0; i < N_ADCS; ++i) {
 		a_module->config.pileup_length[i] = signal_length_s[i*4];
 		a_module->config.re_pileup_length[i] = signal_length_s[i*4];
-		LOGF(verbose)(LOGL, "adc %d, pileup_len = %d, "
-		    "repileup_len = %d",
+		LOGF(verbose)(LOGL,
+		    "adc %d, pileup_len = %d, repileup_len = %d.",
 		    i, a_module->config.pileup_length[i],
 		    a_module->config.re_pileup_length[i]);
 	}
@@ -4265,7 +4275,8 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 			    + 50;
 		}
 
-		LOGF(verbose)(LOGL, "trigger_gate_window_length[%d]=%d (calc)",
+		LOGF(verbose)(LOGL,
+		    "trigger_gate_window_length[%d]=%d (calc).",
 		    i, a_module->config.trigger_gate_window_length[i]);
 	}
 
@@ -4309,8 +4320,8 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 			    a_module->config.signal_decaytime[i]) {
 				a_module->config.tau_table[i] = table[j].table;
 				a_module->config.tau_factor[i] = table[j].index;
-				LOGF(verbose)(LOGL, "ch %d, "
-				    "table %d, index %d, value %f",
+				LOGF(verbose)(LOGL,
+				    "ch %d, table %d, index %d, value %f.",
 				    i, table[j].table, table[j].index,
 				    table[j].value);
 				break;
@@ -4351,7 +4362,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 		    (full_range * a_module->config.peak[i]) / 64000;
 		if (a_module->config.histogram_divider[i] < 1)
 			a_module->config.histogram_divider[i] = 1;
-		LOGF(verbose)(LOGL, "histogram_divider[%d] = %d",
+		LOGF(verbose)(LOGL, "histogram_divider[%d] = %d.",
 		    i, a_module->config.histogram_divider[i]);
 	}
 
@@ -4365,7 +4376,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 
 		adc_i = i / N_CH_PER_ADC;
 		counts_per_V = (1 << 16) / a_module->config.range[adc_i];
-                LOGF(verbose)(LOGL, "%u: range = %d -> counts_per_V = %d",
+                LOGF(verbose)(LOGL, "%u: range = %d -> counts_per_V = %d.",
                         adc_i, a_module->config.range[adc_i], counts_per_V);
 		a_module->config.threshold[i] = 0x08000000 +
 		    (counts_per_V
@@ -4377,7 +4388,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 		        * a_module->config.threshold_high_e_mV[i]
 		        * a_module->config.peak[i])
 		    / 100000;
-		LOGF(info)(LOGL, "threshold[%d] = %d mV -> 0x%08x",
+		LOGF(info)(LOGL, "threshold[%d] = %d mV -> 0x%08x.",
 		    i, a_module->config.threshold_mV[i],
 		    a_module->config.threshold[i]);
 	}

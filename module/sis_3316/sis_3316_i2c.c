@@ -110,10 +110,8 @@ sis_3316_make_ext_clk_mul_config(enum Sis3316ExternalClockInputFrequency
 {
 	struct Sis3316ExternalClockMultiplierConfig c;
 
-	LOGF(debug)(LOGL, "make_ext_clk_mul_config:a_in_freq = %d",
-	    a_in_freq);
-	LOGF(debug)(LOGL, "make_ext_clk_mul_config:a_out_freq = %d",
-	    a_out_freq);
+	LOGF(verbose)(LOGL, "make_ext_clk_mul_config(inf=%d,outf=%d) {",
+	    a_in_freq, a_out_freq);
 
 	switch (a_out_freq)
 	{
@@ -165,16 +163,18 @@ sis_3316_make_ext_clk_mul_config(enum Sis3316ExternalClockInputFrequency
 	c.n1_output_divider_clock_2 = c.n1_output_divider_clock_1;
 	c.n3_input_divider = 1;
 
-	LOGF(debug)(LOGL, "ext_clk_mul_cfg.n1_1 = %u",
+	LOGF(verbose)(LOGL, "ext_clk_mul_cfg.n1_1 = %u",
 	    c.n1_output_divider_clock_1);
-	LOGF(debug)(LOGL, "ext_clk_mul_cfg.n1_2 = %u",
+	LOGF(verbose)(LOGL, "ext_clk_mul_cfg.n1_2 = %u",
 	    c.n1_output_divider_clock_2);
-	LOGF(debug)(LOGL, "ext_clk_mul_cfg.n2 = %u", c.n2_feedback_divider);
-	LOGF(debug)(LOGL, "ext_clk_mul_cfg.n3 = %u", c.n3_input_divider);
-	LOGF(debug)(LOGL, "ext_clk_mul_cfg.bw_select = %u",
+	LOGF(verbose)(LOGL, "ext_clk_mul_cfg.n2 = %u", c.n2_feedback_divider);
+	LOGF(verbose)(LOGL, "ext_clk_mul_cfg.n3 = %u", c.n3_input_divider);
+	LOGF(verbose)(LOGL, "ext_clk_mul_cfg.bw_select = %u",
 	    c.bandwidth_select);
-	LOGF(debug)(LOGL, "ext_clk_mul_cfg.n1_hs = %u",
+	LOGF(verbose)(LOGL, "ext_clk_mul_cfg.n1_hs = %u",
 	    c.n1_high_speed_divider);
+
+	LOGF(verbose)(LOGL, "make_ext_clk_mul_config }");
 
 	return c;
 }
@@ -182,17 +182,22 @@ sis_3316_make_ext_clk_mul_config(enum Sis3316ExternalClockInputFrequency
 void
 sis_3316_si5325_clk_multiplier_bypass(struct Sis3316Module *m)
 {
+	LOGF(verbose)(LOGL, "sis_3316_si5325_clk_multiplier_bypass {");
+
 	sis_3316_si5325_clk_multiplier_write(m, SPI_REG_BYPASS,
 	    SPI_BYPASS_ON);
 	sis_3316_si5325_clk_multiplier_write(m, SPI_REG_POWER_DOWN,
 	    SPI_POWER_DOWN_CLOCK_INPUT_2);
+
+	LOGF(verbose)(LOGL, "sis_3316_si5325_clk_multiplier_bypass }");
 }
 
 void
 sis_3316_si5325_clk_multiplier_set(struct Sis3316Module *m, struct
     Sis3316ExternalClockMultiplierConfig a_config)
 {
-	LOGF(debug)(LOGL, "Begin setting clock multiplier.");
+	LOGF(verbose)(LOGL, "sis_3316_si5325_clk_multiplier_set {");
+
 	ASSERT(uint8_t, "u", a_config.bandwidth_select, <=, 15);
 	ASSERT(uint8_t, "u", a_config.n1_high_speed_divider, >=, 4);
 	ASSERT(uint8_t, "u", a_config.n1_high_speed_divider, <=, 11);
@@ -260,7 +265,8 @@ sis_3316_si5325_clk_multiplier_set(struct Sis3316Module *m, struct
 	    a_config.bandwidth_select << 5 /* should be 4 ??? */);
 
 	sis_3316_si5325_clk_multiplier_do_internal_calibration(m);
-	LOGF(debug)(LOGL, "Finished setting clock multiplier.");
+
+	LOGF(verbose)(LOGL, "sis_3316_si5325_clk_multiplier_set }");
 }
 
 uint8_t
@@ -269,7 +275,7 @@ sis_3316_spi_action(struct Sis3316Module *m, uint16_t data)
 	int poll_counter;
 	uint32_t result;
 
-	LOGF(debug)(LOGL, "spi_action:data = %04x", data);
+	LOGF(verbose)(LOGL, "sis_3316_spi_action(%04x) {", data);
 
 	MAP_WRITE(m->sicy_map, spi_ext_nim_clock_multiplier, data);
 	SERIALIZE_IO;
@@ -280,14 +286,16 @@ sis_3316_spi_action(struct Sis3316Module *m, uint16_t data)
 		SERIALIZE_IO;
 		result = MAP_READ(m->sicy_map, spi_ext_nim_clock_multiplier);
 		++poll_counter;
-		LOGF(debug)(LOGL, "  Polled for %d times, result = %08x",
+		LOGF(verbose)(LOGL, "  Polled for %d times, result = %08x",
 		    poll_counter, result);
 	} while (SPI_IS_BUSY(result) && poll_counter < SPI_POLL_COUNTER_MAX);
 
 	if (poll_counter == SPI_POLL_COUNTER_MAX) {
 		log_die(LOGL, "sis3316 spi: Timeout while busy.");
 	}
-	LOGF(debug)(LOGL, "spi_action:done, result = %08x", result);
+
+	LOGF(verbose)(LOGL, "sis_3316_spi_action(%08x) }", result);
+
 	return result & 0xff;
 }
 
@@ -296,8 +304,10 @@ sis_3316_si5325_clk_multiplier_write(struct Sis3316Module *m, uint8_t a_addr,
     uint8_t a_data)
 {
 	uint32_t result;
-	LOGF(debug)(LOGL, "si5325 write: addr=0x%02x, data=0x%02x", a_addr,
-	    a_data);
+
+	LOGF(verbose)(LOGL,
+	    "sis_3316_si5325_clk_multiplier_write(addr=0x%02x,data=0x%02x) {",
+	    a_addr, a_data);
 
 	result = sis_3316_spi_action(m, a_addr);
 	/*if (result != 0) {
@@ -309,7 +319,9 @@ sis_3316_si5325_clk_multiplier_write(struct Sis3316Module *m, uint8_t a_addr,
 	/*if (result != 0) {
 		log_die(LOGL, "sis3316 spi: Error writing data.");
 	}*/
-	(void)result;
+
+	LOGF(verbose)(LOGL, "sis_3316_si5325_clk_multiplier_write(0x%08x) }",
+	    result);
 }
 
 uint8_t
@@ -317,7 +329,8 @@ sis_3316_si5325_clk_multiplier_read(struct Sis3316Module *m, uint8_t a_addr)
 {
 	uint8_t result;
 
-	LOGF(debug)(LOGL, "si5325 read: addr=0x%02x", a_addr);
+	LOGF(verbose)(LOGL,
+	    "sis_3316_si5325_clk_multiplier_read(addr=0x%02x)", a_addr);
 
 	result = sis_3316_spi_action(m, a_addr);
 	/*if (result != 0) {
@@ -326,7 +339,8 @@ sis_3316_si5325_clk_multiplier_read(struct Sis3316Module *m, uint8_t a_addr)
 	}*/
 
 	result = sis_3316_spi_action(m, SPI_SI5325_READ);
-	LOGF(debug)(LOGL, "si5325 read: result=0x%02x", result);
+	LOGF(verbose)(LOGL,
+	    "sis_3316_si5325_clk_multiplier_read(result=0x%02x)", result);
 	return result;
 }
 
@@ -338,19 +352,26 @@ sis_3316_si5325_clk_multiplier_do_internal_calibration(struct Sis3316Module
 	int poll_counter;
 	uint8_t result;
 
-	LOGF(debug)(LOGL, "Start ICAL.");
+	LOGF(verbose)(LOGL,
+	    "sis_3316_si5325_clk_multiplier_do_internal_calibration {");
+
 	sis_3316_si5325_clk_multiplier_write(m, SPI_REG_ICAL, SPI_DO_ICAL);
 
 	poll_counter = 0;
 	do {
 		result = sis_3316_si5325_clk_multiplier_read(m, SPI_REG_ICAL);
 		++poll_counter;
-	} while (SPI_ICAL_IS_ACTIVE(result)
-	    && poll_counter < SPI_CALIB_READY_POLL_COUNTER_MAX);
-	LOGF(debug)(LOGL, "Done ICAL.");
+	} while (
+	    SPI_ICAL_IS_ACTIVE(result) &&
+	    poll_counter < SPI_CALIB_READY_POLL_COUNTER_MAX);
+
+	LOGF(verbose)(LOGL,
+	    "sis_3316_si5325_clk_multiplier_do_internal_calibration }");
 }
 
 /* **************************************************** */
+
+/* TODO: LOGF(spam) on all the below. */
 
 int
 sis_3316_i2c_wait_busy(struct Sis3316Module *m, int osc)
@@ -523,7 +544,9 @@ sis_3316_change_frequency(struct Sis3316Module* m, int osc, unsigned int a_hs,
 	memset(data, 0, sizeof(char) * 6);
 
 	sis_3316_si570_read_divider(m, osc, data, 6);
-	LOGF(verbose)(LOGL, "Divider setting = 0x%2x:%2x:%2x:%2x:%2x:%2x",
+
+	LOGF(verbose)(LOGL,
+	    "sis_3316_change_frequency(0x%2x:%2x:%2x:%2x:%2x:%2x) {",
 	    data[0],data[1],data[2],data[3],data[4],data[5]);
 
 	hs = a_hs - 4;
@@ -534,7 +557,9 @@ sis_3316_change_frequency(struct Sis3316Module* m, int osc, unsigned int a_hs,
 
 	sis_3316_set_frequency(m, osc, data);
 	sis_3316_si570_read_divider(m, osc, data, 6);
-	LOGF(verbose)(LOGL, "New setting = 0x%2x:%2x:%2x:%2x:%2x:%2x",
+
+	LOGF(verbose)(LOGL,
+	    "sis_3316_change_frequency(0x%2x:%2x:%2x:%2x:%2x:%2x) }",
 	    data[0],data[1],data[2],data[3],data[4],data[5]);
 }
 
@@ -542,6 +567,12 @@ void
 sis_3316_set_frequency(struct Sis3316Module* m, int osc,
     unsigned char preset[6])
 {
+	LOGF(verbose)(LOGL,
+	    "sis_3316_set_frequency(osc=%d,0x%2x:%2x:%2x:%2x:%2x:%2x) {",
+	    osc,
+	    preset[0], preset[1], preset[2],
+	    preset[3], preset[4], preset[5]);
+
 	sis_3316_si570_freeze_dco(m,osc);
 	sis_3316_si570_divider(m,osc,preset);
 	sis_3316_si570_unfreeze_dco(m,osc);
@@ -549,4 +580,6 @@ sis_3316_set_frequency(struct Sis3316Module* m, int osc,
 
 	time_sleep(20e-3);
 	sis_3316_si570_dcm_reset(m,osc);
+
+	LOGF(verbose)(LOGL, "sis_3316_set_frequency }");
 }
