@@ -676,6 +676,7 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 				    NAME" TDC [%1x] reports error 0x%4x.",
 				    ((u32 >> 24) & 0x3), (u32 & 0x7FFF));
 			} else if (0x18000000 == (TYPE_MASK & u32)) {
+				/* TODO: This fails! */
 				/*
 				uint32_t word_count;
 				word_count = (u32 & BITS_MASK(0, 11));
