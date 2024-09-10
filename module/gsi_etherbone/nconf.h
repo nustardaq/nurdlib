@@ -25,17 +25,28 @@
 
 #include <nconf/module/gsi_etherbone/nconf.h>
 
-#if NCONF_mGSI_ETHERBONE_bYES
+#if NCONF_mGSI_ETHERBONE_bYES_BSD_SOURCE
 /* NCONF_CPPFLAGS=-I$WR_SYS/include */
 /* NCONF_LIBS=$WR_SYS/lib/libetherbone.a */
 /* NCONF_NOEXEC */
 #	define _BSD_SOURCE 1
+#	define NCONFING_EBONE 1
+#elif NCONF_mGSI_ETHERBONE_bYES_DEFAULT_SOURCE
+/* NCONF_CPPFLAGS=-I$WR_SYS/include */
+/* NCONF_LIBS=$WR_SYS/lib/libetherbone.a */
+/* NCONF_NOEXEC */
+#	define _DEFAULT_SOURCE 1
+#	define NCONFING_EBONE 1
+#elif NCONF_mGSI_ETHERBONE_bNO
+/* NCONF_NOLINK */
+#endif
+
+#if NCONFING_EBONE
 #	include <etherbone.h>
+#	include <stdlib.h>
 #	if NCONFING_mGSI_ETHERBONE
 #		define NCONF_TEST eb_status(0)
 #	endif
-#elif NCONF_mGSI_ETHERBONE_bNO
-/* NCONF_NOLINK */
 #endif
 
 #endif

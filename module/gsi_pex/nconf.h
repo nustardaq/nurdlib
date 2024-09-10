@@ -25,8 +25,17 @@
 
 #include <nconf/module/gsi_pex/nconf.h>
 
-#if NCONF_mGSI_PEX_bYES
+#if NCONF_mGSI_PEX_bYES_BSD_SOURCE
 #	define _BSD_SOURCE 1
+#	define NCONFING_PEX 1
+#elif NCONF_mGSI_PEX_bYES_DEFAULT_SOURCE
+#	define _DEFAULT_SOURCE 1
+#	define NCONFING_PEX 1
+#elif NCONF_mGSI_PEX_bNO
+/* NCONF_NOLINK */
+#endif
+
+#if NCONFING_PEX
 #	include <sys/mman.h>
 #	include <errno.h>
 #	include <fcntl.h>
@@ -61,8 +70,6 @@ static int nconf_test_(void) {
 	return 1;
 }
 #	endif
-#elif NCONF_mGSI_PEX_bNO
-/* NCONF_NOLINK */
 #endif
 
 #endif
