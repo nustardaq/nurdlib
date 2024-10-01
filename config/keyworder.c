@@ -55,6 +55,9 @@ main(void)
 				if (strcmp(s_prev, s_cur) >= 0) {
 					fprintf(stderr, "%u=%s >= %u=%s.\n",
 					    i - 1, s_prev, i, s_cur);
+					fprintf(stderr, "Keywords must be "
+					    "listed in alphalexical "
+					    "order!\n");
 					exit(EXIT_FAILURE);
 				}
 			}
