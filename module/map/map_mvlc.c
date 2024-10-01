@@ -32,6 +32,7 @@
 #	include <nurdlib/config.h>
 #	include <util/string.h>
 #	include <util/time.h>
+#	include <config/parser.h>
 
 static void	mvlcc_init(void);
 
@@ -44,9 +45,15 @@ mvlcc_t mvlc;
 void
 mvlcc_init(void)
 {
+	char const *str;
+	struct ConfigBlock *mvlc_cfg;
+
 	LOGF(verbose)(LOGL, "mvlcc_init {");
+
+	mvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
+	str = config_get_string(mvlc_cfg, KW_LINK_IP);
 	
-	mvlc = mvlcc_make_mvlc("");
+	mvlc = mvlcc_make_mvlc(str);
 	ec = mvlcc_connect(mvlc);
 
 	if (ec)
@@ -75,6 +82,15 @@ sicy_map(struct Map *a_map)
 	mvlcc_init();
 	LOGF(verbose)(LOGL, "sicy_map }");
 }
+
+void
+sicy_setup(void)
+{
+	LOGF(verbose)(LOGL, "sicy_setup {");
+	parser_include_file("mvlc.cfg", 0);
+	LOGF(verbose)(LOGL, "sicy_setup }");
+}
+
 
 uint32_t
 sicy_r32(struct Map *a_map, size_t a_ofs)
@@ -113,7 +129,6 @@ sicy_w16(struct Map *a_map, size_t a_ofs, uint16_t a_u16)
 	ec = mvlcc_single_vme_write(mvlc, a_map->address + a_ofs, a_u32, 32, 16);
 }
 
-MAP_FUNC_EMPTY(sicy_setup);
 MAP_FUNC_EMPTY(sicy_shutdown);
 UNMAP_FUNC_EMPTY(sicy);
 

@@ -83,6 +83,7 @@ static char const g_keyword_array[][52] = {
 	"MESYTEC_MDPP32SCP",
 	"MESYTEC_MQDC32",
 	"MESYTEC_MTDC32",
+	"MESYTEC_MVLC",
 	"MESYTEC_VMMR8",
 	"PNPI_CROS3",
 	"PNPI_CROS3_CRATE",
