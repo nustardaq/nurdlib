@@ -70,6 +70,10 @@ mvlcc_init(void)
 		}
 
 		g_mvlc = mvlcc_make_mvlc(str);
+		if (!mvlcc_is_mvlc_valid(g_mvlc)) {
+			log_die(LOGL, "mvlcc_make_mvlc did not return a "
+			    "valid MVLC instance for url='%s'.", str);
+		}
 		MVLCC_CALL(mvlcc_connect, (g_mvlc), fail);
 fail:;
 	}
