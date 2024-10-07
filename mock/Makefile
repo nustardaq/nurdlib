@@ -36,7 +36,7 @@ CHECK_TRLOII_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!
 
 .PHONY: all
 all: rio3find rio3smem rio4bma xpc326 xpc3310 rio2 universe rimfaxe \
-	caen mvlc \
+	caen mvlc_config mvlc_env \
 	etherbone pex \
 	tridi trlo \
 	drasi drasi_tridi drasi_trlo \
@@ -103,10 +103,17 @@ caen: caen/libCAENVME.a
 	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
 
-.PHONY: mvlc
-mvlc: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
+.PHONY: mvlc_config
+mvlc_config: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
 	$(QUIET) \
 	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlc/mvlcc-config.sh make -j8 -C ../ &&\
+	$(CHECK_MAP_PRE) MVLC $(CHECK_MAP_POST)
+
+.PHONY: mvlc_env
+mvlc_env: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
+	$(QUIET) \
+	BUILD_DIR_PREFIX=$@_ MVLCC_CFLAGS=-Imock/mvlc/include \
+	    MVLCC_LIBS="-Lmock/mvlc -lmvlcc -lmesytec-mvlc" make -j8 -C ../ &&\
 	$(CHECK_MAP_PRE) MVLC $(CHECK_MAP_POST)
 
 .PHONY: etherbone

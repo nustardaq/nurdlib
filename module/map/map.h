@@ -137,6 +137,8 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 /* NCONF_CFLAGS=$($MVLCC_CONFIG --cflags) */
 /* NCONF_LDFLAGS=$($MVLCC_CONFIG --ldflags) */
 /* NCONF_LIBS=$($MVLCC_CONFIG --libs) */
+/* NCONF_CFLAGS=$MVLCC_CFLAGS */
+/* NCONF_LIBS=$MVLCC_LIBS */
 #       if NCONFING_mMAP
 #		include <mvlcc_wrap.h>
 #	endif
