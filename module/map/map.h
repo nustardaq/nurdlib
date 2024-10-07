@@ -134,11 +134,8 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #	define BLT_DUMB
 #       define BLT_DST_DUMB
 #elif NCONF_mMAP_bMVLC
-/* N CONF_LIBS=$MVLCC_CONFIG --ldflags --libs */
-/* N CONF_CFLAGS=$MVLCC_CONFIG --cflags */
-/* NCONF_LDFLAGS=-lstdc++ */
-/* NCONF_LIBS=-L/net/home/kawecka/DAQ/mvlcc/bin/../build_cc_x86_64-linux-gnu_10 -L/net/home/kawecka/DAQ/mesytec-mvlc//build/ -lmvlcc -lmesytec-mvlc -Wl,-rpath=/net/home/kawecka/DAQ/mesytec-mvlc//build/ -lstdc++*/
-/* NCONF_CPPFLAGS= -I /net/home/kawecka/DAQ/mvlcc/bin/../include/*/
+/* NCONF_LIBS=$MVLCC_LIBS */
+/* NCONF_CFLAGS=$MVLCC_CFLAGS */
 #       if NCONFING_mMAP
 #		include <mvlcc_wrap.h>
 #	endif
