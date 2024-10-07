@@ -52,13 +52,19 @@ mvlcc_init(void)
 
 	mvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
 	str = config_get_string(mvlc_cfg, KW_LINK_IP);
-	
+
 	mvlc = mvlcc_make_mvlc(str);
+
+	if (!mvlcc_is_mvlc_valid(mvlc))
+	{
+		log_die(LOGL, "mvlcc_make_mvlc did not return a valid MVLC instance for url='%s'.", str);
+	}
+
 	ec = mvlcc_connect(mvlc);
 
 	if (ec)
 	{
-		log_die(LOGL, "mvlcc_init failed with error code %d.", ec);
+		log_die(LOGL, "mvlcc_init failed with error code %d (%s).", ec, mvlcc_strerror(ec));
 	}
 	LOGF(verbose)(LOGL, "mvlcc_init }");
 }
@@ -97,9 +103,9 @@ sicy_r32(struct Map *a_map, size_t a_ofs)
 {
 	uint32_t u32;
 	u32 = 0;
-	
+
 	ec = mvlcc_single_vme_read(mvlc, a_map->address + a_ofs, &u32, 32, 32);
-	
+
 	return u32;
 }
 
