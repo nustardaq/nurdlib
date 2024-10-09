@@ -51,6 +51,13 @@ static struct {
 	char	ip[32];
 } g_override = {""};
 
+struct MvlcPrivate
+{
+	enum Keyword mode;
+	int do_fifo;
+	int do_mblt_swap;
+};
+
 void
 mvlcc_init(void)
 {
@@ -225,5 +232,83 @@ map_mvlc_config_override(char const *a_ip)
 		strlcpy_(g_override.ip, a_ip, sizeof g_override.ip);
 	}
 }
+
+#ifdef BLT_MVLC
+
+MAP_FUNC_EMPTY(blt_deinit);
+
+void
+blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int a_do_mblt_swap)
+{
+	LOGF(verbose)(LOGL, "blt_map {");
+
+	mvlcc_init();
+
+	struct MvlcPrivate *private = NULL;
+	CALLOC(private, 1);
+
+	private->mode = a_mode;
+	private->do_fifo = a_do_fifo;
+	private->do_mblt_swap = a_do_mblt_swap;
+
+	a_map->private = private;
+
+	LOGF(verbose)(LOGL, "blt_map }");
+}
+
+static const uint8_t a32UserBlock   = 0x0B;
+static const uint8_t a32UserBlock64 = 0x08;
+
+int
+blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int a_berr_ok)
+{
+	(void) a_berr_ok; // no clue
+
+	struct MvlcPrivate *private = NULL;
+	size_t wordsOut = 0;
+	struct MvlccBlockReadParams params = {};
+	int ret = -1;
+
+	LOGF(spam)(LOGL, "blt_read(address=0x%08x, offset=0x%"PRIzx", "
+	    "target=%p, bytes=%"PRIz") {",
+	    a_map->address, a_ofs, a_target, a_bytes);
+
+	private = (struct MvlcPrivate *)a_map->private;
+
+	if (private->mode == KW_BLT)
+		params.amod = a32UserBlock;
+	else if (private->mode == KW_MBLT)
+		params.amod = a32UserBlock64;
+	else
+		log_die(LOGL, "BLT type %s not supported.",
+		    keyword_get_string(private->mode));
+
+	params.fifo = private->do_fifo;
+	params.swap = private->do_mblt_swap;
+
+	ret = mvlcc_vme_block_read(mvlc, a_map->address + a_ofs, a_target, a_bytes/sizeof(uint32_t),
+		&wordsOut, params);
+
+	if (ret)
+		return -ret;
+
+	ret = wordsOut * sizeof(uint32_t);
+
+	LOGF(spam)(LOGL, "blt_read }");
+	return ret;
+}
+
+void
+blt_unmap(struct Map *a_map)
+{
+	LOGF(verbose)(LOGL, "blt_unmap {");
+	FREE(a_map->private);
+	LOGF(verbose)(LOGL, "blt_unmap }");
+}
+
+MAP_FUNC_EMPTY(blt_setup);
+MAP_FUNC_EMPTY(blt_shutdown);
+
+#endif
 
 #endif

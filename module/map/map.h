@@ -144,7 +144,7 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #	endif
 #	define POKE_MVLC
 #       define SICY_MVLC
-#	define BLT_DUMB
+#	define BLT_MVLC
 #       define BLT_DST_DUMB
 #elif NCONF_mMAP_bRIMFAXE
 /* NCONF_LIBS=-lavb */
