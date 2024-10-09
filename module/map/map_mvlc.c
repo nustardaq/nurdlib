@@ -214,6 +214,9 @@ blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int a_do_mblt_swa
 
 	a_map->private = private;
 
+	LOGF(verbose)(LOGL, "  blt_map(address=0x%08x, a_mode=0x%x, a_do_fifo=%d, "
+	    "a_do_mblt_swap=%d)", a_map->address, a_mode, a_do_fifo, a_do_mblt_swap);
+
 	LOGF(verbose)(LOGL, "blt_map }");
 }
 
@@ -230,7 +233,7 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int a_
 	struct MvlccBlockReadParams params = {};
 	int ret = -1;
 
-	LOGF(spam)(LOGL, "blt_read(address=0x%08x, offset=0x%"PRIzx", "
+	LOGF(verbose)(LOGL, "blt_read(address=0x%08x, offset=0x%"PRIzx", "
 	    "target=%p, bytes=%"PRIz") {",
 	    a_map->address, a_ofs, a_target, a_bytes);
 
@@ -250,12 +253,18 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int a_
 	ret = mvlcc_vme_block_read(mvlc, a_map->address + a_ofs, a_target, a_bytes/sizeof(uint32_t),
 		&wordsOut, params);
 
+	LOGF(verbose)(LOGL, "blt_read(): ec=%d (%s), wordsOut=%"PRIz", a_mode=0x%x, do_fifo=%d, do_mblt_swap=%d",
+	    ret, mvlcc_strerror(ret), wordsOut, params.amod, private->do_fifo, private->do_mblt_swap);
+
 	if (ret)
+	{
+		LOGF(verbose)(LOGL, "blt_read }");
 		return -ret;
+	}
 
 	ret = wordsOut * sizeof(uint32_t);
 
-	LOGF(spam)(LOGL, "blt_read }");
+	LOGF(verbose)(LOGL, "blt_read }");
 	return ret;
 }
 
