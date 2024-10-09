@@ -58,8 +58,11 @@ mvlcc_init(void)
 	LOGF(verbose)(LOGL, "mvlcc_init {");
 
 	mvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
-	str = config_get_string(mvlc_cfg, KW_LINK_IP);
 
+	str = config_get_string(mvlc_cfg, KW_LOG_LEVEL);
+	mvlcc_set_global_log_level(str);
+
+	str = config_get_string(mvlc_cfg, KW_LINK_IP);
 	mvlc = mvlcc_make_mvlc(str);
 
 	if (!mvlcc_is_mvlc_valid(mvlc))
