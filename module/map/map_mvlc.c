@@ -68,14 +68,16 @@ mvlcc_init(void)
 		char const *str;
 
 		mvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
-		str = config_get_string(mvlc_cfg, KW_LINK_IP);
 
+		str = config_get_string(mvlc_cfg, KW_LOG_LEVEL);
+		mvlcc_set_global_log_level(str);
+
+		str = config_get_string(mvlc_cfg, KW_LINK_IP);
 		if ('\0' != g_override.ip[0]) {
 			LOGF(verbose)(LOGL, "Overriding ip='%s' by '%s'.",
 			    str, g_override.ip);
 			str = g_override.ip;
 		}
-
 		g_mvlc = mvlcc_make_mvlc(str);
 		if (!mvlcc_is_mvlc_valid(g_mvlc)) {
 			log_die(LOGL, "mvlcc_make_mvlc did not return a "
