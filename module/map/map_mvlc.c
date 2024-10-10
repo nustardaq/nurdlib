@@ -55,6 +55,12 @@ mvlcc_init(void)
 	char const *str;
 	struct ConfigBlock *mvlc_cfg;
 
+	if (mvlc)
+	{
+		LOGF(verbose)(LOGL, "mvlcc_init: already initialized");
+		return;
+	}
+
 	LOGF(verbose)(LOGL, "mvlcc_init {");
 
 	mvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
@@ -86,6 +92,7 @@ sicy_deinit()
 	if (NULL != mvlc) {
 		mvlcc_disconnect(mvlc);
 		mvlcc_free_mvlc(mvlc);
+		mvlc = NULL;
 	}
 	LOGF(verbose)(LOGL, "sicy_deinit }");
 }
@@ -180,6 +187,7 @@ UNMAP_FUNC_EMPTY(sicy);
 	default: \
 		log_die(LOGL, "Poking %u bits unsupported.", a_bits); \
 	} \
+	sicy_deinit(); \
 	LOGF(verbose)(LOGL, "poke_" #m " }"); \
 }
 
