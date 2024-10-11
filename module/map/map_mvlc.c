@@ -213,14 +213,13 @@ blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int a_do_mblt_swa
 
 	mvlcc_init();
 
-	struct MvlcPrivate *private = NULL;
-	CALLOC(private, 1);
+	struct MvlcPrivate *priv;
+	CALLOC(priv, 1);
+	priv->mode = a_mode;
+	priv->do_fifo = a_do_fifo;
+	priv->do_mblt_swap = a_do_mblt_swap;
 
-	private->mode = a_mode;
-	private->do_fifo = a_do_fifo;
-	private->do_mblt_swap = a_do_mblt_swap;
-
-	a_map->private = private;
+	a_map->private = priv;
 
 	LOGF(verbose)(LOGL, "  blt_map(address=0x%08x, a_mode=0x%x, a_do_fifo=%d, "
 	    "a_do_mblt_swap=%d)", a_map->address, a_mode, a_do_fifo, a_do_mblt_swap);
@@ -234,35 +233,35 @@ static const uint8_t a32UserBlock64 = 0x08;
 int
 blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int a_berr_ok)
 {
-	(void) a_berr_ok; // no clue
-
-	struct MvlcPrivate *private = NULL;
-	size_t wordsOut = 0;
-	struct MvlccBlockReadParams params = {};
-	int ret = -1;
-
+	(void) a_berr_ok; /* no clue */
 	LOGF(verbose)(LOGL, "blt_read(address=0x%08x, offset=0x%"PRIzx", "
 	    "target=%p, bytes=%"PRIz") {",
 	    a_map->address, a_ofs, a_target, a_bytes);
 
-	private = (struct MvlcPrivate *)a_map->private;
 
-	if (private->mode == KW_BLT)
+	struct MvlcPrivate *priv;
+	size_t wordsOut = 0;
+	struct MvlccBlockReadParams params = {};
+	int ret = -1;
+
+	priv = (struct MvlcPrivate *)a_map->private;
+
+	if (priv->mode == KW_BLT)
 		params.amod = a32UserBlock;
-	else if (private->mode == KW_MBLT)
+	else if (priv->mode == KW_MBLT)
 		params.amod = a32UserBlock64;
 	else
 		log_die(LOGL, "BLT type %s not supported.",
-		    keyword_get_string(private->mode));
+		    keyword_get_string(priv->mode));
 
-	params.fifo = private->do_fifo;
-	params.swap = private->do_mblt_swap;
+	params.fifo = priv->do_fifo;
+	params.swap = priv->do_mblt_swap;
 
 	ret = mvlcc_vme_block_read(mvlc, a_map->address + a_ofs, a_target, a_bytes/sizeof(uint32_t),
 		&wordsOut, params);
 
 	LOGF(verbose)(LOGL, "blt_read(): ec=%d (%s), wordsOut=%"PRIz", a_mode=0x%x, do_fifo=%d, do_mblt_swap=%d",
-	    ret, mvlcc_strerror(ret), wordsOut, params.amod, private->do_fifo, private->do_mblt_swap);
+	    ret, mvlcc_strerror(ret), wordsOut, params.amod, priv->do_fifo, priv->do_mblt_swap);
 
 	if (ret)
 	{

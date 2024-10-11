@@ -86,7 +86,6 @@ MKDIR=[ -d $(@D) ] || mkdir -p $(@D)
 CPPFLAGS_:=$(CPPFLAGS) -I$(BUILD_DIR)/replacements -I$(BUILD_DIR) \
 	-Iinclude -I.
 CFLAGS_:=$(CFLAGS) \
-	-ansi -pedantic-errors \
 	-Wall -Wcast-qual -Werror -Wformat=2 \
 	-Wmissing-prototypes -Wshadow -Wstrict-prototypes
 LDFLAGS_:=$(LDFLAGS)
