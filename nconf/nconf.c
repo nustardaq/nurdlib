@@ -67,7 +67,7 @@ static void		log_(char const *, ...);
 static void		merge_vars(struct VarArray *, struct VarArray const *,
     struct VarArray const *);
 static void		mkdirs(char const *);
-static char		*resolve_env(char const *);
+static void		resolve_env(struct VarArray *, char const *);
 static int		run(char **);
 static char		*strdup_(char const *);
 static char		*strndup_(char const *, size_t);
@@ -137,10 +137,11 @@ extract_args(struct VarArray *a_array, char const *a_str)
 {
 	char const *p, *start;
 
+	/* Extract words and resolve $.*. */
 	for (p = a_str;;) {
 		char *value;
-		char *resolved;
 		size_t len;
+		int is_shell;
 
 		for (; isspace(*p); ++p)
 			;
@@ -148,17 +149,27 @@ extract_args(struct VarArray *a_array, char const *a_str)
 		if (IS_END) {
 			return p;
 		}
-		for (start = p; !isspace(*p); ++p) {
+		/* TODO: Shell invocation could be recursive. */
+		is_shell = 0;
+		for (start = p; ; ++p) {
 			if (IS_END) {
 				break;
 			}
+			if (is_shell) {
+				if (')' == *p) {
+					is_shell = 0;
+				}
+			} else if ('$' == p[0] && '(' == p[1]) {
+				is_shell = 1;
+			} else if (isspace(*p)) {
+				break;
+			}
 		}
+#undef IS_END
 		len = p - start;
 		value = strndup_(start, len);
-		resolved = resolve_env(value);
+		resolve_env(a_array, value);
 		free(value);
-		var_array_grow(a_array, 10);
-		a_array->array[a_array->num++] = resolved;
 	}
 }
 
@@ -232,9 +243,12 @@ mkdirs(char const *a_path)
 	free(tmp);
 }
 
-/* Look up $ENVVAR or ${ENVVAR}. */
-char *
-resolve_env(char const *a_str)
+/*
+ * Look up $ENVVAR and ${ENVVAR}, $(...) is resolved recursively and run in a
+ * shell.
+ */
+void
+resolve_env(struct VarArray *a_array, char const *a_str)
 {
 	char *dst = NULL;
 	char const *p;
@@ -244,10 +258,23 @@ resolve_env(char const *a_str)
 		size_t i;
 
 		if ('$' == *p) {
-			char const *value;
 			size_t j;
+			int do_shell;
 
-			if ('{' == p[1]) {
+			do_shell = 0;
+			if ('(' == p[1]) {
+				p += 2;
+				for (i = 0; ')' != p[i]; ++i) {
+					if ('\0' == p[i]) {
+						/* TODO: FILE:LINE. */
+						fprintf(stderr, "Unclosed "
+						    "shell execution.\n");
+						exit(EXIT_FAILURE);
+					}
+				}
+				j = i + 1;
+				do_shell = 1;
+			} else if ('{' == p[1]) {
 				p += 2;
 				for (i = 0; '}' != p[i]; ++i) {
 					if ('\0' == p[i]) {
@@ -265,11 +292,40 @@ resolve_env(char const *a_str)
 				j = i;
 			}
 			tmp = strndup_(p, i);
-			value = getenv(tmp);
-			free(tmp);
-			if (NULL != value) {
-				append(&dst, value);
+			if (do_shell) {
+				/* Execute $(...). */
+				FILE *pip;
+
+				pip = popen(tmp, "r");
+				if (NULL == pip) {
+					err_("pipe(%s)", tmp);
+				}
+				for (;;) {
+					char line[80];
+					char *q;
+
+					if (NULL == fgets(line, sizeof line,
+					    pip)) {
+						break;
+					}
+					q = strchr(line, '\n');
+					if (NULL != q) {
+						*q = '\0';
+					}
+					append(&dst, line);
+				}
+				if (-1 == pclose(pip)) {
+					err_("pclose(%s)", tmp);
+				}
+			} else {
+				char const *value;
+
+				value = getenv(tmp);
+				if (NULL != value) {
+					append(&dst, value);
+				}
 			}
+			free(tmp);
 			p += j;
 		}
 		for (i = 0; '\0' != p[i] && '$' != p[i]; ++i) {
@@ -282,7 +338,30 @@ resolve_env(char const *a_str)
 		free(tmp);
 		p += i;
 	}
-	return dst;
+
+	/* Extract words. */
+	for (p = dst;;) {
+		char const *start;
+		char const *end;
+
+		for (; isspace(*p); ++p)
+			;
+		if ('\0' == *p) {
+			break;
+		}
+		start = p;
+		for (; !isspace(*p) && '\0' != *p; ++p)
+			;
+		end = p;
+		if (end != start) {
+			char *word;
+
+			word = strndup_(start, end - start);
+			var_array_grow(a_array, 10);
+			a_array->array[a_array->num++] = word;
+		}
+	}
+	free(dst);
 }
 
 int

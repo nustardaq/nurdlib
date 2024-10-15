@@ -35,7 +35,8 @@ CHECK_TRLOII_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_ec
 CHECK_TRLOII_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
 
 .PHONY: all
-all: rio3find rio3smem rio4bma xpc326 xpc3310 rio2 universe rimfaxe caen \
+all: rio3find rio3smem rio4bma xpc326 xpc3310 rio2 universe rimfaxe \
+	caen mvlc \
 	etherbone pex \
 	tridi trlo \
 	drasi drasi_tridi drasi_trlo \
@@ -101,6 +102,12 @@ caen: caen/libCAENVME.a
 	$(QUIET) \
 	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
+
+.PHONY: mvlc
+mvlc: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
+	$(QUIET) \
+	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlc/mvlcc-config.sh make -j8 -C ../ &&\
+	$(CHECK_MAP_PRE) MVLC $(CHECK_MAP_POST)
 
 .PHONY: etherbone
 etherbone: etherbone/lib/libetherbone.a
@@ -202,6 +209,7 @@ clean:
 	BUILD_DIR_PREFIX=universe_ make -C ../ clean
 	BUILD_DIR_PREFIX=rimfaxe_ make -C ../ clean
 	BUILD_DIR_PREFIX=caen_ make -C ../ clean
+	BUILD_DIR_PREFIX=mvlc_ make -C ../ clean
 	BUILD_DIR_PREFIX=etherbone_ make -C ../ clean
 	BUILD_DIR_PREFIX=pex_ make -C ../ clean
 	BUILD_DIR_PREFIX=tridi_ make -C ../ clean
@@ -235,6 +243,9 @@ universe/libvme.a: universe/vme.o
 rimfaxe/libavb.a: rimfaxe/avb.o
 
 caen/libCAENVME.a: caen/caen.o
+
+mvlc/libmesytec-mvlc.a: mvlc/mesytec-mvlc.o
+mvlc/libmvlcc.a: mvlc/mvlcc.o
 
 etherbone/lib/libetherbone.a: etherbone/lib.o
 
