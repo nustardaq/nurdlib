@@ -269,10 +269,8 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int a_
 		return -ret;
 	}
 
-	ret = wordsOut * sizeof(uint32_t);
-
 	LOGF(verbose)(LOGL, "blt_read }");
-	return ret;
+	return wordsOut;
 }
 
 void
