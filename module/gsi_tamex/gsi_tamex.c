@@ -31,7 +31,7 @@
 
 #define NAME "Gsi Tamex"
 
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 #	include <math.h>
 #	include <module/map/map.h>
 #	include <module/gsi_pex/offsets.h>
@@ -49,7 +49,9 @@
 #	define REG_TAM_CTRL      0x200000
 #	define REG_TAM_TRG_WIN   0x200004
 #	define REG_TAM_EN_CH     0x200008
-#	define REG_TAM_POLARITY  0x200010
+#	define REG_TAM_POLARITY  0x200010 /* TODO: 0x330018 tam3/4 */
+#	define REG_TAM_MISC1     0x330010 /* new for test pulse tamex4 */
+#	define REG_TAM_MISC2     0x330014 /* new for test pulse tamex4 */
 #	define REG_TAM_CLK_SEL   0x311000
 #	define REG_TAM_PADI_CTL  0x311014
 #	define REG_TAM_PADI_DAT  0x311018
@@ -96,7 +98,7 @@ struct Module *
 gsi_tamex_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 {
 	const enum Keyword c_model[] = {KW_TAMEX2, KW_TAMEX2_PADI,
-	    KW_TAMEX_PADI1, KW_TAMEX3};
+	    KW_TAMEX_PADI1, KW_TAMEX3, KW_TAMEX4};
 	struct GsiTamexModule *tam;
 	struct ConfigBlock *card_block;
 	size_t card_i;
@@ -243,6 +245,8 @@ gsi_tamex_init_fast(struct Crate *a_crate, struct Module *a_module)
 		struct ModuleGate card_gate;
 		struct GsiTamexModuleCard *card;
 		float pref, postf;
+		uint32_t test_pulse_channel_mask;
+		uint32_t test_pulse_delay, test_pulse_freq;
 		uint32_t pre, post;
 		uint32_t ref_ch0_0;
 		uint32_t ref_ch0_1;
@@ -302,15 +306,16 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 		is_thr_independent = config_get_boolean(card->config,
 		    KW_INDEPENDENT);
 		if (KW_TAMEX2_PADI == tam->model ||
-		    KW_TAMEX_PADI1 == tam->model) {
+		    KW_TAMEX_PADI1 == tam->model ||
+		    KW_TAMEX4 == tam->model) {
 			if (!padi_set_threshold(pex, sfp_i, card_i,
 			    threshold_array, is_thr_independent)) {
 				goto tamex_init_fast_done;
 			}
 		}
 		{
-			enum Keyword const c_kw[] = {KW_BACKPLANE,
-				KW_EXTERNAL, KW_INTERNAL};
+			enum Keyword const c_kw[] =
+			    {KW_BACKPLANE, KW_EXTERNAL, KW_INTERNAL};
 			clock_source = CONFIG_GET_KEYWORD(tam->module.config,
 			    KW_CLOCK_INPUT, c_kw);
 		}
@@ -324,7 +329,8 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 				log_die(LOGL, "Tamex2 does not support a "
 				    "backplane clock!");
 			}
-		} else if (KW_TAMEX_PADI1 == tam->model) {
+		} else if (KW_TAMEX_PADI1 == tam->model ||
+		    KW_TAMEX4 == tam->model) {
 			if (KW_EXTERNAL == clock_source) {
 				clock_i = CLK_SRC_EXT_TAMP1;
 			} else if (KW_INTERNAL == clock_source) {
@@ -405,7 +411,51 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 		 */
 		TAMEX_INIT_WR(REG_TAM_POLARITY, 0,
 		    tamex_init_fast_done);
+
+		test_pulse_channel_mask = config_get_bitmask(card->config,
+		    KW_TEST_PULSE_CHANNEL, 0, 31);
+
+		test_pulse_delay = config_get_int32(card->config,
+		    KW_TEST_PULSE_DELAY, CONFIG_UNIT_NS, 0, 120);
+		test_pulse_delay = (test_pulse_delay + 7) & 0xf8;
+		LOGF(verbose)(LOGL, "Test pulse delay=%d ns.",
+		    test_pulse_delay);
+		test_pulse_delay >>= 3;
+
+		test_pulse_freq = config_get_int32(card->config,
+		    KW_TEST_PULSE_FREQ, CONFIG_UNIT_KHZ, 30, 120);
+		if (30 != test_pulse_freq && 120 != test_pulse_freq) {
+			log_die(LOGL, "Test pulse frequency must be "
+			    "30 or 120 kHz, is %d kHz.", test_pulse_freq);
+		}
+		LOGF(verbose)(LOGL, "Test pulse freq=%d kHz.",
+		    test_pulse_freq);
+		test_pulse_delay /= 120;
+
+		if (KW_TAMEX4 == tam->model) {
+			uint32_t test_pulse_on;
+
+			if (0 == test_pulse_channel_mask) {
+				test_pulse_delay = 0;
+				test_pulse_freq = 0;
+				test_pulse_on = 0;
+			} else {
+				LOGF(info)(LOGL, "TEST PULSE ON.");
+				test_pulse_on = 1;
+			}
+			TAMEX_INIT_WR(REG_TAM_MISC1, test_pulse_channel_mask,
+			    tamex_init_fast_done);
+			TAMEX_INIT_WR(REG_TAM_MISC2,
+					((test_pulse_freq << 5)
+					 | (test_pulse_on << 4)
+					 | test_pulse_delay),
+					tamex_init_fast_done);
+		} else if (0 != test_pulse_channel_mask) {
+			log_die(LOGL,
+			    "Test pulse only supported for TAMEX4!");
+		}
 	}
+
 	tam->pex_buf_idx = pex->buf_idx;
 	ret = 1;
 tamex_init_fast_done:
@@ -453,6 +503,7 @@ gsi_tamex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 
 	(void)a_do_pedestals;
 	ret = 0;
+
 	LOGF(spam)(LOGL, NAME" parse {");
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
 	pex = crate_gsi_pex_get(a_crate);
