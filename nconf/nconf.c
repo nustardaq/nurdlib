@@ -296,6 +296,7 @@ resolve_env(struct VarArray *a_array, char const *a_str)
 				/* Execute $(...). */
 				FILE *pip;
 
+				append(&tmp, " 2>/dev/null");
 				pip = popen(tmp, "r");
 				if (NULL == pip) {
 					err_("pipe(%s)", tmp);
