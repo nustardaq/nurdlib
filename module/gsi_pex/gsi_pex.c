@@ -22,7 +22,7 @@
 
 #include <module/gsi_pex/internal.h>
 #include <nurdlib/gsi_pex.h>
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 #	include <sys/ioctl.h>
 #	include <assert.h>
 #	include <errno.h>
@@ -105,16 +105,20 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 {
 	void *buf = NULL;
 	uint8_t *bar0;
-	uintptr_t buf_ofs, buf_bytes;
+	uintptr_t buf_ofs_lo, buf_ofs_hi, buf_ofs, buf_bytes;
 	size_t i;
 	int fd;
 
 	LOGF(info)(LOGL, NAME" init(0x%x) {", a_pex->sfp_bitmask);
 
-	buf_ofs = config_get_int32(a_block, KW_BUF_OFS, CONFIG_UNIT_NONE, 0,
-	    0x70000000);
+	buf_ofs_lo = config_get_int32(a_block, KW_BUF_OFS, CONFIG_UNIT_NONE,
+	    0, 0x70000000);
+	buf_ofs_hi = config_get_int32(a_block, KW_BUF_OFS_HI,
+	    CONFIG_UNIT_NONE, 0, 0x70000000);
 	buf_bytes = config_get_int32(a_block, KW_BUF_BYTES, CONFIG_UNIT_NONE,
 	    0, 0x70000000);
+
+	buf_ofs = (uintptr_t)((uint64_t)buf_ofs_hi << 32 | buf_ofs_lo);
 
 	a_pex->is_parallel = config_get_boolean(a_block, KW_PEX_PARALLEL);
 	a_pex->token_mode = config_get_boolean(a_block, KW_PEX_WAIT) ? 2 : 0;

@@ -368,6 +368,10 @@ parse_int32(struct File *a_file, unsigned a_base)
 	for (i = 0;; ++i) {
 		int c;
 
+		if ((10 == a_base && 10 == i) ||
+		    (16 == a_base && 9 == i)) {
+			fatal(a_file, "Integer too large");
+		}
 		c = peekc(a_file, i);
 		if ((10 == a_base && !isdigit(c)) ||
 		    (16 == a_base && !isxdigit(c))) {

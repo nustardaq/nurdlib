@@ -921,7 +921,7 @@ void
 crate_gsi_pex_goc_read(uint8_t a_crate_i, uint8_t a_sfp, uint16_t a_card,
     uint32_t a_offset, uint16_t a_num, uint32_t *a_value)
 {
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 	struct Crate *crate;
 	struct GsiPex *pex;
 	unsigned i;
@@ -964,7 +964,7 @@ void
 crate_gsi_pex_goc_write(uint8_t a_crate_i, uint8_t a_sfp, uint16_t a_card,
     uint32_t a_offset, uint16_t a_num, uint32_t a_value)
 {
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 	struct Crate *crate;
 	struct GsiPex *pex;
 	uint32_t ofs;
