@@ -27,11 +27,16 @@ int
 mvlcc_connect(mvlcc_t a)
 {
 	(void)a;
-	mesytec_dummy();
 }
 
 void
 mvlcc_disconnect(mvlcc_t a)
+{
+	(void)a;
+}
+
+char const *
+mvlcc_strerror(int a)
 {
 	(void)a;
 }
