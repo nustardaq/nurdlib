@@ -409,7 +409,7 @@ map_caen_type_get(size_t a_i)
 }
 
 void
-map_caen_type_set(char const *a_type, char const *a_link_ip, int
+map_caen_config_override(char const *a_type, char const *a_link_ip, int
     a_link_number, int a_conet_node)
 {
 	if (NULL == a_type) {

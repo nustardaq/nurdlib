@@ -291,7 +291,16 @@ char const	*map_caen_type_get(size_t) FUNC_RETURNS;
  *  arg2: link, -1 will not override.
  *  arg3: conet, -1 will not override.
  */
-void		map_caen_type_set(char const *, char const *, int, int);
+void		map_caen_config_override(char const *, char const *, int,
+    int);
+#endif
+
+#ifdef SICY_MVLC
+/*
+ * Overrides MVLC config.
+ *  arg0: ip, NULL or empty will not override.
+ */
+void	map_mvlc_config_override(char const *);
 #endif
 
 #endif

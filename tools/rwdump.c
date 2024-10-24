@@ -80,6 +80,15 @@ usage(char const *a_fmt, ...)
 	fprintf(str, "  -c, --caen=type[,link/ip[,conet]]\n");
 	fprintf(str, "                              CAEN controller config "
 	    "override.\n");
+#else
+	fprintf(str, " (-c) CAEN controller support not built in.\n");
+#endif
+#ifdef SICY_MVLC
+	fprintf(str, "  -m, --mvlc=ip\n");
+	fprintf(str, "                              Mesytec MVLC config "
+	    "override.\n");
+#else
+	fprintf(str, " (-m) Mesytec MVLC support not built in.\n");
 #endif
 	fprintf(str, "  -l, --list                  List module types and "
 	    "exit.\n");
@@ -191,8 +200,17 @@ main(int argc, char *argv[])
 			    "link_number=%d conet_node=%d.",
 			    board_type, link_ip, link_number, conet_node);
 
-			map_caen_type_set(board_type, link_ip, link_number,
-			    conet_node);
+			map_caen_config_override(board_type, link_ip,
+			    link_number, conet_node);
+#endif
+#ifdef SICY_MVLC
+		} else if (arg_match(argc, argv, 'm', "mvlc", &str)) {
+			char link_ip[32] = "";
+
+			strlcpy_(link_ip, str, sizeof link_ip);
+			LOGF(info)(LOGL, "MVLC link_ip=%s.", link_ip);
+
+			map_mvlc_config_override(link_ip);
 #endif
 		} else if (arg_match(argc, argv, 'l', "list", NULL)) {
 			size_t i;

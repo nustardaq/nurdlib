@@ -47,6 +47,9 @@
 static void	mvlcc_init(void);
 
 static mvlcc_t g_mvlc;
+static struct {
+	char	ip[32];
+} g_override = {""};
 
 void
 mvlcc_init(void)
@@ -59,6 +62,12 @@ mvlcc_init(void)
 
 		mvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
 		str = config_get_string(mvlc_cfg, KW_LINK_IP);
+
+		if ('\0' != g_override.ip[0]) {
+			LOGF(verbose)(LOGL, "Overriding ip='%s' by '%s'.",
+			    str, g_override.ip);
+			str = g_override.ip;
+		}
 
 		g_mvlc = mvlcc_make_mvlc(str);
 		MVLCC_CALL(mvlcc_connect, (g_mvlc), fail);
@@ -202,5 +211,15 @@ poke_w(uint32_t a_address, uintptr_t a_ofs, unsigned a_bits, uint32_t a_value)
 POKE(w, a_value)
 
 #	endif
+
+void
+map_mvlc_config_override(char const *a_ip)
+{
+	if (NULL == a_ip) {
+		g_override.ip[0] = '\0';
+	} else {
+		strlcpy_(g_override.ip, a_ip, sizeof g_override.ip);
+	}
+}
 
 #endif
