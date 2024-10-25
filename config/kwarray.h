@@ -100,7 +100,7 @@ static char const g_keyword_array[][52] = {
 	"TAMEX2",
 	"TAMEX2_PADI",
 	"TAMEX3",
-	"TAMEX4",
+	"TAMEX4_PADI",
 	"TAMEX_PADI1",
 	"TRACES",
 	"TRIGGER",

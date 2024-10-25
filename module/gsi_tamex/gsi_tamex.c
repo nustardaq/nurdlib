@@ -98,7 +98,7 @@ struct Module *
 gsi_tamex_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 {
 	const enum Keyword c_model[] = {KW_TAMEX2, KW_TAMEX2_PADI,
-	    KW_TAMEX_PADI1, KW_TAMEX3, KW_TAMEX4};
+	    KW_TAMEX_PADI1, KW_TAMEX3, KW_TAMEX4_PADI};
 	struct GsiTamexModule *tam;
 	struct ConfigBlock *card_block;
 	size_t card_i;
@@ -307,7 +307,7 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 		    KW_INDEPENDENT);
 		if (KW_TAMEX2_PADI == tam->model ||
 		    KW_TAMEX_PADI1 == tam->model ||
-		    KW_TAMEX4 == tam->model) {
+		    KW_TAMEX4_PADI == tam->model) {
 			if (!padi_set_threshold(pex, sfp_i, card_i,
 			    threshold_array, is_thr_independent)) {
 				goto tamex_init_fast_done;
@@ -330,7 +330,7 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 				    "backplane clock!");
 			}
 		} else if (KW_TAMEX_PADI1 == tam->model ||
-		    KW_TAMEX4 == tam->model) {
+		    KW_TAMEX4_PADI == tam->model) {
 			if (KW_EXTERNAL == clock_source) {
 				clock_i = CLK_SRC_EXT_TAMP1;
 			} else if (KW_INTERNAL == clock_source) {
@@ -432,7 +432,7 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 		    test_pulse_freq);
 		test_pulse_delay /= 120;
 
-		if (KW_TAMEX4 == tam->model) {
+		if (KW_TAMEX4_PADI == tam->model) {
 			uint32_t test_pulse_on;
 
 			if (0 == test_pulse_channel_mask) {
@@ -452,7 +452,7 @@ LOGF(verbose)(LOGL, "TDC addr ofs=%u.", ofs);
 					tamex_init_fast_done);
 		} else if (0 != test_pulse_channel_mask) {
 			log_die(LOGL,
-			    "Test pulse only supported for TAMEX4!");
+			    "Test pulse only supported for TAMEX4_PADI!");
 		}
 	}
 
