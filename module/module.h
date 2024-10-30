@@ -284,6 +284,8 @@ struct ModuleListEntry {
 	char	const *auto_cfg;
 };
 
+void					module_access_pack(struct PackerList
+    *, struct Packer *, struct Module *, int);
 struct Module				*module_create(struct Crate *, enum
     Keyword, struct ConfigBlock *) FUNC_RETURNS;
 struct Module				*module_create_base(size_t, struct

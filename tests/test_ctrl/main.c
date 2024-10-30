@@ -31,6 +31,7 @@
 #include <nurdlib.h>
 #include <ctrl/ctrl.h>
 #include <module/map/map.h>
+#include <nurdlib/base.h>
 #include <util/err.h>
 
 #define SYSCALL(err, func, args) do { \
@@ -174,6 +175,22 @@ main(void)
 		}
 		ctrl_client_register_array_print(&register_array);
 		ctrl_client_register_array_free(&register_array);
+
+		{
+			struct CtrlModuleAccess access[] = {
+				{0x6004, 16, 0, 100},
+				{0x6004, 16, 1, 0}
+			};
+			printf("Client asking for mdpp16scp offsets... ");
+			if (ctrl_client_module_access_get(client, 0, 2, -1,
+			    access, LENGTH(access)) &&
+			    100 == access[1].value) {
+				printf("Success!\n");
+			} else {
+				printf("Failed.\n");
+				ok = 0;
+			}
+		}
 
 		printf("Client disconnecting.\n");
 		ctrl_client_free(&client);

@@ -40,7 +40,8 @@ enum CtrlCommand {
 	VL_CTRL_CONFIG,
 	VL_CTRL_CONFIG_DUMP,
 	VL_CTRL_GOC_READ,
-	VL_CTRL_GOC_WRITE
+	VL_CTRL_GOC_WRITE,
+	VL_CTRL_MODULE_ACCESS
 };
 struct CtrlClient;
 struct CtrlServer;
@@ -118,6 +119,12 @@ struct CtrlRegisterArray {
 		struct	CtrlRegisterCustom *reg_array;
 	} custom;
 };
+struct CtrlModuleAccess {
+	uint32_t	ofs;
+	unsigned	bits;
+	unsigned	do_read;
+	uint32_t	value;
+};
 struct DatagramArray {
 	size_t	num;
 	struct	UDPDatagram	*array;
@@ -144,6 +151,8 @@ void			ctrl_client_goc_write(struct CtrlClient *, uint8_t,
     uint8_t, uint16_t, uint32_t, uint16_t, uint32_t);
 int			ctrl_client_is_online(struct CtrlClient *)
 	FUNC_RETURNS;
+int			ctrl_client_module_access_get(struct CtrlClient *,
+    int, int, int, struct CtrlModuleAccess *, size_t) FUNC_RETURNS;
 void			ctrl_client_register_array_free(struct
     CtrlRegisterArray *);
 int			ctrl_client_register_array_get(struct CtrlClient *,

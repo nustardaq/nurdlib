@@ -885,30 +885,27 @@ caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
 
 	skip = 0;
 
-#define READ(NAME) do {\
+#define READ(NAME) \
+	do {\
+		PACKER_LIST_PACK(*a_list, 16, MICRO_READ_##NAME);\
 		micro_write(&module_list, MICRO_READ_##NAME, &skip);\
 		u16 = micro_read(a_v1n90, &skip);\
-		packer = packer_list_get(a_list, 16); \
-		pack16(packer, MICRO_READ_##NAME);\
-		packer = packer_list_get(a_list, 16); \
-		pack16(packer, u16);\
+		PACKER_LIST_PACK(*a_list, 16, u16); \
 		++num; \
 	} while (0)
 
 	packer = packer_list_get(a_list, 8);
-	nump = &((uint8_t *)packer->data)[packer->ofs];
+	nump = PACKER_GET_PTR(*packer);
 	num = 0;
-	pack8(packer, 0);
+	PACK(*packer, 8, num, pack_fail);
 
 	READ(ACQ_MOD);
 
+	PACKER_LIST_PACK(*a_list, 16, MICRO_READ_TRG_CONF);
+	micro_write(&module_list, MICRO_READ_TRG_CONF, &skip);
 	for (i = 0; i < 5; ++i) {
-		micro_write(&module_list, MICRO_READ_TRG_CONF, &skip);
 		u16 = micro_read(a_v1n90, &skip);
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, MICRO_READ_TRG_CONF);
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, u16);
+		PACKER_LIST_PACK(*a_list, 16, u16);
 		++num;
 	}
 
@@ -920,13 +917,11 @@ caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
 	READ(ERROR_TYPES);
 	READ(FIFO_SIZE);
 
+	PACKER_LIST_PACK(*a_list, 16, MICRO_READ_EN_CHANNEL);
+	micro_write(&module_list, MICRO_READ_EN_CHANNEL, &skip);
 	for (i = 0; i < a_ch_word_num; ++i) {
-		micro_write(&module_list, MICRO_READ_EN_CHANNEL, &skip);
 		u16 = micro_read(a_v1n90, &skip);
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, MICRO_READ_EN_CHANNEL);
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, u16);
+		PACKER_LIST_PACK(*a_list, 16, u16);
 		++num;
 	}
 
@@ -934,5 +929,6 @@ caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
 
 	*nump = num;
 
+pack_fail:
 	LOGF(debug)(LOGL, NAME" register_list_pack }");
 }

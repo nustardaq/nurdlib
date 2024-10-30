@@ -1033,15 +1033,16 @@ crate_info_pack(struct Packer *a_packer, int a_crate_i)
 	LOGF(debug)(LOGL, "crate_info_pack(cr=%d) {", a_crate_i);
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
-		pack16(a_packer, 0xffff);
-		PACK_LOC(a_packer);
+		PACK(*a_packer, 16, -1, fail);
+		PACK_LOC(*a_packer, fail);
 	} else {
-		pack16(a_packer, crate->event_max_override);
-		pack8(a_packer, crate->dt_release.do_it);
-		pack16(a_packer, crate->acvt.ns);
-		pack32(a_packer, crate->shadow.buf_bytes);
-		pack32(a_packer, crate->shadow.max_bytes);
+		PACK(*a_packer, 16, crate->event_max_override, fail);
+		PACK(*a_packer,  8, crate->dt_release.do_it, fail);
+		PACK(*a_packer, 16, crate->acvt.ns, fail);
+		PACK(*a_packer, 32, crate->shadow.buf_bytes, fail);
+		PACK(*a_packer, 32, crate->shadow.max_bytes, fail);
 	}
+fail:
 	LOGF(debug)(LOGL, "crate_info_pack }");
 }
 
@@ -1249,6 +1250,34 @@ crate_memtest(struct Crate const *a_crate, int a_chunks)
 	LOGF(info)(LOGL, "crate_memtest(%s) }", a_crate->name);
 }
 
+void
+crate_module_access_pack(uint8_t a_crate_i, uint8_t a_module_j, int
+    a_submodule_k, struct Packer *a_packer, struct PackerList *a_list)
+{
+	struct Crate *crate;
+	struct Module *module;
+
+	LOGF(debug)(LOGL, "crate_module_access_pack(cr=%u,mod=%u,sub=%u) {",
+	    a_crate_i, a_module_j, a_submodule_k);
+	crate = get_crate(a_crate_i);
+	if (NULL == crate) {
+		PACKER_LIST_PACK(*a_list, 16, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
+		goto done;
+	}
+	module = get_module(crate, a_module_j);
+	if (NULL == module) {
+		PACKER_LIST_PACK(*a_list, 16, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
+		goto done;
+	}
+	THREAD_MUTEX_LOCK(&crate->mutex);
+	module_access_pack(a_list, a_packer, module, a_submodule_k);
+	thread_mutex_unlock(&crate->mutex);
+done:
+	LOGF(debug)(LOGL, "crate_module_access_pack }");
+}
+
 struct Module *
 crate_module_find(struct Crate const *a_crate, enum Keyword a_module_type,
     unsigned a_idx)
@@ -1288,7 +1317,6 @@ void
 crate_pack(struct PackerList *a_list)
 {
 	struct Crate const *crate;
-	struct Packer *packer;
 	uint8_t crate_num;
 
 	LOGF(debug)(LOGL, "crate_pack {");
@@ -1298,16 +1326,13 @@ crate_pack(struct PackerList *a_list)
 		++crate_num;
 	}
 	LOGF(debug)(LOGL, "Number of crates=%u.", crate_num);
-	packer = packer_list_get(a_list, 8);
-	pack8(packer, crate_num);
+	PACKER_LIST_PACK(*a_list, 8, crate_num);
 	TAILQ_FOREACH(crate, &g_crate_list, next) {
 		struct Module *module;
 		uint8_t num;
 
 		LOGF(debug)(LOGL, "Crate=%s.", crate->name);
-		packer = packer_list_get(a_list, 8 * (strlen(crate->name) +
-		    1));
-		pack_str(packer, crate->name);
+		PACKER_LIST_PACK_STR(*a_list, crate->name);
 		/*
 		 * We'd like to show barriers, so 'module_num' is not enough.
 		 */
@@ -1316,15 +1341,12 @@ crate_pack(struct PackerList *a_list)
 			++num;
 		}
 		LOGF(debug)(LOGL, "Number of (virtual) modules=%u.", num);
-		packer = packer_list_get(a_list, 8);
-		pack8(packer, num);
+		PACKER_LIST_PACK(*a_list, 8, num);
 		TAILQ_FOREACH(module, &crate->module_list, next) {
-			packer = packer_list_get(a_list, 16);
-			pack16(packer, module->type);
+			PACKER_LIST_PACK(*a_list, 16, module->type);
 			if (NULL == module->props ||
 			    NULL == module->props->sub_module_pack) {
-				packer = packer_list_get(a_list, 8);
-				pack8(packer, 0);
+				PACKER_LIST_PACK(*a_list, 8, 0);
 			} else {
 				module->props->sub_module_pack(module,
 				    a_list);
@@ -1752,22 +1774,19 @@ crate_register_array_pack(struct PackerList *a_list, int a_crate_i, int
 {
 	struct Crate *crate;
 	struct Module *module;
-	struct Packer *packer;
 
 	LOGF(debug)(LOGL, "crate_register_array_pack(cr=%d,mod=%d,sub=%d) {",
 	    a_crate_i, a_module_j, a_submodule_k);
 	crate = get_crate(a_crate_i);
 	if (NULL == crate) {
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, -1);
-		PACK_LOC(packer);
+		PACKER_LIST_PACK(*a_list, 16, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
 		goto crate_register_array_pack_done;
 	}
 	module = get_module(crate, a_module_j);
 	if (NULL == module) {
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, -1);
-		PACK_LOC(packer);
+		PACKER_LIST_PACK(*a_list, 16, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
 		goto crate_register_array_pack_done;
 	}
 	THREAD_MUTEX_LOCK(&crate->mutex);

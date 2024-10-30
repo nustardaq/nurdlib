@@ -39,11 +39,41 @@
 		(packer).bytes = bytes_;\
 		(packer).ofs = 0;\
 	} while (0)
-#define PACK_LOC(packer) \
+#define PACK(packer, bits, value, label) \
 	do { \
-		pack_str(packer, __FILE__); \
-		pack32(packer, __LINE__); \
+		if (!pack##bits(&packer, value)) { \
+			goto label; \
+		} \
 	} while (0)
+#define PACK_LOC(packer, label) \
+	do { \
+		if (!pack_str(&packer, __FILE__) || \
+		    !pack32(&packer, __LINE__)) { \
+			goto label; \
+		} \
+	} while (0)
+#define PACKER_LIST_PACK(list, bits, value) \
+	do { \
+		struct Packer *packer_; \
+		packer_ = packer_list_get(&list, bits); \
+		if (!pack##bits(packer_, value)) { \
+			log_die(LOGL, "Shouldn't happen!"); \
+		} \
+	} while (0)
+#define PACKER_LIST_PACK_STR(list, str) \
+	do { \
+		struct Packer *packer_; \
+		packer_ = packer_list_get(&list, (strlen(str) + 1) * 8); \
+		if (!pack_str(packer_, str)) { \
+			log_die(LOGL, "Shouldn't happen!"); \
+		} \
+	} while (0)
+#define PACKER_LIST_PACK_LOC(list) \
+	do { \
+		PACKER_LIST_PACK_STR(list, __FILE__); \
+		PACKER_LIST_PACK(list, 16, __LINE__); \
+	} while (0)
+#define PACKER_GET_PTR(packer) ((uint8_t *)(packer).data + (packer).ofs)
 
 struct Packer {
 	void	*data;
@@ -58,11 +88,11 @@ struct PackerNode {
 };
 
 int		pack_is_empty(struct Packer const *) FUNC_RETURNS;
-void		pack_str(struct Packer *, char const *);
-void		pack8(struct Packer *, uint8_t);
-void		pack16(struct Packer *, uint16_t);
-void		pack32(struct Packer *, uint32_t);
-void		pack64(struct Packer *, uint64_t);
+int		pack_str(struct Packer *, char const *) FUNC_RETURNS;
+int		pack8(struct Packer *, uint8_t) FUNC_RETURNS;
+int		pack16(struct Packer *, uint16_t) FUNC_RETURNS;
+int		pack32(struct Packer *, uint32_t) FUNC_RETURNS;
+int		pack64(struct Packer *, uint64_t) FUNC_RETURNS;
 void		packer_list_free(struct PackerList *);
 struct Packer	*packer_list_get(struct PackerList *, unsigned) FUNC_RETURNS;
 char		*unpack_strdup(struct Packer *) FUNC_RETURNS;

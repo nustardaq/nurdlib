@@ -53,7 +53,7 @@ static char *g_host;
 static uint16_t g_port;
 static struct CtrlClient *g_client;
 
-/* If not already connected, try to connect to running nurdlib. */
+/* If not already 'connected' (udp...), connect to running nurdlib. */
 void
 conn(void)
 {
@@ -126,63 +126,50 @@ usage(char const *a_fmt, ...)
 		str = stderr;
 		exit_code = EXIT_FAILURE;
 	}
-	fprintf(str,
-"Usage: %s <options>\n", g_argv0);
-	fprintf(str,
-"  -h, --help                        Print this help and exit.\n");
-	fprintf(str,
-"  -v, --verbosity=log-level         Log-level, number or name:\n");
-	fprintf(str,
-"                                     0 = info\n");
-	fprintf(str,
-"                                     1 = verbose\n");
-	fprintf(str,
-"                                     2 = debug\n");
-	fprintf(str,
-"                                     3 = spam\n");
-	fprintf(str,
-"  -a, --addr=host                   Talk to given host, default=localhost:"
-STRINGIFY_VALUE(CTRL_PORT)".\n");
-	fprintf(str,
-"                                    ex: -a localhost, -a 1.1.1.1:11111.\n");
-	fprintf(str,
-"  -D, --config-dump                 Dump config for host.\n");
-	fprintf(str,
-"  -s, --spec=(print|i[,j[,k]])  'print' = print a tree of crates\n"
-"                                    and modules much smaller than \n"
-"                                    the full config dump.\n");
-	fprintf(str,
-"                                    i = crate index.\n");
-	fprintf(str,
-"                                    j = module index.\n");
-	fprintf(str,
-"                                    k = sub-module index.\n");
-	fprintf(str,
-"  -C, --crate-info                  Show various fun info.\n");
-	fprintf(str,
-"  -c, --config str                  Write config to module given with -s.\n");
-	fprintf(str,
-"                                    '-' to read from stdin.\n");
-	fprintf(str,
-"                                    Limited to 256 bytes because reasons.\n");
-	fprintf(str,
-"  -d, --register-dump               Register dump for module given with -s.\n");
-	fprintf(str,
-"  -g, --goc=r,sfp,card,ofs[,num]\n");
-	fprintf(str,
-"           =w,sfp,card,ofs[,value[,num]]\n");
-	fprintf(str,
-"                                    Reads/writes via GSI Pexor/Kinpex\n");
-	fprintf(str,
-"                                    like 'gosipcmd', e.g.:\n");
-	fprintf(str,
-"                                    r,0,0,0x8\n");
-	fprintf(str,
-"                                    r,0,0,0x8,32\n");
-	fprintf(str,
-"                                    w,0,0,0x8,1\n");
-	fprintf(str,
-"                                    w,0,0,0x8,1,32\n");
+#define P fprintf(str,
+#define Q "\n");
+P"Usage: %s <options>%s", g_argv0, Q
+P"  -h, --help                    Print this help and exit."Q
+P"  -v, --verbosity=log-level     Log-level, number or name:"Q
+P"                                 0 = info"Q
+P"                                 1 = verbose"Q
+P"                                 2 = debug"Q
+P"                                 3 = spam"Q
+P"  -a, --addr=host               Talk to given host, default=localhost:"
+    STRINGIFY_VALUE(CTRL_DEFAULT_PORT)"."Q
+P"                                Example: -a localhost, -a 1.1.1.1:11111."Q
+P"  -D, --config-dump             Dump config for host."Q
+P"  -s, --spec=(print|i[,j[,k]])  'print' = print crate tree with modules,"Q
+P"                                much smaller than the full config dump,"Q
+P"                                used to index modules for other commands."Q
+P"                                i = crate index."Q
+P"                                j = module index."Q
+P"                                k = sub-module index."Q
+P"                                Examples:"Q
+P"                                -s print"Q
+P"                                -s 0,1"Q
+P"  -C, --crate-info              Show various fun info."Q
+P"  -c, --config str              Write config to module given with -s."Q
+P"                                '-' to read from stdin."Q
+P"                                Limited to 256 bytes because reasons."Q
+P"  -d, --register-dump           Register dump for module given by -s."Q
+P"  -g, --goc=r,sfp,card,ofs[,num]"Q
+P"           =w,sfp,card,ofs[,value[,num]]"Q
+P"                                Reads/writes via GSI Pexor/Kinpex"Q
+P"                                like 'gosipcmd'. Examples:"Q
+P"                                -g r,0,0,0x8"Q
+P"                                -g r,0,0,0x8,32"Q
+P"                                -g w,0,0,0x8,1"Q
+P"                                -g w,0,0,0x8,1,32"Q
+P"  -m, --module=ofs0:bits0[:val0][,ofsN:bitsN[:valN]...]"Q
+P"                                Reads/writes register in module given by"Q
+P"                                -s. Only offset+bits pairs listed for a"Q
+P"                                module will be accessed. Examples:"Q
+P"                                -m 0x1000:16"Q
+P"                                -m 0x1000:32:1"Q
+P"                                -m 0x1000:16,0x1008:32:1"Q
+#undef P
+#undef Q
 	exit(exit_code);
 }
 
@@ -209,7 +196,6 @@ main(int argc, char **argv)
 	submodule_k = -1;
 	while (argc > g_argind) {
 		char const *str;
-		char *end;
 
 		if (arg_match(argc, argv, 'h', "help", NULL)) {
 			usage("null");
@@ -235,6 +221,7 @@ main(int argc, char **argv)
 			log_level_push(l);
 		} else if (arg_match(argc, argv, 'a', "addr", &str)) {
 			char const *p;
+			char *end;
 
 			p = strchr(str, ':');
 			FREE(g_host);
@@ -276,6 +263,7 @@ main(int argc, char **argv)
 				}
 			} else {
 				char const *p;
+				char *end;
 				unsigned i;
 
 				crate_i = -1;
@@ -412,6 +400,7 @@ main(int argc, char **argv)
 			p += 2;
 			for (argn = 0;;) {
 				char buf[32];
+				char *end;
 				char const *q;
 				size_t len;
 
@@ -448,7 +437,7 @@ main(int argc, char **argv)
 					usage("Too few goc arguments.");
 				}
 				LOGF(verbose)(LOGL, "goc read SFP=%u, "
-				    "card=%u, offset=0x%x, num=%u.\n",
+				    "card=%u, offset=0x%x, num=%u.",
 				    args[0], args[1], args[2], num);
 				MALLOC(reads, num);
 				conn();
@@ -472,11 +461,57 @@ main(int argc, char **argv)
 				}
 				LOGF(verbose)(LOGL, "goc write SFP=%u, "
 				    "card=%u, offset=0x%x, value=0x%x, "
-				    "num=%u.\n",
+				    "num=%u.",
 				    args[0], args[1], args[2], args[3], num);
 				conn();
 				ctrl_client_goc_write(g_client, crate_i,
 				    args[0], args[1], args[2], num, args[3]);
+			}
+		} else if (arg_match(argc, argv, 'm', "module", &str)) {
+			struct CtrlModuleAccess arr[256];
+			size_t arrn;
+			char const *p;
+
+			LOGF(verbose)(LOGL, "Accessing module.");
+			p = str;
+			for (arrn = 0; '\0' != *p; ++arrn) {
+				char *end;
+
+				arr[arrn].ofs = strtol(p, &end, 0);
+				if (':' != *end) {
+					usage("Missing bits.");
+				}
+				p = end + 1;
+				arr[arrn].bits = strtol(p, &end, 0);
+				if (':' == *end) {
+					p = end + 1;
+					arr[arrn].value = strtol(p, &end, 0);
+					arr[arrn].do_read = 0;
+				} else {
+					arr[arrn].do_read = 1;
+				}
+				if ('\0' == *end) {
+					p = end;
+				} else if (',' == *end) {
+					p = end + 1;
+				} else {
+					usage("Invalid access argument.");
+				}
+			}
+			LOGF(verbose)(LOGL, "Module access.");
+			conn();
+			if (ctrl_client_module_access_get(g_client, crate_i,
+			    module_j, submodule_k, arr, arrn)) {
+				size_t i;
+
+				for (i = 0; i < arrn; ++i) {
+					if (arr[i].do_read) {
+						printf("0x%08x:%u = 0x%08x\n",
+						    arr[i].ofs,
+						    arr[i].bits,
+						    arr[i].value);
+					}
+				}
 			}
 		} else if (argc > g_argind) {
 			usage("Weird argument \"%s\".", argv[g_argind]);

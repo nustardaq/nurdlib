@@ -591,14 +591,14 @@ NTEST(MergeConfig)
 	/* Setting a non-existing config (adding) is not ok! */
 	PACKER_CREATE_STATIC(packer, buf);
 	/* The packed format is implemented in config/config.c. */
-	pack8(&packer, 1);                     /* Num configs. */
-	pack8(&packer, CONFIG_CONFIG);         /* Type = config. */
-	pack16(&packer, KW_CLOCK_INPUT);       /* Name. */
-	pack8(&packer, 1);                     /* Num scalars. */
-	pack8(&packer, CONFIG_SCALAR_INTEGER); /* Scalar type. */
-	pack16(&packer, 0);                    /* Vector index. */
-	pack32(&packer, 2);                    /* Value. */
-	pack8(&packer, CONFIG_UNIT_NONE->idx); /* Unit. */
+	NTRY_BOOL(pack8(&packer, 1));                     /* Num configs. */
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));         /* Type = config. */
+	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));       /* Name. */
+	NTRY_BOOL(pack8(&packer, 1));                     /* Num scalars. */
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER)); /* Scalar type. */
+	NTRY_BOOL(pack16(&packer, 0));                    /* Vector index. */
+	NTRY_BOOL(pack32(&packer, 2));                    /* Value. */
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx)); /* Unit. */
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
 	NTRY_BOOL(!config_merge(gate, &packer));
@@ -611,13 +611,13 @@ NTEST(MergeConfig)
 
 	/* Corrupt packer data is also not ok! */
 	PACKER_CREATE_STATIC(packer, buf);
-	pack8(&packer, 1);
-	pack8(&packer, CONFIG_CONFIG);
-	pack16(&packer, KW_WIDTH);
-	pack8(&packer, 1);
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 2);
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
+	NTRY_BOOL(pack16(&packer, KW_WIDTH));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 2));
 	/* Leave out the unit. */
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
@@ -631,21 +631,21 @@ NTEST(MergeConfig)
 
 	/* The torture continues, double config (copy-paste?) also not ok! */
 	PACKER_CREATE_STATIC(packer, buf);
-	pack8(&packer, 2);
-	pack8(&packer, CONFIG_CONFIG);
-	pack16(&packer, KW_CLOCK_INPUT);
-	pack8(&packer, 1);
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 2);
-	pack8(&packer, CONFIG_UNIT_NONE->idx);
-	pack8(&packer, CONFIG_CONFIG);
-	pack16(&packer, KW_CLOCK_INPUT);
-	pack8(&packer, 1);
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 3);
-	pack8(&packer, CONFIG_UNIT_NONE->idx);
+	NTRY_BOOL(pack8(&packer, 2));
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
+	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 2));
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
+	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 3));
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
 	NTRY_BOOL(!config_merge(gate, &packer));
@@ -658,15 +658,15 @@ NTEST(MergeConfig)
 
 	/* Finally, one nice-guy merge. */
 	PACKER_CREATE_STATIC(packer, buf);
-	pack8(&packer, 1);
-	pack8(&packer, CONFIG_CONFIG);
-	pack16(&packer, KW_WIDTH);
-	pack8(&packer, 1);
-	pack8(&packer, 0); /* Raw RLE. */
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 2);
-	pack8(&packer, CONFIG_UNIT_NONE->idx);
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
+	NTRY_BOOL(pack16(&packer, KW_WIDTH));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 2));
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
 	NTRY_BOOL(config_merge(gate, &packer));
@@ -679,15 +679,15 @@ NTEST(MergeConfig)
 
 	/* And another one, global. */
 	PACKER_CREATE_STATIC(packer, buf);
-	pack8(&packer, 1);
-	pack8(&packer, CONFIG_CONFIG);
-	pack16(&packer, KW_CLOCK_INPUT);
-	pack8(&packer, 1);
-	pack8(&packer, 0); /* Raw RLE. */
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 2);
-	pack8(&packer, CONFIG_UNIT_NONE->idx);
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
+	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 2));
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
 	NTRY_BOOL(config_merge(NULL, &packer));
@@ -699,27 +699,27 @@ NTEST(MergeConfig)
 
 	/* And one with a block. */
 	PACKER_CREATE_STATIC(packer, buf);
-	pack8(&packer, 2); /* clock_input + GATE = 2 items. */
-	pack8(&packer, CONFIG_CONFIG); /* 0 = clock_input. */
-	pack16(&packer, KW_CLOCK_INPUT);
-	pack8(&packer, 1);
-	pack8(&packer, 0); /* Raw RLE. */
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 3);
-	pack8(&packer, CONFIG_UNIT_NONE->idx);
-	pack8(&packer, CONFIG_BLOCK); /* 1 = GATE. */
-	pack16(&packer, KW_GATE);
-	pack8(&packer, 0);
-	pack8(&packer, 1); /* width = 1 item. */
-	pack8(&packer, CONFIG_CONFIG); /* 0 = width. */
-	pack16(&packer, KW_WIDTH);
-	pack8(&packer, 1);
-	pack8(&packer, 0); /* Raw RLE. */
-	pack8(&packer, CONFIG_SCALAR_INTEGER);
-	pack16(&packer, 0);
-	pack32(&packer, 3);
-	pack8(&packer, CONFIG_UNIT_NONE->idx);
+	NTRY_BOOL(pack8(&packer, 2)); /* clock_input + GATE = 2 items. */
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG)); /* 0 = clock_input. */
+	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 3));
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
+	NTRY_BOOL(pack8(&packer, CONFIG_BLOCK)); /* 1 = GATE. */
+	NTRY_BOOL(pack16(&packer, KW_GATE));
+	NTRY_BOOL(pack8(&packer, 0));
+	NTRY_BOOL(pack8(&packer, 1)); /* width = 1 item. */
+	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG)); /* 0 = width. */
+	NTRY_BOOL(pack16(&packer, KW_WIDTH));
+	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack32(&packer, 3));
+	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
 	NTRY_BOOL(config_merge(NULL, &packer));

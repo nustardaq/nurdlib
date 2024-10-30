@@ -36,7 +36,7 @@ NTEST(PackUnpack8)
 
 	memset(buf, 0xff, sizeof buf);
 	PACKER_CREATE_STATIC(packer, buf);
-	pack8(&packer, 0x12);
+	NTRY_BOOL(pack8(&packer, 0x12));
 	NTRY_PTR(packer.data, ==, buf);
 	NTRY_I(packer.bytes, ==, 1);
 	NTRY_I(packer.ofs, ==, 1);
@@ -58,7 +58,7 @@ NTEST(PackUnpack16)
 
 	memset(buf, 0xff, sizeof buf);
 	PACKER_CREATE_STATIC(packer, buf);
-	pack16(&packer, 0x1234);
+	NTRY_BOOL(pack16(&packer, 0x1234));
 	NTRY_PTR(packer.data, ==, buf);
 	NTRY_I(packer.bytes, ==, 2);
 	NTRY_I(packer.ofs, ==, 2);
@@ -81,7 +81,7 @@ NTEST(PackUnpack32)
 
 	memset(buf, 0xff, sizeof buf);
 	PACKER_CREATE_STATIC(packer, buf);
-	pack32(&packer, 0x12345678);
+	NTRY_BOOL(pack32(&packer, 0x12345678));
 	NTRY_PTR(packer.data, ==, buf);
 	NTRY_I(packer.bytes, ==, 4);
 	NTRY_I(packer.ofs, ==, 4);
@@ -106,7 +106,7 @@ NTEST(PackUnpack64)
 
 	memset(buf, 0xff, sizeof buf);
 	PACKER_CREATE_STATIC(packer, buf);
-	pack64(&packer, 1);
+	NTRY_BOOL(pack64(&packer, 1));
 	NTRY_PTR(packer.data, ==, buf);
 	NTRY_I(packer.bytes, ==, 8);
 	NTRY_I(packer.ofs, ==, 8);
@@ -114,7 +114,8 @@ NTEST(PackUnpack64)
 	NTRY_C(0x01, ==, buf[7]);
 
 	PACKER_CREATE_STATIC(packer, buf);
-	pack64(&packer, ((uint64_t)0x12345678 << 32) | (uint64_t)(0x9abcdef0));
+	NTRY_BOOL(pack64(&packer,
+	    ((uint64_t)0x12345678 << 32) | (uint64_t)(0x9abcdef0)));
 	NTRY_C(0x12, ==, buf[0]);
 	NTRY_C(0x34, ==, buf[1]);
 	NTRY_C(0x56, ==, buf[2]);
@@ -141,7 +142,7 @@ NTEST(PackUnpackString)
 
 	memset(buf, 0xff, sizeof buf);
 	PACKER_CREATE_STATIC(packer, buf);
-	pack_str(&packer, "123");
+	NTRY_BOOL(pack_str(&packer, "123"));
 	NTRY_PTR(packer.data, ==, buf);
 	NTRY_I(packer.bytes, ==, 4);
 	NTRY_I(packer.ofs, ==, 4);
@@ -182,21 +183,21 @@ NTEST(PackUnpackTuttiFrutti)
 		if (f < 0.25) {
 			u32 &= 0xff;
 			cmd_array[i].bit_num = 8;
-			pack8(&packer, u32);
+			NTRY_BOOL(pack8(&packer, u32));
 		} else if (f < 0.5) {
 			u32 &= 0xffff;
 			cmd_array[i].bit_num = 16;
-			pack16(&packer, u32);
+			NTRY_BOOL(pack16(&packer, u32));
 		} else if (f < 0.75) {
 			cmd_array[i].bit_num = 32;
-			pack32(&packer, u32);
+			NTRY_BOOL(pack32(&packer, u32));
 		} else {
 			char str[16];
 
 			cmd_array[i].bit_num = 0;
 			u32 %= 1000;
 			snprintf_(str, sizeof str, "%d", u32);
-			pack_str(&packer, str);
+			NTRY_BOOL(pack_str(&packer, str));
 		}
 		cmd_array[i].value = u32;
 	}
@@ -253,33 +254,33 @@ NTEST(PackLimit)
 	struct Packer packer;
 	char buf[10];
 
-	PACKER_CREATE(packer, buf, 0); NTRY_SIGNAL(pack8(&packer, 0));
-	PACKER_CREATE(packer, buf, 0); NTRY_SIGNAL(pack16(&packer, 0));
-	PACKER_CREATE(packer, buf, 0); NTRY_SIGNAL(pack32(&packer, 0));
-	PACKER_CREATE(packer, buf, 0); NTRY_SIGNAL(pack_str(&packer, "a"));
+	PACKER_CREATE(packer, buf, 0); NTRY_BOOL(!pack8(&packer, 0));
+	PACKER_CREATE(packer, buf, 0); NTRY_BOOL(!pack16(&packer, 0));
+	PACKER_CREATE(packer, buf, 0); NTRY_BOOL(!pack32(&packer, 0));
+	PACKER_CREATE(packer, buf, 0); NTRY_BOOL(!pack_str(&packer, "a"));
 
-	PACKER_CREATE(packer, buf, 1); pack8(&packer, 0);
-	PACKER_CREATE(packer, buf, 1); NTRY_SIGNAL(pack16(&packer, 0));
-	PACKER_CREATE(packer, buf, 1); NTRY_SIGNAL(pack32(&packer, 0));
-	PACKER_CREATE(packer, buf, 1); NTRY_SIGNAL(pack_str(&packer, "a"));
+	PACKER_CREATE(packer, buf, 1); NTRY_BOOL( pack8(&packer, 0));
+	PACKER_CREATE(packer, buf, 1); NTRY_BOOL(!pack16(&packer, 0));
+	PACKER_CREATE(packer, buf, 1); NTRY_BOOL(!pack32(&packer, 0));
+	PACKER_CREATE(packer, buf, 1); NTRY_BOOL(!pack_str(&packer, "a"));
 
-	PACKER_CREATE(packer, buf, 2); pack8(&packer, 0);
-	PACKER_CREATE(packer, buf, 2); pack16(&packer, 0);
-	PACKER_CREATE(packer, buf, 2); NTRY_SIGNAL(pack32(&packer, 0));
-	PACKER_CREATE(packer, buf, 2); pack_str(&packer, "a");
-	PACKER_CREATE(packer, buf, 2); NTRY_SIGNAL(pack_str(&packer, "ab"));
+	PACKER_CREATE(packer, buf, 2); NTRY_BOOL( pack8(&packer, 0));
+	PACKER_CREATE(packer, buf, 2); NTRY_BOOL( pack16(&packer, 0));
+	PACKER_CREATE(packer, buf, 2); NTRY_BOOL(!pack32(&packer, 0));
+	PACKER_CREATE(packer, buf, 2); NTRY_BOOL( pack_str(&packer, "a"));
+	PACKER_CREATE(packer, buf, 2); NTRY_BOOL(!pack_str(&packer, "ab"));
 
-	PACKER_CREATE(packer, buf, 3); pack8(&packer, 0);
-	PACKER_CREATE(packer, buf, 3); pack16(&packer, 0);
-	PACKER_CREATE(packer, buf, 3); NTRY_SIGNAL(pack32(&packer, 0));
-	PACKER_CREATE(packer, buf, 3); pack_str(&packer, "ab");
-	PACKER_CREATE(packer, buf, 3); NTRY_SIGNAL(pack_str(&packer, "abc"));
+	PACKER_CREATE(packer, buf, 3); NTRY_BOOL( pack8(&packer, 0));
+	PACKER_CREATE(packer, buf, 3); NTRY_BOOL( pack16(&packer, 0));
+	PACKER_CREATE(packer, buf, 3); NTRY_BOOL(!pack32(&packer, 0));
+	PACKER_CREATE(packer, buf, 3); NTRY_BOOL( pack_str(&packer, "ab"));
+	PACKER_CREATE(packer, buf, 3); NTRY_BOOL(!pack_str(&packer, "abc"));
 
-	PACKER_CREATE(packer, buf, 4); pack8(&packer, 0);
-	PACKER_CREATE(packer, buf, 4); pack16(&packer, 0);
-	PACKER_CREATE(packer, buf, 4); pack32(&packer, 0);
-	PACKER_CREATE(packer, buf, 4); pack_str(&packer, "abc");
-	PACKER_CREATE(packer, buf, 4); NTRY_SIGNAL(pack_str(&packer, "abcd"));
+	PACKER_CREATE(packer, buf, 4); NTRY_BOOL( pack8(&packer, 0));
+	PACKER_CREATE(packer, buf, 4); NTRY_BOOL( pack16(&packer, 0));
+	PACKER_CREATE(packer, buf, 4); NTRY_BOOL( pack32(&packer, 0));
+	PACKER_CREATE(packer, buf, 4); NTRY_BOOL( pack_str(&packer, "abc"));
+	PACKER_CREATE(packer, buf, 4); NTRY_BOOL(!pack_str(&packer, "abcd"));
 }
 
 NTEST(UnpackLimit)

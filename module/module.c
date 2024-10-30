@@ -40,6 +40,143 @@
 #include <util/ssort.h>
 #include <util/string.h>
 
+static struct ModuleRegisterListEntryServer const *get_reglist(enum Keyword)
+	FUNC_RETURNS;
+
+struct ModuleRegisterListEntryServer const *
+get_reglist(enum Keyword a_type)
+{
+	size_t i;
+
+	for (i = 0;; ++i) {
+		struct ModuleRegisterListEntryServer const *list;
+
+		list = &c_module_register_list_server_[i];
+		if (KW_NONE == list->type) {
+			return NULL;
+		}
+		if (list->type == a_type) {
+			return list;
+		}
+	}
+}
+
+void
+module_access_pack(struct PackerList *a_list, struct Packer *a_packer, struct
+    Module *a_module, int a_submodule_k)
+{
+	struct ModuleRegisterListEntryServer const *list;
+	struct Map *map;
+	struct Packer *packer;
+	uint32_t ofs;
+	uint8_t *nump;
+
+	/* TODO? */
+	(void)a_submodule_k;
+
+	list = get_reglist(a_module->type);
+	if (NULL == list) {
+		PACKER_LIST_PACK(*a_list, 8, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
+		return;
+	}
+	packer = packer_list_get(a_list, 8);
+	nump = PACKER_GET_PTR(*packer);
+	PACK(*packer, 8, 0, fail);
+fail:
+	map = a_module->props->get_map(a_module);
+	if (!map) {
+		/* Module currently unmapped or undumpable, nop. */
+		return;
+	}
+	ofs = 0;
+	while (a_packer->ofs < a_packer->bytes) {
+		unsigned bits;
+		uint8_t mask;
+
+		if (!unpack8(a_packer, &mask)) {
+			return;
+		}
+		switch (1 & mask) {
+		case 0: bits = 16; break;
+		case 1: bits = 32; break;
+		}
+		switch (3 & (mask >> 1)) {
+		case 0:
+			/* Continue reading after previous ofs. */
+			break;
+		case 1:
+			{
+				uint8_t u8;
+
+				/* 0..255 ofs jump. */
+				if (!unpack8(a_packer, &u8)) {
+					return;
+				}
+				ofs += u8;
+			}
+			break;
+		case 2:
+			{
+				uint16_t u16;
+
+				/* 256..65535 ofs jump. */
+				if (!unpack16(a_packer, &u16)) {
+					return;
+				}
+				ofs += u16;
+			}
+			break;
+		case 3:
+			{
+				uint32_t u32;
+
+				/* Absolute 32-bit ofs. */
+				if (!unpack32(a_packer, &u32)) {
+					return;
+				}
+				ofs = u32;
+			}
+			break;
+		}
+		/* TODO: Check register rw-modes. */
+		if (8 & mask) {
+			uint32_t val;
+
+			if (16 == bits) {
+				val = map_sicy_read(map, MAP_MOD_R, 16, ofs);
+				PACKER_LIST_PACK(*a_list, 16, val);
+			} else if (32 == bits) {
+				val = map_sicy_read(map, MAP_MOD_R, 32, ofs);
+				PACKER_LIST_PACK(*a_list, 32, val);
+			} else {
+				log_die(LOGL, "Shouldn't happen!");
+			}
+			++*nump;
+		} else {
+			uint32_t u32;
+			int ret;
+
+			if (16 == bits) {
+				uint16_t u16;
+
+				ret = unpack16(a_packer, &u16);
+				u32 = u16;
+			} else if (32 == bits) {
+				ret = unpack32(a_packer, &u32);
+			} else {
+				log_die(LOGL, "Shouldn't happen!");
+			}
+			if (!ret) {
+				break;
+			}
+			map_sicy_write(map, MAP_MOD_W, bits, ofs, u32);
+		}
+
+		ofs += bits / 8;
+	}
+}
+
 struct Module *
 module_create(struct Crate *a_crate, enum Keyword a_module_type, struct
     ConfigBlock *a_config_block)
@@ -249,29 +386,22 @@ module_register_list_client_get(enum Keyword a_module_type)
 
 void
 module_register_list_pack(struct PackerList *a_list, struct Module *a_module,
-    int a_submodule_l)
+    int a_submodule_k)
 {
 	struct ModuleRegisterListEntryServer const *list;
 	struct Map *map;
-	struct Packer *packer;
 	size_t i;
 
-	/* TODO: To do. */
-	(void)a_submodule_l;
-	for (i = 0;; ++i) {
-		list = &c_module_register_list_server_[i];
-		if (KW_NONE == list->type) {
-			packer = packer_list_get(a_list, 16);
-			pack16(packer, -1);
-			PACK_LOC(packer);
-			return;
-		}
-		if (a_module->type == list->type) {
-			break;
-		}
+	/* TODO? */
+	(void)a_submodule_k;
+
+	list = get_reglist(a_module->type);
+	if (NULL == list) {
+		PACKER_LIST_PACK(*a_list, 16, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
+		return;
 	}
-	packer = packer_list_get(a_list, 16);
-	pack16(packer, a_module->type);
+	PACKER_LIST_PACK(*a_list, 16, a_module->type);
 	map = a_module->props->get_map(a_module);
 	if (!map) {
 		/* Module currently unmapped or undumpable, nop. */
@@ -296,12 +426,10 @@ module_register_list_pack(struct PackerList *a_list, struct Module *a_module,
 			/* If requested, must be dumpable! */
 			if (16 == entry->bits) {
 				val = map_sicy_read(map, MAP_MOD_R, 16, ofs);
-				packer = packer_list_get(a_list, 16);
-				pack16(packer, val);
+				PACKER_LIST_PACK(*a_list, 16, val);
 			} else if (32 == entry->bits) {
 				val = map_sicy_read(map, MAP_MOD_R, 32, ofs);
-				packer = packer_list_get(a_list, 32);
-				pack32(packer, val);
+				PACKER_LIST_PACK(*a_list, 32, val);
 			}
 			ofs += entry->byte_step;
 		}

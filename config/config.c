@@ -1199,28 +1199,22 @@ keyword_match(struct Item *a_item, size_t a_keyword_num, enum Keyword const
 	log_die(LOGL, "This is too much, I quit.");
 }
 
-#define PACK(list, n, item) do { \
-	packer = packer_list_get(list, n); \
-	if (NULL == packer) log_die(LOGL, "Could not pack %d bits.\n", n); \
-	pack##n(packer, item); \
-} while(0)
-
 void
 pack_item_list(struct PackerList *a_packer_list, struct ItemList const
     *a_item_list)
 {
 	struct Item const *item;
-	struct Packer *packer;
 	uint16_t num;
 
 	num = 0;
 	TAILQ_FOREACH(item, a_item_list, next) {
 		++num;
 	}
-	PACK(a_packer_list, 16, num);
+	PACKER_LIST_PACK(*a_packer_list, 16, num);
 	TAILQ_FOREACH(item, a_item_list, next) {
-		PACK(a_packer_list, 8, item->type | item->is_touched << 1);
-		PACK(a_packer_list, 16, item->name);
+		PACKER_LIST_PACK(*a_packer_list, 8,
+		    item->type | item->is_touched << 1);
+		PACKER_LIST_PACK(*a_packer_list, 16, item->name);
 		pack_scalar_list(a_packer_list, &item->scalar_list);
 		if (CONFIG_BLOCK == item->type &&
 		    KW_BARRIER != item->name &&
@@ -1237,36 +1231,32 @@ pack_scalar(struct PackerList *a_list, struct Scalar const *a_scalar)
 		double	d;
 		uint64_t	u64;
 	} u;
-	struct Packer *packer;
 
 	/* TODO: Are 8 bits enough for this? */
-	PACK(a_list, 8, a_scalar->type);
-	PACK(a_list, 16, a_scalar->vector_index);
+	PACKER_LIST_PACK(*a_list, 8, a_scalar->type);
+	PACKER_LIST_PACK(*a_list, 16, a_scalar->vector_index);
 	switch (a_scalar->type) {
 	case CONFIG_SCALAR_EMPTY:
 		break;
 	case CONFIG_SCALAR_DOUBLE:
 		/* Ugh... The beauty and bane of C. */
 		u.d = a_scalar->value.d;
-		PACK(a_list, 64, u.u64);
-		PACK(a_list, 8, a_scalar->unit->idx);
+		PACKER_LIST_PACK(*a_list, 64, u.u64);
+		PACKER_LIST_PACK(*a_list, 8, a_scalar->unit->idx);
 		break;
 	case CONFIG_SCALAR_INTEGER:
-		PACK(a_list, 32, a_scalar->value.i);
-		PACK(a_list, 8, a_scalar->unit->idx);
+		PACKER_LIST_PACK(*a_list, 32, a_scalar->value.i);
+		PACKER_LIST_PACK(*a_list, 8, a_scalar->unit->idx);
 		break;
 	case CONFIG_SCALAR_KEYWORD:
-		PACK(a_list, 16, a_scalar->value.k);
+		PACKER_LIST_PACK(*a_list, 16, a_scalar->value.k);
 		break;
 	case CONFIG_SCALAR_RANGE:
-		PACK(a_list, 8, a_scalar->value.r.first);
-		PACK(a_list, 8, a_scalar->value.r.last);
+		PACKER_LIST_PACK(*a_list, 8, a_scalar->value.r.first);
+		PACKER_LIST_PACK(*a_list, 8, a_scalar->value.r.last);
 		break;
 	case CONFIG_SCALAR_STRING:
-		/* meh, the macro does not work here... */
-		packer = packer_list_get(a_list,
-		    (strlen(a_scalar->value.s) + 1) * 8);
-		pack_str(packer, a_scalar->value.s);
+		PACKER_LIST_PACK_STR(*a_list, a_scalar->value.s);
 		break;
 	}
 }
@@ -1290,8 +1280,10 @@ pack_scalar_list(struct PackerList *a_list, struct ScalarList const
 	 * work here.
 	 */
 	packer = packer_list_get(a_list, 16);
-	num = (uint8_t *)packer->data + packer->ofs;
-	pack16(packer, 0);
+	num = PACKER_GET_PTR(*packer);
+	if (!pack16(packer, 0)) {
+		log_die(LOGL, "Shouldn't happen!");
+	}
 	TAILQ_FOREACH(scalar, a_scalar_list, next) {
 		struct Scalar const *rover;
 		unsigned count;
@@ -1312,7 +1304,7 @@ pack_scalar_list(struct PackerList *a_list, struct ScalarList const
 		}
 		if (count > 1) {
 			/* Store a dup run. */
-			PACK(a_list, 8, 0x80 | (count - 2));
+			PACKER_LIST_PACK(*a_list, 8, 0x80 | (count - 2));
 			pack_scalar(a_list, scalar);
 			scalar = rover;
 		} else {
@@ -1320,8 +1312,10 @@ pack_scalar_list(struct PackerList *a_list, struct ScalarList const
 
 			/* Store a raw run. */
 			packer = packer_list_get(a_list, 8);
-			rle = (uint8_t *)packer->data + packer->ofs;
-			pack8(packer, 0);
+			rle = PACKER_GET_PTR(*packer);
+			if (!pack8(packer, 0)) {
+				log_die(LOGL, "Shouldn't happen!");
+			}
 			/* Limit: 0x00 -> scalar, 0x7f -> 128 scalars. */
 			count = 1;
 			for (; count < 128; ++count) {

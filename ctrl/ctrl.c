@@ -73,6 +73,8 @@ static void	send_crate_info(struct UDPServer *, struct UDPAddress const *,
     int);
 static void	send_goc_read(struct UDPServer *, struct UDPAddress const *,
     uint8_t, uint8_t, uint16_t, uint32_t, uint16_t, uint32_t);
+static void	send_module_access(struct UDPServer *, struct UDPAddress const
+    *, uint8_t, uint8_t, int, struct Packer *);
 static void	send_online(struct UDPServer *, struct UDPAddress const *);
 static void	send_packer(struct UDPServer *, struct UDPAddress const *,
     struct UDPDatagram *, struct Packer const *);
@@ -84,6 +86,8 @@ static void	server_run(void *);
 static int	unpack_config_list(struct DatagramArray *, size_t *, struct
     Packer *, struct CtrlConfigList *) FUNC_RETURNS;
 static void	unpack_loc(struct Packer *);
+static int	unpack_module_access(struct CtrlModuleAccess *, size_t, struct
+    DatagramArray *, size_t *) FUNC_RETURNS;
 static int	unpack_scalar(struct DatagramArray *, size_t *, struct Packer
     *, struct CtrlConfigScalar *) FUNC_RETURNS;
 static int	unpack_scalar_list(struct DatagramArray *, size_t *, struct
@@ -285,15 +289,14 @@ ctrl_client_config(struct CtrlClient *a_client, int a_crate_i, int a_module_j,
 	packer = packer_list_get(&packer_list, 32);
 	/* We don't want to make a full sequence here, remove seq bytes. */
 	packer->ofs -= 2;
-	pack8(packer, VL_CTRL_CONFIG);
-	pack8(packer, a_crate_i);
-	pack8(packer, a_module_j);
+	PACK(*packer, 8, VL_CTRL_CONFIG, fail);
+	PACK(*packer, 8, a_crate_i, fail);
+	PACK(*packer, 8, a_module_j, fail);
 	if (-1 == a_submodule_k) {
-		pack8(packer, 0);
+		PACK(*packer, 8, 0, fail);
 	} else {
-		pack8(packer, 1);
-		packer = packer_list_get(&packer_list, 8);
-		pack8(packer, a_submodule_k);
+		PACK(*packer, 8, 1, fail);
+		PACKER_LIST_PACK(packer_list, 8, a_submodule_k);
 	}
 	config_pack_children(&packer_list, a_block);
 	if (TAILQ_EMPTY(&packer_list)) {
@@ -301,11 +304,13 @@ ctrl_client_config(struct CtrlClient *a_client, int a_crate_i, int a_module_j,
 	}
 	first = TAILQ_FIRST(&packer_list);
 	if (first != TAILQ_LAST(&packer_list, PackerList)) {
-		log_error(LOGL, "Config way too big!");
+		log_error(LOGL, "Online config way too big!");
 	} else {
 		first->dgram.bytes = first->packer.ofs;
 		udp_client_send(a_client->client, &first->dgram);
 	}
+fail:
+	log_error(LOGL, "Packing failed.");
 	packer_list_free(&packer_list);
 }
 
@@ -320,9 +325,10 @@ ctrl_client_config_dump(struct CtrlClient *a_client, struct CtrlConfigList
 
 	assert(TAILQ_EMPTY(a_list));
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_CONFIG_DUMP);
+	PACK(packer, 32, NURDLIB_MD5, fail);
+	PACK(packer,  8, VL_CTRL_CONFIG_DUMP, fail);
 	if (!client_send_recv_seq(a_client, &dgram, &packer, &dgram_array)) {
+fail:
 		log_error(LOGL, "Could not fetch config dump.");
 		return 0;
 	}
@@ -378,16 +384,17 @@ ctrl_client_crate_array_get(struct CtrlClient *a_client, struct CtrlCrateArray
 	a_crate_array->array = NULL;
 
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_CRATE_ARRAY);
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
+	PACK(packer,  8, VL_CTRL_CRATE_ARRAY, pack_fail);
 	if (!client_send_recv_seq(a_client, &dgram, &packer, &dgram_array)) {
+pack_fail:
 		log_error(LOGL, "Could not fetch crate array.");
 		return 0;
 	}
 	dgram_array_i = -1;
 	if (!packer_lookup(&dgram_array, &dgram_array_i, &packer) ||
 	    !unpack8(&packer, &num)) {
-		goto ctrl_client_crate_array_get_fail;
+		goto unpack_fail;
 	}
 	a_crate_array->num = num;
 	CALLOC(a_crate_array->array, num);
@@ -397,15 +404,15 @@ ctrl_client_crate_array_get(struct CtrlClient *a_client, struct CtrlCrateArray
 
 		crate = &a_crate_array->array[i];
 		if (!packer_lookup(&dgram_array, &dgram_array_i, &packer)) {
-			goto ctrl_client_crate_array_get_fail;
+			goto unpack_fail;
 		}
 		crate->name = unpack_strdup(&packer);
 		if (NULL == crate->name) {
-			goto ctrl_client_crate_array_get_fail;
+			goto unpack_fail;
 		}
 		if (!packer_lookup(&dgram_array, &dgram_array_i, &packer) ||
 		    !unpack8(&packer, &module_num)) {
-			goto ctrl_client_crate_array_get_fail;
+			goto unpack_fail;
 		}
 		crate->module_num = module_num;
 		CALLOC(crate->module_array, module_num);
@@ -418,13 +425,13 @@ ctrl_client_crate_array_get(struct CtrlClient *a_client, struct CtrlCrateArray
 			if (!packer_lookup(&dgram_array, &dgram_array_i,
 			    &packer) ||
 			    !unpack16(&packer, &module_type)) {
-				goto ctrl_client_crate_array_get_fail;
+				goto unpack_fail;
 			}
 			module->type = module_type;
 			if (!packer_lookup(&dgram_array, &dgram_array_i,
 			    &packer) ||
 			    !unpack8(&packer, &submodule_num)) {
-				goto ctrl_client_crate_array_get_fail;
+				goto unpack_fail;
 			}
 			module->submodule_num = submodule_num;
 			CALLOC(module->submodule_array, submodule_num);
@@ -436,7 +443,7 @@ ctrl_client_crate_array_get(struct CtrlClient *a_client, struct CtrlCrateArray
 				if (!packer_lookup(&dgram_array,
 				    &dgram_array_i, &packer) ||
 				    !unpack16(&packer, &submodule_type)) {
-					goto ctrl_client_crate_array_get_fail;
+					goto unpack_fail;
 				}
 				submodule->type = submodule_type;
 			}
@@ -444,7 +451,7 @@ ctrl_client_crate_array_get(struct CtrlClient *a_client, struct CtrlCrateArray
 	}
 	FREE(dgram_array.array);
 	return 1;
-ctrl_client_crate_array_get_fail:
+unpack_fail:
 	FREE(dgram_array.array);
 	log_error(LOGL, "Crate array data corrupt.");
 	return 0;
@@ -459,10 +466,11 @@ ctrl_client_crate_info_get(struct CtrlClient *a_client, struct CtrlCrateInfo
 	uint16_t u16;
 
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_CRATE_INFO);
-	pack8(&packer, a_crate_i);
+	PACK(packer, 32, NURDLIB_MD5, fail);
+	PACK(packer,  8, VL_CTRL_CRATE_INFO, fail);
+	PACK(packer,  8, a_crate_i, fail);
 	if (!client_send_recv(a_client, &dgram, &packer)) {
+fail:
 		log_error(LOGL, "Could not fetch crate info.");
 		return 0;
 	}
@@ -498,20 +506,21 @@ ctrl_client_goc_read(struct CtrlClient *a_client, uint8_t a_crate_i, uint8_t
 	unsigned i;
 	int ret;
 
+	dgram_array.array = NULL;
 	ret = 0;
 	id = (uint32_t)(time_getd() * 1e6);
 
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_GOC_READ);
-	pack8(&packer, a_crate_i);
-	pack8(&packer, a_sfp);
-	pack16(&packer, a_card);
-	pack32(&packer, a_offset);
-	pack16(&packer, a_num);
-	pack32(&packer, id);
-	dgram_array.array = NULL;
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
+	PACK(packer,  8, VL_CTRL_GOC_READ, pack_fail);
+	PACK(packer,  8, a_crate_i, pack_fail);
+	PACK(packer,  8, a_sfp, pack_fail);
+	PACK(packer, 16, a_card, pack_fail);
+	PACK(packer, 32, a_offset, pack_fail);
+	PACK(packer, 16, a_num, pack_fail);
+	PACK(packer, 32, id, pack_fail);
 	if (!client_send_recv_seq(a_client, &dgram, &packer, &dgram_array)) {
+pack_fail:
 		log_error(LOGL, "Could not goc read.");
 		goto fail;
 	}
@@ -553,15 +562,18 @@ ctrl_client_goc_write(struct CtrlClient *a_client, uint8_t a_crate_i, uint8_t
 	struct Packer packer;
 
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_GOC_WRITE);
-	pack8(&packer, a_crate_i);
-	pack8(&packer, a_sfp);
-	pack16(&packer, a_card);
-	pack32(&packer, a_offset);
-	pack16(&packer, a_num);
-	pack32(&packer, a_value);
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
+	PACK(packer,  8, VL_CTRL_GOC_WRITE, pack_fail);
+	PACK(packer,  8, a_crate_i, pack_fail);
+	PACK(packer,  8, a_sfp, pack_fail);
+	PACK(packer, 16, a_card, pack_fail);
+	PACK(packer, 32, a_offset, pack_fail);
+	PACK(packer, 16, a_num, pack_fail);
+	PACK(packer, 32, a_value, pack_fail);
 	udp_client_send(a_client->client, &dgram);
+	return;
+pack_fail:
+	log_error(LOGL, "Could not goc write.");
 }
 
 struct CtrlClient *
@@ -600,9 +612,113 @@ ctrl_client_is_online(struct CtrlClient *a_client)
 	struct Packer packer;
 
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_ONLINE);
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
+	PACK(packer,  8, VL_CTRL_ONLINE, pack_fail);
 	return client_send_recv(a_client, &dgram, &packer);
+pack_fail:
+	return 0;
+}
+
+int
+ctrl_client_module_access_get(struct CtrlClient *a_client, int a_crate_i, int
+    a_module_j, int a_submodule_k, struct CtrlModuleAccess *a_arr, size_t
+    a_arrn)
+{
+	struct UDPDatagram dgram;
+	struct Packer packer;
+	struct DatagramArray dgram_array;
+	size_t dgram_array_i, i;
+	uint32_t ofs_guess;
+
+	PACKER_CREATE_STATIC(packer, dgram.buf);
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
+	PACK(packer,  8, VL_CTRL_MODULE_ACCESS, pack_fail);
+	PACK(packer,  8, a_crate_i, pack_fail);
+	PACK(packer,  8, a_module_j, pack_fail);
+	if (-1 == a_submodule_k) {
+		PACK(packer, 8, 0, pack_fail);
+	} else {
+		PACK(packer, 8, 1, pack_fail);
+		PACK(packer, 8, a_submodule_k, pack_fail);
+	}
+
+	ofs_guess = 0;
+	for (i = 0; i < a_arrn; ++i) {
+		struct CtrlModuleAccess const *a;
+		uint8_t *pmask;
+		uint8_t mask;
+
+		a = &a_arr[i];
+
+		pmask = PACKER_GET_PTR(packer);
+		PACK(packer, 8, 0, pack_fail);
+
+		mask = 0;
+		switch (a->bits) {
+		case 16: mask = 0 << 0; break;
+		case 32: mask = 1 << 0; break;
+		default:
+			log_error(LOGL, "Can only access 16 or 32 bits, "
+			    "asked for %u.", a->bits);
+			return 0;
+		}
+
+		if (a->ofs != ofs_guess) {
+			int is_long;
+
+			is_long = 1;
+			if (a->ofs > ofs_guess) {
+				uint32_t d;
+
+				d = a->ofs - ofs_guess;
+				if (d < 256) {
+					mask |= 1 << 1;
+					PACK(packer, 8, d, pack_fail);
+					is_long = 0;
+				} else if (d < 65536) {
+					mask |= 2 << 1;
+					PACK(packer, 16, d, pack_fail);
+					is_long = 0;
+				}
+			}
+			if (is_long) {
+				mask |= 3 << 1;
+				PACK(packer, 32, a->ofs, pack_fail);
+			}
+		}
+		ofs_guess = a->ofs + a->bits / 8;
+
+		if (a->do_read) {
+			mask |= 1 << 3;
+		}
+
+		*pmask = mask;
+
+		if (!a->do_read) {
+			switch (a->bits) {
+			case 16:
+				PACK(packer, 16, a->value, pack_fail);
+				break;
+			case 32:
+				PACK(packer, 32, a->value, pack_fail);
+				break;
+			}
+		}
+	}
+	if (!client_send_recv_seq(a_client, &dgram, &packer, &dgram_array)) {
+		log_error(LOGL, "Could not fetch module access.");
+		return 0;
+	}
+	dgram_array_i = -1;
+	if (!unpack_module_access(a_arr, a_arrn, &dgram_array,
+	    &dgram_array_i)) {
+		log_error(LOGL, "Failed to unpack module access.");
+		return 0;
+	}
+	return 1;
+pack_fail:
+	log_error(LOGL, "Module access too large.");
+	return 0;
 }
 
 void
@@ -623,17 +739,18 @@ ctrl_client_register_array_get(struct CtrlClient *a_client, struct
 	size_t dgram_array_i;
 
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
-	pack8(&packer, VL_CTRL_REGISTER_LIST);
-	pack8(&packer, a_crate_i);
-	pack8(&packer, a_module_j);
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
+	PACK(packer,  8, VL_CTRL_REGISTER_LIST, pack_fail);
+	PACK(packer,  8, a_crate_i, pack_fail);
+	PACK(packer,  8, a_module_j, pack_fail);
 	if (-1 == a_submodule_k) {
-		pack8(&packer, 0);
+		PACK(packer, 8, 0, pack_fail);
 	} else {
-		pack8(&packer, 1);
-		pack8(&packer, a_submodule_k);
+		PACK(packer, 8, 1, pack_fail);
+		PACK(packer, 8, a_submodule_k, pack_fail);
 	}
 	if (!client_send_recv_seq(a_client, &dgram, &packer, &dgram_array)) {
+pack_fail:
 		log_error(LOGL, "Could not fetch register array.");
 		return 0;
 	}
@@ -884,14 +1001,13 @@ packer_lookup(struct DatagramArray *a_dgram_array, size_t *a_dgram_array_i,
 {
 	struct UDPDatagram *dgram;
 
-	if ((size_t)-1 == *a_dgram_array_i) {
-		goto packer_lookup_next;
+	if ((size_t)-1 != *a_dgram_array_i &&
+	    *a_dgram_array_i < a_dgram_array->num) {
+		dgram = &a_dgram_array->array[*a_dgram_array_i];
+		if (dgram->bytes > a_packer->ofs) {
+			return 1;
+		}
 	}
-	dgram = &a_dgram_array->array[*a_dgram_array_i];
-	if (dgram->bytes > a_packer->ofs) {
-		return 1;
-	}
-packer_lookup_next:
 	++*a_dgram_array_i;
 	if (a_dgram_array->num <= *a_dgram_array_i) {
 		log_error(LOGL, "Packer lookup %"PRIz" >= num %"PRIz".",
@@ -955,9 +1071,11 @@ send_crate_info(struct UDPServer *a_server, struct UDPAddress const
 
 	LOGF(verbose)(LOGL, "Sending crate info for crate=%d.", a_crate_i);
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
+	PACK(packer, 32, NURDLIB_MD5, fail);
 	crate_info_pack(&packer, a_crate_i);
 	send_packer(a_server, a_address, &dgram, &packer);
+fail:
+	;
 }
 
 void
@@ -966,7 +1084,6 @@ send_goc_read(struct UDPServer *a_server, struct UDPAddress const *a_address,
     uint16_t a_num, uint32_t a_id)
 {
 	struct PackerList packer_list;
-	struct Packer *packer;
 	uint32_t *value;
 	unsigned i;
 
@@ -975,13 +1092,27 @@ send_goc_read(struct UDPServer *a_server, struct UDPAddress const *a_address,
 	crate_gsi_pex_goc_read(a_crate_i, a_sfp, a_card, a_offset, a_num,
 	    value);
 	TAILQ_INIT(&packer_list);
-	packer = packer_list_get(&packer_list, 32);
-	pack32(packer, a_id);
+	PACKER_LIST_PACK(packer_list, 32, a_id);
 	for (i = 0; i < a_num; ++i) {
-		packer = packer_list_get(&packer_list, 32);
-		pack32(packer, value[i]);
+		PACKER_LIST_PACK(packer_list, 32, value[i]);
 	}
 	send_packer_list(a_server, a_address, &packer_list);
+	packer_list_free(&packer_list);
+}
+
+void
+send_module_access(struct UDPServer *a_server, struct UDPAddress const
+    *a_address, uint8_t a_crate_i, uint8_t a_module_j, int a_submodule_k,
+    struct Packer *a_packer)
+{
+	struct PackerList packer_list;
+
+	LOGF(verbose)(LOGL, "Handling module access.");
+	TAILQ_INIT(&packer_list);
+	crate_module_access_pack(a_crate_i, a_module_j, a_submodule_k,
+	    a_packer, &packer_list);
+	send_packer_list(a_server, a_address, &packer_list);
+	packer_list_free(&packer_list);
 }
 
 void
@@ -992,8 +1123,10 @@ send_online(struct UDPServer *a_server, struct UDPAddress const *a_address)
 
 	LOGF(verbose)(LOGL, "Sending online status.");
 	PACKER_CREATE_STATIC(packer, dgram.buf);
-	pack32(&packer, NURDLIB_MD5);
+	PACK(packer, 32, NURDLIB_MD5, pack_fail);
 	send_packer(a_server, a_address, &dgram, &packer);
+pack_fail:
+	;
 }
 
 void
@@ -1071,8 +1204,9 @@ server_run(void *a_server)
 		if (!unpack32(&packer, &md5) || NURDLIB_MD5 != md5) {
 			/* Client has the wrong md5, send ours. */
 			PACKER_CREATE_STATIC(packer, dgram.buf);
-			pack32(&packer, NURDLIB_MD5);
+			PACK(packer, 32, NURDLIB_MD5, pack_fail);
 			udp_server_send(server->server, address, &dgram);
+pack_fail:
 			continue;
 		}
 		if (!unpack8(&packer, &cmd)) {
@@ -1096,8 +1230,8 @@ server_run(void *a_server)
 			if (unpack8(&packer, &crate_i) &&
 			    unpack8(&packer, &module_j) &&
 			    unpack8(&packer, &has_submodule)) {
-				if (has_submodule && unpack8(&packer,
-				    &submodule_k)) {
+				if (has_submodule &&
+				    unpack8(&packer, &submodule_k)) {
 					submodule_int = submodule_k;
 				}
 				send_register_array(server->server, address,
@@ -1108,8 +1242,8 @@ server_run(void *a_server)
 			if (unpack8(&packer, &crate_i) &&
 			    unpack8(&packer, &module_j) &&
 			    unpack8(&packer, &has_submodule)) {
-				if (has_submodule && unpack8(&packer,
-				    &submodule_k)) {
+				if (has_submodule &&
+				    unpack8(&packer, &submodule_k)) {
 					submodule_int = submodule_k;
 				}
 				if (!crate_config_write(crate_i, module_j,
@@ -1144,6 +1278,18 @@ server_run(void *a_server)
 				    offset, num, value);
 			}
 			break;
+		case VL_CTRL_MODULE_ACCESS:
+			if (unpack8(&packer, &crate_i) &&
+			    unpack8(&packer, &module_j) &&
+			    unpack8(&packer, &has_submodule)) {
+				if (has_submodule &&
+				    unpack8(&packer, &submodule_k)) {
+					submodule_int = submodule_k;
+				}
+				send_module_access(server->server, address,
+				    crate_i, module_j, submodule_int,
+				    &packer);
+			}
 		}
 	}
 	LOGF(info)(LOGL, "Control server offline.");
@@ -1230,6 +1376,67 @@ unpack_loc(struct Packer *a_packer)
 	log_error(LOGL, " __FILE__=%s __LINE__=%d.",
 	    NULL == file ? "-nofile-" : file, line);
 	FREE(file);
+}
+
+int
+unpack_module_access(struct CtrlModuleAccess *a_arr, size_t a_arrn, struct
+    DatagramArray *a_dgram_array, size_t *a_dgram_array_i)
+{
+	struct Packer packer;
+	uint8_t i, num;
+
+	ZERO(packer);
+	if (!packer_lookup(a_dgram_array, a_dgram_array_i, &packer)) {
+		log_error(LOGL, "No data in module access.");
+		return 0;
+	}
+	if (!unpack8(&packer, &num)) {
+		log_error(LOGL, "Could not get access #, "
+		    "server reply corrupt.");
+		return 0;
+	}
+	if (255 == num) {
+		log_error(LOGL, "Could not access requested module, "
+		    "-1 returned.");
+		unpack_loc(&packer);
+		return 0;
+	}
+	for (i = 0; i < a_arrn; ++i) {
+		struct CtrlModuleAccess *a;
+
+		a = &a_arr[i];
+		if (!a->do_read) {
+			continue;
+		}
+		if (!packer_lookup(a_dgram_array, a_dgram_array_i, &packer)) {
+			log_error(LOGL, "Could not unpack module access.");
+			return 0;
+		}
+		if (16 == a->bits) {
+			uint16_t u16;
+
+			if (!unpack16(&packer, &u16)) {
+				log_error(LOGL, "Could not unpack 0x%08x:%u.",
+				    a->ofs, a->bits);
+				return 0;
+			}
+			a->value = u16;
+		} else if (32 == a->bits) {
+			uint32_t u32;
+
+			if (!unpack32(&packer, &u32)) {
+				log_error(LOGL, "Could not unpack 0x%08x:%u.",
+				    a->ofs, a->bits);
+				return 0;
+			}
+			a->value = u32;
+		}
+		--num;
+	}
+	if (0 != num) {
+		log_error(LOGL, "Module access number mismatch.");
+	}
+	return 1;
 }
 
 int

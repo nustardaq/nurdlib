@@ -49,58 +49,61 @@ pack_is_empty(struct Packer const *a_packer)
 	return a_packer->ofs >= a_packer->bytes;
 }
 
-void
+int
 pack_str(struct Packer *a_packer, char const *a_str)
 {
 	int len;
 
 	len = strlen(a_str);
 	if (a_packer->ofs + len >= a_packer->bytes) {
-		log_die(LOGL, "Not enough space to pack string.");
+		return 0;
 	}
 	memmove((uint8_t *)a_packer->data + a_packer->ofs, a_str, len + 1);
 	a_packer->ofs += len + 1;
+	return 1;
 }
 
-void
+int
 pack8(struct Packer *a_packer, uint8_t a_u8)
 {
 	if (a_packer->bytes < a_packer->ofs + 1) {
-		log_die(LOGL, "Packing beyond limits, debug caller!");
+		return 0;
 	}
 	*((uint8_t *)a_packer->data + a_packer->ofs) = a_u8;
-	++a_packer->ofs;
+	a_packer->ofs += sizeof a_u8;
+	return 1;
 }
 
-void
+int
 pack16(struct Packer *a_packer, uint16_t a_u16)
 {
 	if (a_packer->bytes < a_packer->ofs + 2) {
-		log_die(LOGL, "Packing beyond limits, debug caller!");
+		return 0;
 	}
 	*(uint16_t *)((uint8_t *)a_packer->data + a_packer->ofs) =
 	    htons(a_u16);
-	a_packer->ofs += 2;
+	a_packer->ofs += sizeof a_u16;
+	return 1;
 }
 
-void
+int
 pack32(struct Packer *a_packer, uint32_t a_u32)
 {
 	if (a_packer->bytes < a_packer->ofs + 4) {
-		log_die(LOGL, "Packing beyond limits, debug caller!");
+		return 0;
 	}
 	*(uint32_t *)((uint8_t *)a_packer->data + a_packer->ofs) =
 	    htonl(a_u32);
-	a_packer->ofs += 4;
+	a_packer->ofs += sizeof a_u32;
+	return 1;
 }
 
-void
+int
 pack64(struct Packer *a_packer, uint64_t a_u64)
 {
 	if (a_packer->bytes < a_packer->ofs + 8) {
-		log_die(LOGL, "Packing beyond limits, debug caller!");
+		return 0;
 	}
-
 #if defined(NURDLIB_LITTLE_ENDIAN)
 	*(uint64_t *)((uint8_t *)a_packer->data + a_packer->ofs) =
 	    (uint64_t)htonl((uint32_t)(a_u64 & 0xffffffff)) << 32
@@ -108,8 +111,8 @@ pack64(struct Packer *a_packer, uint64_t a_u64)
 #else
 	*(uint64_t *)((uint8_t*)a_packer->data + a_packer->ofs) = a_u64;
 #endif
-
-	a_packer->ofs += 8;
+	a_packer->ofs += sizeof a_u64;
+	return 1;
 }
 
 void
@@ -136,16 +139,18 @@ packer_list_get(struct PackerList *a_list, unsigned a_bit_num)
 		/* Use last packer if there's enough space. */
 		return &node->packer;
 	}
-	/* No space, gotta make some. */
+	/* No space, make some. */
 	CALLOC(node, 1);
 	TAILQ_INSERT_TAIL(a_list, node, next);
 	packer = &node->packer;
 	PACKER_CREATE_STATIC(*packer, node->dgram.buf);
-	pack32(packer, NURDLIB_MD5);
-	/* Reserve space for num & id. */
-	pack8(packer, 0);
-	pack8(packer, 0);
+	PACK(*packer, 32, NURDLIB_MD5, shouldnt_happen);
+	/* Reserve space for num & idx. */
+	PACK(*packer, 8, 0, shouldnt_happen);
+	PACK(*packer, 8, 0, shouldnt_happen);
 	return packer;
+shouldnt_happen:
+	log_die(LOGL, "Shouldn't happen!");
 }
 
 char *

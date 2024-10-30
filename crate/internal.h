@@ -37,6 +37,8 @@ void	crate_gsi_pex_goc_read(uint8_t, uint8_t, uint16_t, uint32_t, uint16_t,
 void	crate_gsi_pex_goc_write(uint8_t, uint8_t, uint16_t, uint32_t,
     uint16_t, uint32_t);
 void	crate_info_pack(struct Packer *, int);
+void	crate_module_access_pack(uint8_t, uint8_t, int, struct Packer *,
+    struct PackerList *);
 void	crate_pack(struct PackerList *);
 void	crate_pack_free(struct PackerList *);
 void	crate_register_array_pack(struct PackerList *, int, int, int);
