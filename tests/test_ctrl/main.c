@@ -177,14 +177,14 @@ main(void)
 		ctrl_client_register_array_free(&register_array);
 
 		{
-			struct CtrlModuleAccess access[] = {
+			struct CtrlModuleAccess arr[] = {
 				{0x6004, 16, 0, 100},
 				{0x6004, 16, 1, 0}
 			};
 			printf("Client asking for mdpp16scp offsets... ");
 			if (ctrl_client_module_access_get(client, 0, 2, -1,
-			    access, LENGTH(access)) &&
-			    100 == access[1].value) {
+			    arr, LENGTH(arr)) &&
+			    100 == arr[1].value) {
 				printf("Success!\n");
 			} else {
 				printf("Failed.\n");

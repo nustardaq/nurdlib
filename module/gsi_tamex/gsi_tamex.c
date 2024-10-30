@@ -889,16 +889,13 @@ void
 gsi_tamex_sub_module_pack(struct Module *a_module, struct PackerList *a_list)
 {
 	struct GsiTamexModule *tam;
-	struct Packer *packer;
 	size_t i;
 
 	LOGF(debug)(LOGL, NAME" sub_module_pack {");
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
-	packer = packer_list_get(a_list, 8);
-	pack8(packer, tam->card_num);
+	PACKER_LIST_PACK(*a_list, 8, tam->card_num);
 	for (i = 0; i < tam->card_num; ++i) {
-		packer = packer_list_get(a_list, 16);
-		pack16(packer, KW_GSI_TAMEX_CARD);
+		PACKER_LIST_PACK(*a_list, 16, KW_GSI_TAMEX_CARD);
 	}
 	LOGF(debug)(LOGL, NAME" sub_module_pack }");
 }
