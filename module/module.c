@@ -100,6 +100,7 @@ fail:
 		switch (1 & mask) {
 		case 0: bits = 16; break;
 		case 1: bits = 32; break;
+		default: abort();
 		}
 		switch (3 & (mask >> 1)) {
 		case 0:
