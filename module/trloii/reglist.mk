@@ -1,7 +1,6 @@
 # nurdlib, NUstar ReaDout LIBrary
 #
-# Copyright (C) 2021-2022, 2024
-# Michael Munch
+# Copyright (C) 2024
 # Hans Toshihide Törnqvist
 #
 # This library is free software; you can redistribute it and/or
@@ -19,12 +18,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA  02110-1301  USA
 
-NAME:=gsi_rfx1
-DIR_$(NAME):=module/$(NAME)
-C_$(NAME):=$(wildcard $(DIR_$(NAME))/*.c)
-
-include gmake/c.mk
-include gmake/close.mk
-
-TRLOII_TYPE:=RFX1
-include module/trloii/reglist.mk
+TRLOII_DEFS:=$($(TRLOII_TYPE)_DEFS)
+ifneq (,$(TRLOII_DEFS))
+TRLOII_REGLIST:=$(BUILD_DIR)/$(DIR_$(NAME))/register_list.txt
+$(TRLOII_REGLIST): $(TRLOII_DEFS) module/trloii/reglist.mk
+	$(MKDIR)
+	echo "anbm" > $@.tmp
+	$(SED) -n '/_scaler_map_t/,/_scaler_map;/p' $< | grep uint32_t | \
+	$(SED) 's/.* \(0x[0-9a-f]*\) .*_t \(.*\);/\1 \2 32 R/' >> $@.tmp && \
+	mv -f $@.tmp $@
+REGGEN_PREFIX:=$(BUILD_DIR)/
+include module/reggen/module.mk
+endif

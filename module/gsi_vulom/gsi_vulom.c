@@ -32,6 +32,7 @@ TRLOII_MODULE_GENERIC(vulom)
 #	include <hwmap/hwmap_mapvme.h>
 #	include <include/trlo_access.h>
 #	include <nurdlib/serialio.h>
+#	include <module/gsi_vulom/offsets.h>
 TRLOII_MODULE(VULOM, vulom, TRLO, trlo, LEMO)
 #else
 TRLOII_MODULE_EMPTY(VULOM, vulom)

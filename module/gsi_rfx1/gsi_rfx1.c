@@ -32,6 +32,7 @@ TRLOII_MODULE_GENERIC(rfx1)
 #	include <hwmap/hwmap_mapvme.h>
 #	include <include/rfx1_access.h>
 #	include <nurdlib/serialio.h>
+#	include <module/gsi_rfx1/offsets.h>
 TRLOII_MODULE(RFX1, rfx1, RFX1, rfx1, LEMO)
 #else
 TRLOII_MODULE_EMPTY(RFX1, rfx1)

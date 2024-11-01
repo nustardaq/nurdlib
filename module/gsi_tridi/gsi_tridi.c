@@ -32,6 +32,7 @@ TRLOII_MODULE_GENERIC(tridi)
 #	include <hwmap/hwmap_mapvme.h>
 #	include <include/tridi_access.h>
 #	include <nurdlib/serialio.h>
+#	include <module/gsi_tridi/offsets.h>
 TRLOII_MODULE(TRIDI, tridi, TRIDI, tridi, NIM)
 #else
 TRLOII_MODULE_EMPTY(TRIDI, tridi)

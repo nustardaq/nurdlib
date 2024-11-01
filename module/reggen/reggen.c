@@ -245,15 +245,19 @@ main(int argc, char **argv)
 	g_path_in = argv[2];
 
 	/* Extract module name from path to camel and upper cases. */
-	if (0 != strncmp("module/", g_path_in, 7)) {
-		usage();
-		die("in-path must start with \"module/\".");
-	}
-	mod_name = g_path_in + 7;
-	filename = strstr(mod_name, "/register_list");
+	filename = strstr(g_path_in, "/register_list");
 	if (NULL == filename) {
 		usage();
 		die("in-path filename base must be \"register_list\".");
+	}
+	mod_name = NULL;
+	for (p = g_path_in; p < filename; ++p) {
+		if ('/' == *p) {
+			mod_name = p + 1;
+		}
+	}
+	if (NULL == mod_name) {
+		die("in-path module name not found.");
 	}
 	name_len = filename - mod_name;
 	if (NAME_SIZE <= name_len) {

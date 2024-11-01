@@ -28,9 +28,10 @@ $(DEP_$(NAME)): $(OFS_$(NAME))
 
 $(BUILD_DIR)/$(DIR_$(NAME))/registerlist$(REGGEN_SUFFIX).c: $(OFS_$(NAME))
 
-$(OFS_$(NAME)): $(DIR_$(NAME))/register_list$(REGGEN_SUFFIX).txt $(BUILD_DIR)/module/reggen/reggen module/reggen/module.mk
+$(OFS_$(NAME)): $(REGGEN_PREFIX)$(DIR_$(NAME))/register_list$(REGGEN_SUFFIX).txt $(BUILD_DIR)/module/reggen/reggen module/reggen/module.mk
 	$(QUIET)echo "REG   $@" &&\
 	$(MKDIR) &&\
 	./$(BUILD_DIR)/module/reggen/reggen $(@D) $<
 
+REGGEN_PREFIX=
 REGGEN_SUFFIX=

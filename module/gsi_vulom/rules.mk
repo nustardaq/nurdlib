@@ -24,3 +24,6 @@ C_$(NAME):=$(wildcard $(DIR_$(NAME))/*.c)
 
 include gmake/c.mk
 include gmake/close.mk
+
+TRLOII_TYPE:=VULOM4
+include module/trloii/reglist.mk

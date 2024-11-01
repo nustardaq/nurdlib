@@ -176,6 +176,7 @@ gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 	t2_name##_opaque volatile *opaque; \
 \
 	(void)a_crate; \
+	STATIC_ASSERT(MAP_SIZE > 0); \
 	LOGF(info)(LOGL, NAME" init_slow {"); \
 	MODULE_CAST(KW_GSI_##NLIB_NAME, trloii, a_module); \
 	opaque = t2_name##_setup_map_hardware(trloii->address >> 24, \
