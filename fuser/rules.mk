@@ -30,6 +30,7 @@ FUSER_CPPFLAGS:=$(CPPFLAGS_) -DFUSER_DRASI=1 $(shell $(DRASI_CONFIG) --f-user-he
 FUSER_CFLAGS:=$(CFLAGS_)
 FUSER_LIBS:=$(shell $(DRASI_CONFIG) --f-user-daq --mbscompat --libs)
 FUSER_BASE:=m_read_meb.drasi
+FUSER_STAMP:=$(shell $(DRASI_CONFIG) --stamp)
 endif
 
 ifeq (fuser_mbs,$(MAKECMDGOALS))
@@ -52,7 +53,7 @@ $(FUSER_RULE): all $(FUSER_TARGET)
 include gmake/close.mk
 
 # Both trloii and drasi may provide -lhwmap, remove from NCONF_LIBS.
-$(FUSER_TARGET): $(OBJ_$(NAME)) $(NURDLIB_TARGET) bin/$(FUSER_BASE) $(HWMAP_ERROR_INTERNAL_O)
+$(FUSER_TARGET): $(OBJ_$(NAME)) $(NURDLIB_TARGET) bin/$(FUSER_BASE) $(HWMAP_ERROR_INTERNAL_O) $(FUSER_STAMP)
 	$(QUIET)echo "LD    $@"; \
 	libs="$(NCONF_LIBS)"; \
 	lhwmap=$(echo $(FUSER_LIBS) | grep -- -lhwmap && echo yes); \

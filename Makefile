@@ -133,20 +133,17 @@ ifneq (,$(TRLOII_PATH))
   # This finds whatever firmware is first.  If they are just aliases to
   # the same version, it is ok.  If not - no joy...
   ifeq (,$(TRIDI_FW))
-   TRIDI_DIR:=$(shell ls $(TRLOII_PATH)/trloctrl | grep _tridi | head -n 1)
-   TRIDI_FW:=$(shell echo $(TRIDI_DIR) | $(SED) 's,fw_,,;s,_tridi.*,,')
-   TRIDI_DEFS:=$(wildcard $(TRLOII_PATH)/trloctrl/$(TRIDI_DIR)/tridi_defs.h)
+   TRIDI_FW:=$(shell ls $TRLOII_PATH/trloctrl/ | grep _tridi | head -n1 | $(SED) 's/fw_\(.*\)_tridi/\1/)
   endif
   ifeq (,$(VULOM4_FW))
-   VULOM4_DIR:=$(shell ls $(TRLOII_PATH)/trloctrl | grep _trlo | head -n 1)
-   VULOM4_FW:=$(shell echo $(VULOM4_DIR) | $(SED) 's,fw_,,;s,_trlo.*,,')
-   VULOM4_DEFS:=$(wildcard $(TRLOII_PATH)/trloctrl/$(VULOM4_DIR)/trlo_defs.h)
+   VULOM4_FW:=$(shell ls $TRLOII_PATH/trloctrl/ | grep _trlo | head -n1 | $(SED) 's/fw_\(.*\)_trlo/\1/)
   endif
   ifeq (,$(RFX1_FW))
-   RFX1_DIR:=$(shell ls $(TRLOII_PATH)/trloctrl | grep _rfx1 | head -n 1)
-   RFX1_FW:=$(shell echo $(RFX1_DIR) | $(SED) 's,fw_,,;s,_rfx1.*,,')
-   RFX1_DEFS:=$(wildcard $(TRLOII_PATH)/trloctrl/$(RFX1_DIR)/rfx1_defs.h)
+   RFX1_FW:=$(shell ls $TRLOII_PATH/trloctrl/ | grep _rfx1 | head -n1 | $(SED) 's/fw_\(.*\)_rfx1/\1/)
   endif
+  TRIDI_DEFS:=$(wildcard $(TRLOII_PATH)/trloctrl/fw_$(TRIDI_FW)_tridi/tridi_defs.h)
+  VULOM4_DEFS:=$(wildcard $(TRLOII_PATH)/trloctrl/fw_$(VULOM4_FW)_trlo/trlo_defs.h)
+  RFX1_DEFS:=$(wildcard $(TRLOII_PATH)/trloctrl/fw_$(RFX1_FW)_rfx1/rfx1_defs.h)
   HWMAP_ERROR_INTERNAL_O:=$(BUILD_DIR)/tools/hwmap_error_internal.o
  endif
  export TRIDI_FW
@@ -496,6 +493,12 @@ showconfig:
 	$(call printconfig,LIBS_)
 	$(call printconfig,TRLOII_PATH)
 	$(call printconfig,TRLOII_ARCH_SUFFIX)
+	$(call printconfig,TRIDI_FW)
+	$(call printconfig,TRIDI_DEFS)
+	$(call printconfig,VULOM4_FW)
+	$(call printconfig,VULOM4_DEFS)
+	$(call printconfig,RFX1_FW)
+	$(call printconfig,RFX1_DEFS)
 	$(call printconfig,NCONFER)
 	$(call printconfig,NCONF_ARGS)
 	$(call printconfig,NCONF_PREV)

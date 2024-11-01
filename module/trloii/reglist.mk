@@ -22,8 +22,8 @@ TRLOII_DEFS:=$($(TRLOII_TYPE)_DEFS)
 ifneq (,$(TRLOII_DEFS))
 TRLOII_REGLIST:=$(BUILD_DIR)/$(DIR_$(NAME))/register_list.txt
 $(TRLOII_REGLIST): $(TRLOII_DEFS) module/trloii/reglist.mk
-	$(MKDIR)
-	echo "anbm" > $@.tmp
+	$(QUIET)$(MKDIR); \
+	echo "anbm" > $@.tmp; \
 	$(SED) -n '/_scaler_map_t/,/_scaler_map;/p' $< | grep uint32_t | \
 	$(SED) 's/.* \(0x[0-9a-f]*\) .*_t \(.*\);/\1 \2 32 R/' >> $@.tmp && \
 	mv -f $@.tmp $@
