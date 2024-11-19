@@ -297,7 +297,7 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int
 	params.fifo = private->do_fifo;
 	params.swap = private->do_mblt_swap;
 
-	ret = mvlcc_vme_block_read(mvlc, a_map->address + a_ofs, a_target,
+	ret = mvlcc_vme_block_read(g_mvlc, a_map->address + a_ofs, a_target,
 	    a_bytes/sizeof(uint32_t), &wordsOut, params);
 
 	LOGF(spam)(LOGL, "blt_read(): ec=%d (%s), wordsOut=%"PRIz", "
