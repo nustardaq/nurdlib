@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2020-2024
  * Anna Kawecka
+ * Florian Lüke
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -51,11 +52,10 @@ static struct {
 	char	ip[32];
 } g_override = {""};
 
-struct MvlcPrivate
-{
-	enum Keyword mode;
-	int do_fifo;
-	int do_mblt_swap;
+struct MvlcPrivate {
+	enum	Keyword mode;
+	int	do_fifo;
+	int	do_mblt_swap;
 };
 
 void
@@ -240,13 +240,15 @@ map_mvlc_config_override(char const *a_ip)
 MAP_FUNC_EMPTY(blt_deinit);
 
 void
-blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int a_do_mblt_swap)
+blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int
+    a_do_mblt_swap)
 {
+	struct MvlcPrivate *private = NULL;
+
 	LOGF(verbose)(LOGL, "blt_map {");
 
 	mvlcc_init();
 
-	struct MvlcPrivate *private = NULL;
 	CALLOC(private, 1);
 
 	private->mode = a_mode;
@@ -271,7 +273,7 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int
 {
 	struct MvlcPrivate *private = NULL;
 	size_t wordsOut = 0;
-	struct MvlccBlockReadParams params = {};
+	struct MvlccBlockReadParams params;
 	int ret = -1;
 
 	(void)a_berr_ok;
@@ -282,13 +284,15 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int
 
 	private = a_map->private;
 
-	if (private->mode == KW_BLT)
+	ZERO(params);
+	if (private->mode == KW_BLT) {
 		params.amod = a32UserBlock;
-	else if (private->mode == KW_MBLT)
+	} else if (private->mode == KW_MBLT) {
 		params.amod = a32UserBlock64;
-	else
+	} else {
 		log_die(LOGL, "BLT type %s not supported.",
 		    keyword_get_string(private->mode));
+	}
 
 	params.fifo = private->do_fifo;
 	params.swap = private->do_mblt_swap;
