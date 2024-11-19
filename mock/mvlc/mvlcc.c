@@ -21,6 +21,7 @@
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <mvlcc_wrap.h>
 
 int
@@ -47,8 +48,20 @@ mvlcc_free_mvlc(mvlcc_t a)
 	(void)a;
 }
 
+int
+mvlcc_is_mvlc_valid(mvlcc_t a)
+{
+	(void)a;
+}
+
 mvlcc_t
 mvlcc_make_mvlc(void const *a)
+{
+	(void)a;
+}
+
+void
+mvlcc_set_global_log_level(const char *a)
 {
 	(void)a;
 }
@@ -67,6 +80,17 @@ mvlcc_single_vme_read(mvlcc_t a, unsigned b, uint32_t *c, unsigned d, unsigned
 int
 mvlcc_single_vme_write(mvlcc_t a, unsigned b, uint32_t c, unsigned d, unsigned
     e)
+{
+	(void)a;
+	(void)b;
+	(void)c;
+	(void)d;
+	(void)e;
+}
+
+int
+mvlcc_vme_block_read(mvlcc_t a, uint32_t b, uint32_t *c, size_t d, size_t *e,
+    struct MvlccBlockReadParams f)
 {
 	(void)a;
 	(void)b;
