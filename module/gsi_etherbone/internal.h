@@ -28,7 +28,7 @@
 
 struct GsiEtherboneModule {
 	struct	Module module;
-#if NCONF_mGSI_ETHERBONE_bYES
+#if !NCONF_mGSI_ETHERBONE_bNO
 	unsigned	fifo_id;
 	enum	Keyword mode;
 	int	is_direct;

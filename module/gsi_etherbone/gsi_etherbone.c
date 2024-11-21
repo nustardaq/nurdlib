@@ -34,7 +34,7 @@
 
 #define NAME "Gsi Etherbone"
 
-#if NCONF_mGSI_ETHERBONE_bYES
+#if !NCONF_mGSI_ETHERBONE_bNO
 
 #include <sys/mman.h>
 #include <fcntl.h>
