@@ -22,27 +22,29 @@
 
 #include <etherbone.h>
 
-eb_status_t eb_cycle_close(eb_cycle_t a_a) { return 0; }
+eb_status_t eb_cycle_close(eb_cycle_t a_a) { return EB_OK; }
 eb_status_t eb_cycle_open(eb_device_t a_a, eb_user_data_t a_b, eb_callback_t
-    a_c, eb_cycle_t *a_d) { return 0; }
+    a_c, eb_cycle_t *a_d) { return EB_OK; }
 void eb_cycle_read(eb_cycle_t a_a, eb_address_t a_b, eb_format_t a_c,
     eb_data_t *a_d) {}
 void eb_cycle_write(eb_cycle_t a_a, eb_address_t a_b, eb_format_t a_c,
     eb_data_t a_d) {}
 
-eb_status_t eb_device_close(eb_device_t a_a) { return 0; }
-eb_status_t eb_device_open(eb_socket_t a_a, char const *a_b, eb_width_t a_c, int
-    a_d, eb_device_t *a_e) { return 0; }
+eb_status_t eb_device_close(eb_device_t a_a) { return EB_OK; }
+eb_status_t eb_device_open(eb_socket_t a_a, char const *a_b, eb_width_t a_c,
+    int a_d, eb_device_t *a_e) { return EB_OK; }
 eb_status_t eb_device_read(eb_device_t a_a, eb_address_t a_b, eb_format_t a_c,
-    eb_data_t *a_d, eb_user_data_t a_e, eb_callback_t a_f) { return 0; }
+    eb_data_t *a_d, eb_user_data_t a_e, eb_callback_t a_f) { return EB_OK; }
 eb_status_t eb_device_write(eb_device_t a_a, eb_address_t a_b, eb_format_t
-    a_c, eb_data_t a_d, eb_user_data_t a_e, eb_callback_t a_f) { return 0; }
+    a_c, eb_data_t a_d, eb_user_data_t a_e, eb_callback_t a_f) {
+	return EB_OK;
+}
 
 eb_status_t eb_sdb_find_by_identity(eb_device_t a_a, unsigned a_b, unsigned
-    a_c, struct sdb_device *a_d, int *a_e) { return 0; }
+    a_c, struct sdb_device *a_d, int *a_e) { return EB_OK; }
 
-eb_status_t eb_socket_close(eb_socket_t a_a) { return 0; }
+eb_status_t eb_socket_close(eb_socket_t a_a) { return EB_OK; }
 eb_status_t eb_socket_open(unsigned short a_a, char const *a_b, eb_width_t
-    a_c, eb_socket_t *a_d) { return 0; }
+    a_c, eb_socket_t *a_d) { return EB_OK; }
 
-char const *eb_status(eb_status_t a_a) { return 0; }
+char const *eb_status(eb_status_t a_a) { return ""; }

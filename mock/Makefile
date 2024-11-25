@@ -25,8 +25,8 @@ SED=sed
 CHECK_MAP_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/map/map && if ! grep
 CHECK_MAP_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
 
-CHECK_EBONE_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/gsi_etherbone/nconf && if ! grep
-CHECK_EBONE_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
+CHECK_EBONE_PRE=dir=$$(BUILD_DIR_PREFIX=etherbone_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/gsi_etherbone/nconf && if ! grep
+CHECK_EBONE_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "etherbone branch failed!" 1>&2; exit 1; fi
 
 CHECK_PEX_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/gsi_pex/nconf && if ! grep
 CHECK_PEX_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
@@ -117,9 +117,14 @@ mvlc_env: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
 	$(CHECK_MAP_PRE) MVLC $(CHECK_MAP_POST)
 
 .PHONY: etherbone
-etherbone: etherbone/lib/libetherbone.a
+etherbone: etherbone_test
+.PHONY: etherbone_test
+etherbone_test: etherbone_lib
+	BUILD_DIR_PREFIX=etherbone_ make -C etherbone
+.PHONY: etherbone_lib
+etherbone_lib: etherbone/lib/libetherbone.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ make -j8 -C ../ WR_SYS=mock/$@ &&\
+	BUILD_DIR_PREFIX=etherbone_ make -j8 -C ../ WR_SYS=mock/etherbone &&\
 	$(CHECK_EBONE_PRE) ETHERBONE_bYES $(CHECK_EBONE_POST)
 
 .PHONY: pex

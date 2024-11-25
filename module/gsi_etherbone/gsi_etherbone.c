@@ -607,7 +607,7 @@ gsi_etherbone_check_empty(struct GsiEtherboneModule *a_etherbone)
 {
 	(void)a_etherbone;
 	LOGF(info)(LOGL, "gsi_etherbone didn't pass nconf!");
-	return 0;
+	return CRATE_READOUT_FAIL_GENERAL;
 }
 
 void
@@ -642,7 +642,7 @@ gsi_etherbone_readout(struct GsiEtherboneModule *a_etherbone, struct
 	(void)a_etherbone;
 	(void)a_event_buffer;
 	LOGF(info)(LOGL, "gsi_etherbone didn't pass nconf!");
-	return 0;
+	return CRATE_READOUT_FAIL_GENERAL;
 }
 
 uint32_t
@@ -650,7 +650,7 @@ gsi_etherbone_readout_dt(struct GsiEtherboneModule *a_etherbone)
 {
 	(void)a_etherbone;
 	LOGF(info)(LOGL, "gsi_etherbone didn't pass nconf!");
-	return 0;
+	return CRATE_READOUT_FAIL_GENERAL;
 }
 
 #endif
