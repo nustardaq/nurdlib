@@ -26,7 +26,7 @@ TEST:=../../$(BUILD_DIR)/etherbone_test
 
 CPPFLAGS:=-I../../include -I../.. -I../../$(BUILD_DIR) -Iinclude
 LDFLAGS:=-L../../$(BUILD_DIR) -Llib
-LIBS:=-lnurdlib -letherbone -lm
+LIBS:=-lnurdlib -letherbone -lm -pthread
 
 .PHONY: all
 all: $(TEST)
