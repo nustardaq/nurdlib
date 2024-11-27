@@ -523,4 +523,10 @@ gsi_pex_readout_prepare(struct GsiPex *a_pex)
 	(void)a_pex;
 }
 
+void
+gsi_pex_reset(struct GsiPex *a_pex)
+{
+	(void)a_pex;
+}
+
 #endif
