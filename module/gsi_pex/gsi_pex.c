@@ -184,10 +184,8 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 		    i, a_pex->sfp[i].phys, a_pex->sfp[i].virt);
 	}
 
-	gsi_pex_reset(a_pex);
-
 	/* pexheal.sh */
-	if (1) {
+	if (0) {
 		uint32_t r;
 
 		GSI_PEX_WRITE(a_pex, rx_rst, 0xf);
@@ -252,11 +250,11 @@ gsi_pex_slave_init(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_num)
 		rx_clear_ch(a_pex, a_sfp_i);
 		tx(a_pex, PEX_INI_REQ | (0x10000 << a_sfp_i), 0,
 		    a_slave_num - 1);
-		time_sleep(1e-3);
 		if (rx(a_pex, a_sfp_i, &comm, &addr, &data) &&
 		    a_slave_num == addr) {
 			break;
 		}
+		sched_yield();
 	}
 	ret = 1;
 gsi_pex_init_slave_done:

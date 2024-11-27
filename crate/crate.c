@@ -1172,6 +1172,9 @@ crate_init_there_is_no_try:
 		}
 		config_touched_assert(module->config, 1);
 	}
+	if (NULL != a_crate->gsi_pex.pex) {
+		gsi_pex_reset(a_crate->gsi_pex.pex);
+	}
 	TAILQ_FOREACH(counter, &a_crate->counter_list, next) {
 		counter->cur.mask = ~0;
 		if (NULL == counter->scaler) {
