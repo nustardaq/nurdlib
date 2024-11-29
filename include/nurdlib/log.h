@@ -52,26 +52,42 @@ LOG_LEVEL_DECLARE_(debug);
 /* For when you like to hold on tight, be prepared to abort. */
 LOG_LEVEL_DECLARE_(spam);
 
+/* Default callback writes to stdout/stderr, override here! */
 void			log_callback_set(LogCallback);
+/* Print message and immediately calls abort. */
 void			log_die(LOGL_ARGS, char const *, ...)
 	FUNC_PRINTF(3, 4) FUNC_NORETURN;
+/* Dump buffer of given # of bytes to the info level. */
 void			log_dump(LOGL_ARGS, void const *, size_t)
 	FUNC_NONNULL(());
+/* Like "err", i.e. print message + errno string and abort. */
+void			log_err(LOGL_ARGS, char const *, ...)
+	FUNC_PRINTF(3, 4) FUNC_NORETURN;
+void			log_verr(LOGL_ARGS, char const *, va_list)
+	FUNC_PRINTF(3, 0) FUNC_NORETURN;
+/* Log to the error level. */
 void			log_error(LOGL_ARGS, char const *, ...)
 	FUNC_PRINTF(3, 4);
 void			log_errorv(LOGL_ARGS, char const *, va_list)
 	FUNC_PRINTF(3, 0);
+/* Clear all log levels, mainly for testing! */
 void			log_level_clear(void);
+/* Log level utils. */
 struct LogLevel const	*log_level_get(void) FUNC_RETURNS;
 struct LogLevel const	*log_level_get_from_keyword(enum Keyword)
 	FUNC_RETURNS;
 int			log_level_is_visible(struct LogLevel const *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
+/* Push and pop log level. */
 void			log_level_pop(void);
 void			log_level_push(struct LogLevel const *)
 	FUNC_NONNULL(());
-int			log_printerv(char const *, va_list) FUNC_PRINTF(1, 0)
-	FUNC_RETURNS;
+/* Suppress all log levels, for in polling loops. */
 void			log_suppress_all_levels(int);
+/* Like log_err but doesn't abort. */
+void			log_warn(LOGL_ARGS, char const *, ...)
+	FUNC_PRINTF(3, 4);
+void			log_vwarn(LOGL_ARGS, char const *, va_list)
+	FUNC_PRINTF(3, 0);
 
 #endif

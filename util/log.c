@@ -22,6 +22,7 @@
  */
 
 #include <nurdlib/log.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <nurdlib/base.h>
@@ -44,7 +45,7 @@ struct LogLevel {
 
 static void	callback_stdio(char const *, int, unsigned, char const *);
 static void	print(struct LogFile const *, int, enum Keyword, char const *,
-    va_list) FUNC_PRINTF(4, 0);
+    va_list, int) FUNC_PRINTF(4, 0);
 
 #define LOG_LEVEL_DEFINE(name, index)\
     static struct LogLevel const g_##name##_ = {index};\
@@ -65,25 +66,24 @@ callback_stdio(char const *a_file, int a_line_no, unsigned a_level, char const
 {
 	struct tm tm;
 	time_t t_now;
-	char buf[26];
+	char tbuf[26];
+	FILE *str;
+	char const *level;
 
 	time(&t_now);
 	gmtime_r_(&t_now, &tm);
-	strftime(buf, sizeof buf, "%Y-%m-%d,%H:%M:%S:", &tm);
-	printf("%s", buf);
-	if (KW_INFO == a_level) {
-		printf("INFO");
-	} else if (KW_VERBOSE == a_level) {
-		printf("VRBS");
-	} else if (KW_DEBUG == a_level) {
-		printf("DEBG");
-	} else if (KW_SPAM == a_level) {
-		printf("SPAM");
-	} else if (KW_ERROR == a_level) {
-		printf("ERRR");
+	strftime(tbuf, sizeof tbuf, "%Y-%m-%d,%H:%M:%S", &tm);
+	str = stdout;
+	switch (a_level) {
+	case KW_INFO:    level = "INFO"; break;
+	case KW_VERBOSE: level = "VRBS"; break;
+	case KW_DEBUG:   level = "DEBG"; break;
+	case KW_SPAM:    level = "SPAM"; break;
+	case KW_ERROR:   level = "ERRR"; str = stderr; break;
 	}
-	printf(": %s [%s:%u]\n", a_str, a_file, a_line_no);
-	fflush(stdout);
+	fprintf(str, "%s:%s: %s [%s:%u]\n",
+	    tbuf, level, a_str, a_file, a_line_no);
+	fflush(str);
 }
 
 void
@@ -181,6 +181,27 @@ log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
 }
 
 void
+log_err(struct LogFile const *a_file, int a_line_no, char const *a_fmt, ...)
+{
+	va_list args;
+	int errno_;
+
+	errno_ = errno;
+	va_start(args, a_fmt);
+	print(a_file, a_line_no, KW_ERROR, a_fmt, args, errno_);
+	va_end(args);
+	abort();
+}
+
+void
+log_verr(struct LogFile const *a_file, int a_line_no, char const *a_fmt,
+    va_list a_args)
+{
+	print(a_file, a_line_no, KW_ERROR, a_fmt, a_args, errno);
+	abort();
+}
+
+void
 log_error(struct LogFile const *a_file, int a_line_no, char const *a_fmt, ...)
 {
 	va_list args;
@@ -194,7 +215,7 @@ void
 log_errorv(struct LogFile const *a_file, int a_line_no, char const *a_fmt,
     va_list a_args)
 {
-	print(a_file, a_line_no, KW_ERROR, a_fmt, a_args);
+	print(a_file, a_line_no, KW_ERROR, a_fmt, a_args, 0);
 }
 
 void
@@ -252,17 +273,6 @@ log_level_push(struct LogLevel const *a_level)
 	g_log_stack[g_stack_i] = a_level;
 }
 
-int
-log_printerv(char const *a_fmt, va_list a_args)
-{
-	char buf[1024];
-	int ret;
-
-	ret = vsnprintf_(buf, sizeof buf, a_fmt, a_args);
-	g_callback("sys", 0, KW_ERROR, buf);
-	return ret;
-}
-
 #define LOG_PRINTF_DEFINE(name, level)\
 void \
 log_##name##_printf_(struct LogFile const *a_file, int a_line_no, char const \
@@ -274,10 +284,10 @@ log_##name##_printf_(struct LogFile const *a_file, int a_line_no, char const \
 	va_start(args, a_fmt);\
 	switch (g_suppress_state) {\
 	case SUPPRESS_STATE_DONT:\
-		print(a_file, a_line_no, level, a_fmt, args);\
+		print(a_file, a_line_no, level, a_fmt, args, 0);\
 		break;\
 	case SUPPRESS_STATE_FIRST:\
-		print(a_file, a_line_no, level, "Suppressed...", args);\
+		print(a_file, a_line_no, level, "Suppressed...", args, 0);\
 		g_suppress_state = SUPPRESS_STATE_REST;\
 		break;\
 	case SUPPRESS_STATE_REST:\
@@ -303,11 +313,24 @@ log_suppress_all_levels(int a_yes)
 	}
 }
 
-#define STRAPP(dst, dstlen, ofs, src)\
-       do {\
-               ofs += strlcpy_(dst + ofs, src, dstlen - ofs);\
-               ofs = MIN(ofs, dstlen - 1);\
-       } while (0)
+void
+log_warn(struct LogFile const *a_file, int a_line_no, char const *a_fmt, ...)
+{
+	va_list args;
+	int errno_;
+
+	errno_ = errno;
+	va_start(args, a_fmt);
+	print(a_file, a_line_no, KW_ERROR, a_fmt, args, errno_);
+	va_end(args);
+}
+
+void
+log_vwarn(struct LogFile const *a_file, int a_line_no, char const *a_fmt,
+    va_list a_args)
+{
+	print(a_file, a_line_no, KW_ERROR, a_fmt, a_args, errno);
+}
 
 /*
  * If the last character is a '{', indent is increased.
@@ -315,11 +338,10 @@ log_suppress_all_levels(int a_yes)
  */
 void
 print(struct LogFile const *a_file, int a_line_no, enum Keyword a_level, char
-    const *a_fmt, va_list a_args)
+    const *a_fmt, va_list a_args, int a_errno)
 {
 	char buf[1024];
 	size_t ofs;
-	unsigned i, last;
 
 	assert(
 	    KW_INFO == a_level ||
@@ -327,24 +349,35 @@ print(struct LogFile const *a_file, int a_line_no, enum Keyword a_level, char
 	    KW_DEBUG == a_level ||
 	    KW_SPAM == a_level ||
 	    KW_ERROR == a_level);
-	ofs = 0;
-	for (i = 0; g_indent > i; ++i) {
-		STRAPP(buf, sizeof buf, ofs, ".");
+	assert(g_indent < sizeof buf);
+	for (ofs = 0; g_indent > ofs; ++ofs) {
+		buf[ofs] = '.';
 	}
 	ofs += vsnprintf_(buf + ofs, sizeof buf - ofs, a_fmt, a_args);
-	last = buf[ofs - 1];
-	ofs = 0;
-	if ('{' == last) {
-		if (INDENT_MAX <= g_indent) {
-			log_die(LOGL, "Log indent overflow: \"%s\".", buf);
+	if (0 == a_errno) {
+		char last;
+
+		last = buf[ofs - 1];
+		ofs = 0;
+		if ('{' == last) {
+			if (INDENT_MAX <= g_indent) {
+				log_die(LOGL, "Log indent overflow: \"%s\".",
+				    buf);
+			}
+			++g_indent;
+		} else if ('}' == last) {
+			if (0 == g_indent) {
+				log_die(LOGL, "Log indent underflow: \"%s\".",
+				    buf);
+			}
+			--g_indent;
+			ofs = 1;
 		}
-		++g_indent;
-	} else if ('}' == last) {
-		if (0 == g_indent) {
-			log_die(LOGL, "Log indent underflow: \"%s\".", buf);
-		}
-		--g_indent;
-		ofs = 1;
+	} else {
+		/* Don't check indentation with err/warn suffix. */
+		snprintf_(buf + ofs, sizeof buf - ofs, ": %s.",
+		    strerror(errno));
+		ofs = 0;
 	}
 	g_callback((void const *)a_file, a_line_no, a_level, buf + ofs);
 }

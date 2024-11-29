@@ -90,14 +90,13 @@ static int nconf_test_(void) {
 #include <time.h>
 #if TIME_CLOCK_GETTIME
 #	include <stdlib.h>
-#	include <util/err.h>
 #	include <util/thread.h>
 #elif NCONF_mTIME_GET_bMACH
 #	include <stdlib.h>
 #	include <mach/mach_time.h>
-#	include <util/err.h>
 #endif
 
+#include <nurdlib/log.h>
 #define KEEP_GMTIME_R
 #include <util/time.h>
 
@@ -148,7 +147,7 @@ time_getd(void)
 			continue;
 		}
 #	endif
-		err_(EXIT_FAILURE, "clock_gettime");
+		log_err(LOGL, "clock_gettime");
 	}
 	if (MUTEX_OK == s_mutex_state) {
 		thread_mutex_unlock(&s_mutex);
@@ -165,7 +164,7 @@ time_getd(void)
 
 		ret = mach_timebase_info(&timebase_info);
 		if (0 != ret) {
-			err_(EXIT_FAILURE, "mach_timebase_info");
+			log_err(LOGL, "mach_timebase_info");
 		}
 		scaling_factor = 1e-9 * timebase_info.numer /
 		    timebase_info.denom;
@@ -195,7 +194,7 @@ int
 time_sleep(double a_s)
 {
 	if (0.0 > a_s) {
-		errx_(EXIT_FAILURE, "time_sleep(%f<0)", a_s);
+		log_error(LOGL, "time_sleep(%f<0)", a_s);
 	}
 #if defined(NCONF_mTIME_SLEEP_bNANOSLEEP)
 	{
@@ -204,7 +203,7 @@ time_sleep(double a_s)
 		ts.tv_sec = a_s;
 		ts.tv_nsec = 1e9 * (a_s - (unsigned)a_s);
 		if (0 != nanosleep(&ts, NULL)) {
-			warn_("nanosleep");
+			log_warn(LOGL, "nanosleep");
 			return 0;
 		}
 	}

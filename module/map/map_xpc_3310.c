@@ -42,7 +42,6 @@
 
 #	include <nurdlib/base.h>
 #	include <nurdlib/log.h>
-#	include <util/err.h>
 #	include <util/fs.h>
 #	include <util/sigbus.h>
 
@@ -335,15 +334,15 @@ map_blt_dst_alloc(size_t a_bytes)
 	CALLOC(dst, 1);
 	dst->fd = open("/tmp/shm/test", O_RDWR | O_CREAT, 0644);
 	if (-1 == dst->fd) {
-		err_(EXIT_FAILURE, "open");
+		log_err(LOGL, "open(/tmp/shm/test)");
 	}
 	if (-1 == ftruncate_(dst->fd, a_bytes)) {
-		err_(EXIT_FAILURE, "ftruncate");
+		log_err(LOGL, "ftruncate");
 	}
 	dst->ptr = mmap(NULL, a_bytes, PROT_READ | PROT_WRITE, MAP_SHARED,
 	    dst->fd, 0);
 	if (MAP_FAILED == dst->ptr) {
-		err_(EXIT_FAILURE, "mmap");
+		log_err(LOGL, "mmap");
 	}
 	dst->bytes = a_bytes;
 	return dst;

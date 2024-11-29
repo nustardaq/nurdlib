@@ -29,7 +29,6 @@
 #include <module/module.h>
 #include <nurdlib/config.h>
 #include <nurdlib/crate.h>
-#include <util/err.h>
 #include <util/sigbus.h>
 
 static struct CtrlServer *g_server = NULL;
@@ -45,7 +44,6 @@ nurdlib_setup(LogCallback a_log_callback, char const *a_config_path)
 	}
 	log_callback_set(a_log_callback);
 	LOGF(info)(LOGL, "Using config '%s'.", a_config_path);
-	err_set_printer(log_printerv);
 	sigbus_setup();
 	crate_setup();
 	module_setup();

@@ -22,7 +22,6 @@
 
 #include <tests/log_intercept.h>
 #include <nurdlib/base.h>
-#include <util/err.h>
 #include <util/string.h>
 
 static struct {
@@ -54,7 +53,7 @@ unsigned
 log_intercept_get_level(size_t a_idx)
 {
 	if (g_num <= a_idx) {
-		errx_(EXIT_FAILURE, "g_num <= a_idx.");
+		log_error(LOGL, "g_num <= a_idx.");
 	}
 	return g_log[a_idx].level;
 }
@@ -63,7 +62,7 @@ char const *
 log_intercept_get_str(size_t a_idx)
 {
 	if (g_num <= a_idx) {
-		errx_(EXIT_FAILURE, "g_num <= a_idx.");
+		log_error(LOGL, "g_num <= a_idx.");
 	}
 	return g_log[a_idx].str;
 }

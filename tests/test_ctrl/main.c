@@ -32,11 +32,10 @@
 #include <ctrl/ctrl.h>
 #include <module/map/map.h>
 #include <nurdlib/base.h>
-#include <util/err.h>
 
 #define SYSCALL(err, func, args) do { \
 	if (err == func args) { \
-		err_(EXIT_FAILURE, #func); \
+		log_err(LOGL, #func); \
 	} \
 } while (0)
 
@@ -65,7 +64,7 @@ main(void)
 
 	server_pid = fork();
 	if (-1 == server_pid) {
-		err_(EXIT_FAILURE, "fork");
+		log_err(LOGL, "fork");
 	}
 	if (0 == server_pid) {
 		/* The server part. */
@@ -120,7 +119,7 @@ main(void)
 
 	client_pid = fork();
 	if (-1 == client_pid) {
-		err_(EXIT_FAILURE, "fork");
+		log_err(LOGL, "fork");
 	}
 	if (0 == client_pid) {
 		/* The client part. */

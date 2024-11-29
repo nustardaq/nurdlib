@@ -24,7 +24,6 @@
 #include <module/map/internal.h>
 #include <nurdlib/base.h>
 #include <util/assert.h>
-#include <util/err.h>
 
 #ifdef SICY_DUMB
 
@@ -151,7 +150,7 @@ map_blt_dst_alloc(size_t a_bytes)
 	CALLOC(dst, 1);
 	dst->ptr = malloc(a_bytes);
 	if (NULL == dst->ptr) {
-		err_(EXIT_FAILURE, "malloc(%"PRIz")", a_bytes);
+		log_err(LOGL, "malloc(%"PRIz")", a_bytes);
 	}
 	return dst;
 }

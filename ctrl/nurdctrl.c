@@ -36,7 +36,6 @@
 #include <nurdlib/config.h>
 #include <nurdlib/log.h>
 #include <util/argmatch.h>
-#include <util/err.h>
 #include <util/fmtmod.h>
 #include <util/math.h>
 #include <util/memcpy.h>
@@ -342,7 +341,7 @@ main(int argc, char **argv)
 
 				ret = read(STDIN_FILENO, buf, sizeof buf - 1);
 				if (-1 == ret) {
-					warn_("-c read(stdin)");
+					log_warn(LOGL, "-c read(stdin)");
 					continue;
 				}
 				buf[ret] = '\0';

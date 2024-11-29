@@ -46,7 +46,6 @@
 #	include <errno.h>
 #	include <string.h>
 #	include <nurdlib/base.h>
-#	include <util/err.h>
 
 struct Starter {
 	void	(*func)(void *);
@@ -78,7 +77,7 @@ int
 thread_condvar_broadcast(struct CondVar *a_condvar)
 {
 	if (0 != pthread_cond_broadcast(&a_condvar->cond)) {
-		warn_("pthread_cond_broadcast");
+		log_warn(LOGL, "pthread_cond_broadcast");
 		return 0;
 	}
 	return 1;
@@ -88,7 +87,7 @@ int
 thread_condvar_clean(struct CondVar *a_condvar)
 {
 	if (0 != pthread_cond_destroy(&a_condvar->cond)) {
-		warn_("pthread_cond_destroy");
+		log_warn(LOGL, "pthread_cond_destroy");
 		return 0;
 	}
 	return 1;
@@ -98,7 +97,7 @@ int
 thread_condvar_init(struct CondVar *a_condvar)
 {
 	if (0 != pthread_cond_init(&a_condvar->cond, NULL)) {
-		warn_("pthread_cond_init");
+		log_warn(LOGL, "pthread_cond_init");
 		return 0;
 	}
 	return 1;
@@ -108,7 +107,7 @@ int
 thread_condvar_signal(struct CondVar *a_condvar)
 {
 	if (0 != pthread_cond_signal(&a_condvar->cond)) {
-		warn_("pthread_cond_signal");
+		log_warn(LOGL, "pthread_cond_signal");
 		return 0;
 	}
 	return 1;
@@ -118,7 +117,7 @@ int
 thread_condvar_wait(struct CondVar *a_condvar, struct Mutex *a_mutex)
 {
 	if (0 != pthread_cond_wait(&a_condvar->cond, &a_mutex->mutex)) {
-		warn_("pthread_cond_wait");
+		log_warn(LOGL, "pthread_cond_wait");
 		return 0;
 	}
 	return 1;
@@ -128,7 +127,7 @@ int
 thread_mutex_clean(struct Mutex *a_mutex)
 {
 	if (0 != pthread_mutex_destroy(&a_mutex->mutex)) {
-		warn_("pthread_mutex_destroy");
+		log_warn(LOGL, "pthread_mutex_destroy");
 		return 0;
 	}
 	return 1;
@@ -138,7 +137,7 @@ int
 thread_mutex_init(struct Mutex *a_mutex)
 {
 	if (0 != pthread_mutex_init(&a_mutex->mutex, NULL)) {
-		warn_("pthread_mutex_init");
+		log_warn(LOGL, "pthread_mutex_init");
 		return 0;
 	}
 	return 1;
@@ -156,7 +155,7 @@ thread_mutex_is_locked(struct Mutex *a_mutex)
 	if (0 == ret) {
 		thread_mutex_unlock(a_mutex);
 	} else {
-		warn_("pthread_mutex_trylock");
+		log_warn(LOGL, "pthread_mutex_trylock");
 	}
 	return 0;
 }
@@ -165,7 +164,7 @@ int
 thread_mutex_lock(struct Mutex *a_mutex)
 {
 	if (0 != pthread_mutex_lock(&a_mutex->mutex)) {
-		warn_("pthread_mutex_lock");
+		log_warn(LOGL, "pthread_mutex_lock");
 		return 1;
 	}
 	return 0;
@@ -175,7 +174,7 @@ int
 thread_mutex_unlock(struct Mutex *a_mutex)
 {
 	if (0 != pthread_mutex_unlock(&a_mutex->mutex)) {
-		warn_("pthread_mutex_unlock");
+		log_warn(LOGL, "pthread_mutex_unlock");
 		return 1;
 	}
 	return 0;
@@ -188,7 +187,7 @@ thread_clean(struct Thread *a_thread)
 
 	ret = 1;
 	if (0 != pthread_join(a_thread->thread, NULL)) {
-		warn_("pthread_destroy");
+		log_warn(LOGL, "pthread_destroy");
 		ret = 0;
 	}
 	ATTR_DESTROY(a_thread->attr);
@@ -214,7 +213,7 @@ thread_start(struct Thread *a_thread, void (*a_func)(void *), void *a_data)
 	}
 	return 1;
 thread_start_fail:
-	warn_("pthread_create");
+	log_warn(LOGL, "pthread_create");
 	FREE(starter);
 	return 0;
 }
