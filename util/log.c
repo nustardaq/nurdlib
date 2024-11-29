@@ -80,6 +80,7 @@ callback_stdio(char const *a_file, int a_line_no, unsigned a_level, char const
 	case KW_DEBUG:   level = "DEBG"; break;
 	case KW_SPAM:    level = "SPAM"; break;
 	case KW_ERROR:   level = "ERRR"; str = stderr; break;
+	default: abort();
 	}
 	fprintf(str, "%s:%s: %s [%s:%u]\n",
 	    tbuf, level, a_str, a_file, a_line_no);
