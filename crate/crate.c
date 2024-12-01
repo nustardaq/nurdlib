@@ -401,13 +401,8 @@ crate_create(void)
 	crate->name = strdup_(config_get_block_param_string(crate_block, 0));
 	LOGF(info)(LOGL, "Crate=\"%s\".", crate->name);
 
-#define FLAG_LOG(flag, msg) do { \
-	if (flag) { \
-		LOGF(info)(LOGL, #msg " enabled."); \
-	} else { \
-		LOGF(verbose)(LOGL, #msg " disabled."); \
-	} \
-} while (0)
+#define FLAG_LOG(flag, msg) \
+	LOGF(info)(LOGL, #msg " %s.", flag ? "enabled" : "disabled")
 
 	crate->acvt.yes = config_get_boolean(crate_block, KW_ACVT);
 	crate->acvt.pioneer_counter = 0;
