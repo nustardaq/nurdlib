@@ -1300,6 +1300,21 @@ crate_module_get_num(struct Crate const *a_crate)
 	return a_crate->module_num;
 }
 
+struct Module		*crate_module_get_by_index(struct Crate const *a_crate, unsigned a_idx)
+{
+	struct Module *module;
+	unsigned idx;
+
+	idx = 0;
+	TAILQ_FOREACH(module, &a_crate->module_list, next) {
+		if (a_idx == idx) {
+			return module;
+		}
+		++idx;
+	}
+	return NULL;
+}
+
 void
 crate_module_remap_id(struct Crate *a_crate, unsigned a_from, unsigned a_to)
 {

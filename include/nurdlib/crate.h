@@ -129,6 +129,10 @@ void			crate_module_get_event_buffer(struct EventConstBuffer
 /* Returns the total number of modules. */
 size_t			crate_module_get_num(struct Crate const *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
+
+struct Module		*crate_module_get_by_index(struct Crate const *, unsigned)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+
 void			crate_module_remap_id(struct Crate *, unsigned,
     unsigned) FUNC_NONNULL(());
 
