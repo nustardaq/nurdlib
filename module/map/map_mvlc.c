@@ -47,7 +47,7 @@
 
 static void	mvlcc_init(void);
 
-static mvlcc_t g_mvlc;
+mvlcc_t g_mvlc;
 static struct {
 	char	ip[32];
 } g_override = {""};
