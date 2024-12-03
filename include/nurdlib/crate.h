@@ -85,6 +85,12 @@ char const		*crate_get_name(struct Crate const *) FUNC_NONNULL(())
 struct CrateTag		*crate_get_tag_by_name(struct Crate *, char const *)
 	FUNC_NONNULL((1)) FUNC_RETURNS;
 
+size_t			crate_tag_get_num(struct Crate const *)
+	FUNC_NONNULL(()) FUNC_RETURNS;
+
+struct CrateTag		*crate_get_tag_by_index(struct Crate *, unsigned)
+	FUNC_NONNULL((1)) FUNC_RETURNS;
+
 struct PnpiCros3Crate	*crate_get_cros3_crate(struct Crate *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
 struct GsiCTDCCrate	*crate_get_ctdc_crate(struct Crate *) FUNC_NONNULL(())
@@ -154,6 +160,8 @@ size_t			crate_tag_get_module_num(struct CrateTag const *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
 char const		*crate_tag_get_name(struct CrateTag const *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
+struct Module		*crate_tag_get_module_by_index(struct CrateTag const *,
+    unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 
 /* Pedestal readout and update. */
 void			crate_tag_pedestal_prepare(struct CrateTag *)
