@@ -381,7 +381,9 @@ crate_create(void)
 	struct ConfigBlock *crate_block;
 	struct ConfigBlock *module_block;
 	unsigned module_id;
+#if !NCONF_mGSI_PEX_bNO
 	int crate_needs_pex = 0;
+#endif
 
 	LOGF(info)(LOGL, "crate_create {");
 
@@ -469,7 +471,9 @@ crate_create(void)
 		struct Module *module;
 		enum Keyword module_type;
 		unsigned i;
+#if !NCONF_mGSI_PEX_bNO
 		int tags_need_pex = 0;
+#endif
 
 		module_type = config_get_block_name(module_block);
 		if (KW_TAGS == module_type) {
@@ -558,6 +562,7 @@ crate_create(void)
 			pnpi_cros3_crate_configure(&crate->pnpi_cros3_crate,
 			    module_block);
 			continue;
+#if !NCONF_mGSI_PEX_bNO
 		} else if (KW_GSI_PEX == module_type) {
 			if (NULL != crate->gsi_pex.config) {
 				CONFIG_GET_SOURCE;
@@ -566,6 +571,7 @@ crate_create(void)
 			}
 			crate->gsi_pex.config = module_block;
 			continue;
+#endif
 		}
 		++crate->module_num;
 		LOGF(info)(LOGL, "module[%u]=%s.", module_id,
@@ -585,6 +591,7 @@ crate_create(void)
 			    &crate->gsi_siderem_crate,
 			    &crate->gsi_tacquila_crate,
 			    &crate->pnpi_cros3_crate, module);
+#if !NCONF_mGSI_PEX_bNO
 		} else if (KW_GSI_CTDC == module_type) {
 			gsi_ctdc_crate_add(&crate->gsi_ctdc_crate, module);
 			tags_need_pex = 1;
@@ -601,12 +608,15 @@ crate_create(void)
 		} else if (KW_GSI_TAMEX == module_type) {
 			gsi_tamex_crate_add(&crate->gsi_tamex_crate, module);
 			tags_need_pex = 1;
+#endif
 		}
+#if !NCONF_mGSI_PEX_bNO
 		VECTOR_FOREACH(tag_ref, &tag_active_vec) {
 			tag = *tag_ref;
 			tag->gsi_pex_is_needed |= tags_need_pex;
 		}
 		crate_needs_pex |= tags_need_pex;
+#endif
 
 		if (0 != module->event_max) {
 			/*
@@ -665,10 +675,12 @@ crate_create(void)
 	}
 	VECTOR_FREE(&tag_active_vec);
 
+#if !NCONF_mGSI_PEX_bNO
 	if (crate_needs_pex && NULL == crate->gsi_pex.config) {
 		log_die(LOGL, "%s: Modules requiring PEX configured, but no "
 		    "PEX!", crate->name);
 	}
+#endif
 
 	/* Find and assign counter references. */
 	TAILQ_FOREACH(counter, &crate->counter_list, next) {
@@ -751,9 +763,11 @@ crate_deinit(struct Crate *a_crate)
 		}
 	}
 	gsi_sam_crate_deinit(&a_crate->gsi_sam_crate);
+#if !NCONF_mGSI_PEX_bNO
 	if (NULL != a_crate->gsi_pex.pex) {
 		gsi_pex_deinit(a_crate->gsi_pex.pex);
 	}
+#endif
 	map_deinit();
 	a_crate->state = STATE_REINIT;
 	thread_mutex_unlock(&a_crate->mutex);
@@ -1052,6 +1066,7 @@ crate_init(struct Crate *a_crate)
 
 	THREAD_MUTEX_LOCK(&a_crate->mutex);
 crate_init_there_is_no_try:
+#if !NCONF_mGSI_PEX_bNO
 	if (NULL != a_crate->gsi_pex.config) {
 		if (NULL == a_crate->gsi_pex.pex) {
 			a_crate->gsi_pex.pex =
@@ -1059,6 +1074,7 @@ crate_init_there_is_no_try:
 		}
 		gsi_pex_init(a_crate->gsi_pex.pex, a_crate->gsi_pex.config);
 	}
+#endif
 	a_crate->shadow.module_readable_num = 0;
 #define INIT_BATCH(name, member) do {\
 		if (!name##_init_slow(&a_crate->member)) {\
@@ -1167,9 +1183,11 @@ crate_init_there_is_no_try:
 		}
 		config_touched_assert(module->config, 1);
 	}
+#if !NCONF_mGSI_PEX_bNO
 	if (NULL != a_crate->gsi_pex.pex) {
 		gsi_pex_reset(a_crate->gsi_pex.pex);
 	}
+#endif
 	TAILQ_FOREACH(counter, &a_crate->counter_list, next) {
 		counter->cur.mask = ~0;
 		if (NULL == counter->scaler) {
@@ -1894,9 +1912,11 @@ crate_tag_counter_increase(struct Crate *a_crate, struct CrateTag *a_tag,
 
 	LOGF(spam)(LOGL, "crate_tag_counter_increase(%s:%s,%u) {",
 	    a_crate->name, a_tag->name, a_inc);
+#if !NCONF_mGSI_PEX_bNO
 	if (a_tag->gsi_pex_is_needed && 0 != a_inc) {
 		gsi_pex_readout_prepare(a_crate->gsi_pex.pex);
 	}
+#endif
 	VECTOR_FOREACH(counter_ref, &a_tag->counter_ref_vec) {
 		struct CrateCounter *counter;
 
