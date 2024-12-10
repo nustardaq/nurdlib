@@ -219,7 +219,6 @@ event_wait(SOCKET a_socket, int a_fd_extra, double a_timeout)
 
 struct UDPAddress {
 	struct	SOCKADDR_STORAGE addr;
-	socklen_t	len;
 };
 struct UDPClient {
 	SOCKET	socket;
@@ -261,6 +260,7 @@ receive_datagram(SOCKET a_socket, int a_fd_extra, struct UDPDatagram *a_dgram,
     struct UDPAddress **a_addr, double a_timeout)
 {
 	struct UDPAddress addr;
+	socklen_t	len;
 	size_t bytes;
 	int ret;
 
@@ -293,10 +293,10 @@ receive_datagram(SOCKET a_socket, int a_fd_extra, struct UDPDatagram *a_dgram,
 		a_dgram->bytes = got;
 		return 1;
 	}
-	addr.len = sizeof addr.addr;
+	len = sizeof addr.addr;
 	ZERO(addr.addr);
 	ret = recvfrom(a_socket, (char *)a_dgram->buf, bytes, 0, (struct
-	    sockaddr *)&addr.addr, &addr.len);
+	    sockaddr *)&addr.addr, &len);
 	if (SOCKET_ERROR == ret) {
 		if (EAGAIN == errno || EWOULDBLOCK == errno) {
 			return 1;
@@ -320,7 +320,7 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 {
 	struct UDPAddress *addr;
 
-	MALLOC(addr, 1);
+	CALLOC(addr, 1);
 #if defined(GETADDRINFO)
 	{
 		struct addrinfo addri;
@@ -339,7 +339,6 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 			goto udp_address_create_fail;
 		}
 		memcpy_(&addr->addr, result->ai_addr, result->ai_addrlen);
-		addr->len = result->ai_addrlen;
 		freeaddrinfo(result);
 	}
 #else
@@ -365,7 +364,6 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 		memcpy_(&in->sin_addr.s_addr, host->h_addr_list[0],
 		    host->h_length);
 		in->sin_port = htons(a_port);
-		addr->len = host->h_length;
 	}
 #endif
 	return addr;
@@ -492,6 +490,7 @@ udp_client_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 			fprintf(stderr, "socket: %s.\n", strerror(errno));
 			return NULL;
 		}
+		ZERO(server);
 		server.sin_family = get_family(a_flags);
 		memcpy_(&server.sin_addr.s_addr, host->h_addr_list[0],
 		    host->h_length);
@@ -674,7 +673,7 @@ udp_server_send(struct UDPServer const *a_server, struct UDPAddress const
 {
 	if (SOCKET_ERROR == sendto(a_server->socket,
 	    (void const *)a_dgram->buf, a_dgram->bytes, 0,
-	    (void const *)&a_addr->addr, a_addr->len)) {
+	    (void const *)&a_addr->addr, sizeof a_addr->addr)) {
 		warn_("send");
 		return 0;
 	}
