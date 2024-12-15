@@ -923,14 +923,14 @@ size_t crate_tag_get_num(struct Crate const *a_crate)
 	return ret;
 }
 
-struct CrateTag *crate_get_tag_by_index(struct Crate *a_crate, unsigned index)
+struct CrateTag *crate_get_tag_by_index(struct Crate *a_crate, unsigned ind)
 {
 	size_t curIndex = 0;
 	struct CrateTag *tag = NULL;
 
 	TAILQ_FOREACH(tag, &a_crate->tag_list, next)
 	{
-		if (curIndex++ == index)
+		if (curIndex++ == ind)
 			return tag;
 	}
 
@@ -1962,12 +1962,12 @@ crate_tag_get_module_num(struct CrateTag const *a_tag)
 	return a_tag->module_num;
 }
 
-struct Module *crate_tag_get_module_by_index(struct CrateTag const *a_tag, unsigned index)
+struct Module *crate_tag_get_module_by_index(struct CrateTag const *a_tag, unsigned ind)
 {
 	size_t curIndex = 0;
 	struct Module **module_ref;
 	VECTOR_FOREACH_REV(module_ref, &a_tag->module_ref_vec) {
-		if (curIndex++ == index && module_ref)
+		if (curIndex++ == ind && module_ref)
 			return *module_ref;
 	}
 
