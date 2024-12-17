@@ -28,6 +28,7 @@
 struct CaenV1725Module {
 	struct	Module module;
 	uint32_t	address;
+	enum	Keyword version;
 	int	do_berr;
 	int	do_blt_ext;
 	struct	Map *sicy_map;
