@@ -121,8 +121,8 @@ static char const	*unit_dump(struct ConfigUnit const *) FUNC_RETURNS;
 struct ConfigUnit const	*unit_from_id(unsigned) FUNC_RETURNS;
 static double		unit_get_factor(struct ConfigUnit const *)
 	FUNC_RETURNS;
-static double		unit_get_mult(struct ConfigUnit const *, struct
-    ConfigUnit const *) FUNC_RETURNS;
+static double		unit_get_mult(enum Keyword, struct ConfigUnit const *,
+    struct ConfigUnit const *) FUNC_RETURNS;
 static int		unit_is_compatible(struct ConfigUnit const *, struct
     ConfigUnit const *);
 static int		unpack_snippet(struct ConfigBlock *, struct Packer *,
@@ -463,12 +463,14 @@ config_get_double(struct ConfigBlock *a_parent, enum Keyword a_name, struct
 			scalar = TAILQ_FIRST(&item->scalar_list);
 			if (CONFIG_SCALAR_DOUBLE == scalar->type) {
 				value = scalar->value.d *
-				    unit_get_mult(scalar->unit, a_unit);
+				    unit_get_mult(a_name, scalar->unit,
+					a_unit);
 				break;
 			}
 			if (CONFIG_SCALAR_INTEGER == scalar->type) {
 				value = scalar->value.i *
-				    unit_get_mult(scalar->unit, a_unit);
+				    unit_get_mult(a_name, scalar->unit,
+					a_unit);
 				break;
 			}
 		}
@@ -549,8 +551,8 @@ config_get_double_array(double *a_dst, size_t a_bytes, struct ConfigBlock
 				value = scalar->value.d;
 				if (CONFIG_UNIT_NONE != a_unit ||
 				    CONFIG_UNIT_NONE != scalar->unit) {
-					value *= unit_get_mult(scalar->unit,
-					    a_unit);
+					value *= unit_get_mult(a_name,
+					    scalar->unit, a_unit);
 				}
 				value = MIN(MAX(value, a_min), a_max);
 				*p++ = value;
@@ -586,8 +588,8 @@ config_get_int32(struct ConfigBlock *a_parent, enum Keyword a_name, struct
 				} else {
 					value = i32_round_double(
 					    scalar->value.i *
-					    unit_get_mult(scalar->unit,
-					    a_unit));
+					    unit_get_mult(a_name,
+					    scalar->unit, a_unit));
 				}
 				item->is_touched = 1;
 				return MIN(MAX(value, a_min), a_max);
@@ -672,8 +674,8 @@ config_get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size,
 				} else {
 					value = i32_round_double(
 					    scalar->value.i *
-					    unit_get_mult(scalar->unit,
-					    a_unit));
+					    unit_get_mult(a_name,
+					    scalar->unit, a_unit));
 				}
 				value = MIN(MAX(value, a_min), a_max);
 				switch (a_dst_elem_size) {
@@ -2031,11 +2033,13 @@ unit_get_factor(struct ConfigUnit const *a_unit)
 
 /* Conversion ratios. */
 double
-unit_get_mult(struct ConfigUnit const *a_from, struct ConfigUnit const *a_to)
+unit_get_mult(enum Keyword a_name, struct ConfigUnit const *a_from, struct
+    ConfigUnit const *a_to)
 {
 	if (!unit_is_compatible(a_from, a_to)) {
-		log_die(LOGL, "Trying to convert between incompatible units "
-		    "(config=%u=%s, request=%u=%s).",
+		log_die(LOGL, "%s: Trying to convert between incompatible "
+		    "units (config=%u=%s, request=%u=%s).",
+		    keyword_get_string(a_name),
 		    a_from->idx, unit_dump(unit_from_id(a_from->idx)),
 		    a_to->idx, unit_dump(unit_from_id(a_to->idx)));
 	}
