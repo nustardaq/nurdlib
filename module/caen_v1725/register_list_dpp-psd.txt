@@ -1,96 +1,96 @@
-namb
+nambs
 
-Record Length                                 0x1020  RW 32
-Input Dynamic Range                           0x1028  RW 32
-Number of Events per Aggregate                0x1034  RW 32
-Pre Trigger                                   0x1038  RW 32
-CFD settings                                  0x103C  RW 32
-Forced Data Flush                             0x1040  W  32
-Charge Zero Suppression Threshold             0x1044  RW 32
-Short Gate Width                              0x1054  RW 32
-Long Gate Width                               0x1058  RW 32
-Gate Offset                                   0x105C  RW 32
-Trigger Threshold                             0x1060  RW 32
-Fixed Baseline                                0x1064  RW 32
-Trigger Latency                               0x106C  RW 32
-Shaped Trigger Width                          0x1070  RW 32
-Trigger Hold-Off Width                        0x1074  RW 32
-Threshold for the PSD cut                     0x1078  RW 32
-PUR-GAP Threshold                             0x107C  RW 32
-DPP Algorithm Control                         0x1080  RW 32
-DPP Algorithm Control 2                       0x1084  RW 32
-Channel n Status                              0x1088  R  32
-AMC Firmware Revision                         0x108C  R  32
-DC Offset                                     0x1098  RW 32
-Channel n ADC Temperature                     0x10A8  R  32
-Individual Software Trigger                   0x10C0  W  32
-Veto Width                                    0x10D4  RW 32
-Early Baseline Freeze                         0x10D8  RW 32
+Record Length                                 0x1020  RW 32 0x100
+Input Dynamic Range                           0x1028  RW 32 0x100
+Number of Events per Aggregate                0x1034  RW 32 0x100
+Pre Trigger                                   0x1038  RW 32 0x100
+CFD settings                                  0x103C  RW 32 0x100
+Forced Data Flush                             0x1040  W  32 0x100
+Charge Zero Suppression Threshold             0x1044  RW 32 0x100
+Short Gate Width                              0x1054  RW 32 0x100
+Long Gate Width                               0x1058  RW 32 0x100
+Gate Offset                                   0x105C  RW 32 0x100
+Trigger Threshold                             0x1060  RW 32 0x100
+Fixed Baseline                                0x1064  RW 32 0x100
+Trigger Latency                               0x106C  RW 32 0x100
+Shaped Trigger Width                          0x1070  RW 32 0x100
+Trigger Hold-Off Width                        0x1074  RW 32 0x100
+Threshold for the PSD cut                     0x1078  RW 32 0x100
+PUR-GAP Threshold                             0x107C  RW 32 0x100
+DPP Algorithm Control                         0x1080  RW 32 0x100
+DPP Algorithm Control 2                       0x1084  RW 32 0x100
+Channel n Status                              0x1088  R  32 0x100
+AMC Firmware Revision                         0x108C  R  32 0x100
+DC Offset                                     0x1098  RW 32 0x100
+Channel n ADC Temperature                     0x10A8  R  32 0x100
+Individual Software Trigger                   0x10C0  W  32 0x100
+Veto Width                                    0x10D4  RW 32 0x100
+Early Baseline Freeze                         0x10D8  RW 32 0x100
 
-Board Configuration                           0x8000  RW 32
-Board Configuration Bit Set                   0x8004  RW 32
-Board Configuration Bit Clear                 0x8008  RW 32
-Buffer Organization                           0x800C  RW 32
-Channel ADC Calibration                       0x809C  W  32
-Channels Shutdown                             0x80BC  W  32
-Acquisition Control                           0x8100  RW 32
-Acquisition Status                            0x8104  R  32
-Software Trigger                              0x8108  W  32
-Global Trigger Mask                           0x810C  RW 32
-Front Panel TRG-OUT (GPO) Enable Mask         0x8110  RW 32
-LVDS I/O Data                                 0x8118  RW 32
-Front Panel I/O Control                       0x811C  RW 32
-Channel Enable Mask                           0x8120  RW 32
-ROC FPGA Firmware Revision                    0x8124  R  32
-Voltage Level Mode Configuration              0x8138  RW 32
-Software Clock Sync                           0x813C  W  32
-Board Info                                    0x8140  R  32
-Analog Monitor Mode                           0x8144  RW 32
-Event Size                                    0x814C  R  32
-Time Bomb Downcounter                         0x8158  R  32
-Fan Speed Control                             0x8168  RW 32
-Run/Start/Stop Delay                          0x8170  RW 32
-Board Failure Status                          0x8178  R  32
-Disable External Trigger                      0x817C  RW 32
-Trigger Validation Mask                       0x8180  RW 32
-Front Panel LVDS I/O New Features             0x81A0  RW 32
-Buffer Occupancy Gain                         0x81B4  RW 32
-Extended Veto Delay                           0x81C4  RW 32
+Board Configuration                           0x8000  RW 32 0
+Board Configuration Bit Set                   0x8004  RW 32 0
+Board Configuration Bit Clear                 0x8008  RW 32 0
+Buffer Organization                           0x800C  RW 32 0
+Channel ADC Calibration                       0x809C  W  32 0
+Channels Shutdown                             0x80BC  W  32 0
+Acquisition Control                           0x8100  RW 32 0
+Acquisition Status                            0x8104  R  32 0
+Software Trigger                              0x8108  W  32 0
+Global Trigger Mask                           0x810C  RW 32 0
+Front Panel TRG-OUT (GPO) Enable Mask         0x8110  RW 32 0
+LVDS I/O Data                                 0x8118  RW 32 0
+Front Panel I/O Control                       0x811C  RW 32 0
+Channel Enable Mask                           0x8120  RW 32 0
+ROC FPGA Firmware Revision                    0x8124  R  32 0
+Voltage Level Mode Configuration              0x8138  RW 32 0
+Software Clock Sync                           0x813C  W  32 0
+Board Info                                    0x8140  R  32 0
+Analog Monitor Mode                           0x8144  RW 32 0
+Event Size                                    0x814C  R  32 0
+Time Bomb Downcounter                         0x8158  R  32 0
+Fan Speed Control                             0x8168  RW 32 0
+Run/Start/Stop Delay                          0x8170  RW 32 0
+Board Failure Status                          0x8178  R  32 0
+Disable External Trigger                      0x817C  RW 32 0
+Trigger Validation Mask                       0x8180  RW 32 0
+Front Panel LVDS I/O New Features             0x81A0  RW 32 0
+Buffer Occupancy Gain                         0x81B4  RW 32 0
+Extended Veto Delay                           0x81C4  RW 32 0
 
-Readout Control                               0xEF00  RW 32
-Readout Status                                0xEF04  R  32
-Board ID                                      0xEF08  RW 32
-MCST Base Address and Control                 0xEF0C  RW 32
-Relocation Address                            0xEF10  RW 32
-Interrupt Status/ID                           0xEF14  RW 32
-Interrupt Event Number                        0xEF18  RW 32
-Aggregate Number per BLT                      0xEF1C  RW 32
-Scratch                                       0xEF20  RW 32
-Software Reset                                0xEF24  W  32
-Software Clear                                0xEF28  W  32
-Configuration Reload                          0xEF34  W  32
+Readout Control                               0xEF00  RW 32 0
+Readout Status                                0xEF04  R  32 0
+Board ID                                      0xEF08  RW 32 0
+MCST Base Address and Control                 0xEF0C  RW 32 0
+Relocation Address                            0xEF10  RW 32 0
+Interrupt Status/ID                           0xEF14  RW 32 0
+Interrupt Event Number                        0xEF18  RW 32 0
+Aggregate Number per BLT                      0xEF1C  RW 32 0
+Scratch                                       0xEF20  RW 32 0
+Software Reset                                0xEF24  W  32 0
+Software Clear                                0xEF28  W  32 0
+Configuration Reload                          0xEF34  W  32 0
 
-Configuration ROM Checksum                    0xF000  R  32
-Configuration ROM Checksum Length BYTE 2      0xF004  R  32
-Configuration ROM Checksum Length BYTE 1      0xF008  R  32
-Configuration ROM Checksum Length BYTE 0      0xF00C  R  32
-Configuration ROM Constant BYTE 2             0xF010  R  32
-Configuration ROM Constant BYTE 1             0xF014  R  32
-Configuration ROM Constant BYTE 0             0xF018  R  32
-Configuration ROM C Code                      0xF01C  R  32
-Configuration ROM R Code                      0xF020  R  32
-Configuration ROM IEEE OUI BYTE 2             0xF024  R  32
-Configuration ROM IEEE OUI BYTE 1             0xF028  R  32
-Configuration ROM IEEE OUI BYTE 0             0xF02C  R  32
-Configuration ROM Board Version               0xF030  R  32
-Configuration ROM Board Form Factor           0xF034  R  32
-Configuration ROM Board ID BYTE 1             0xF038  R  32
-Configuration ROM Board ID BYTE 0             0xF03C  R  32
-Configuration ROM PCB Revision BYTE 3         0xF040  R  32
-Configuration ROM PCB Revision BYTE 2         0xF044  R  32
-Configuration ROM PCB Revision BYTE 1         0xF048  R  32
-Configuration ROM PCB Revision BYTE 0         0xF04C  R  32
-Configuration ROM FLASH Type                  0xF050  R  32
-Configuration ROM Board Serial Number BYTE 1  0xF080  R  32
-Configuration ROM Board Serial Number BYTE 0  0xF084  R  32
-Configuration ROM VCXO Type                   0xF088  R  32
+Configuration ROM Checksum                    0xF000  R  32 0
+Configuration ROM Checksum Length BYTE 2      0xF004  R  32 0
+Configuration ROM Checksum Length BYTE 1      0xF008  R  32 0
+Configuration ROM Checksum Length BYTE 0      0xF00C  R  32 0
+Configuration ROM Constant BYTE 2             0xF010  R  32 0
+Configuration ROM Constant BYTE 1             0xF014  R  32 0
+Configuration ROM Constant BYTE 0             0xF018  R  32 0
+Configuration ROM C Code                      0xF01C  R  32 0
+Configuration ROM R Code                      0xF020  R  32 0
+Configuration ROM IEEE OUI BYTE 2             0xF024  R  32 0
+Configuration ROM IEEE OUI BYTE 1             0xF028  R  32 0
+Configuration ROM IEEE OUI BYTE 0             0xF02C  R  32 0
+Configuration ROM Board Version               0xF030  R  32 0
+Configuration ROM Board Form Factor           0xF034  R  32 0
+Configuration ROM Board ID BYTE 1             0xF038  R  32 0
+Configuration ROM Board ID BYTE 0             0xF03C  R  32 0
+Configuration ROM PCB Revision BYTE 3         0xF040  R  32 0
+Configuration ROM PCB Revision BYTE 2         0xF044  R  32 0
+Configuration ROM PCB Revision BYTE 1         0xF048  R  32 0
+Configuration ROM PCB Revision BYTE 0         0xF04C  R  32 0
+Configuration ROM FLASH Type                  0xF050  R  32 0
+Configuration ROM Board Serial Number BYTE 1  0xF080  R  32 0
+Configuration ROM Board Serial Number BYTE 0  0xF084  R  32 0
+Configuration ROM VCXO Type                   0xF088  R  32 0
