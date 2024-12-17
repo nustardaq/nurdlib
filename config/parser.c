@@ -462,14 +462,15 @@ parse_scalar(struct File *a_file, struct ScalarList *a_scalar_list, unsigned
 		++i;
 		++digit_num;
 	}
-	if ('.' != peekc(a_file, i)) {
+	if ('.' != peekc(a_file, i) &&
+	    'e' != peekc(a_file, i) &&
+	    'E' != peekc(a_file, i)) {
+		is_integer = 1;
+	} else if ('.' == peekc(a_file, i + 1)) {
+		/* Range. */
 		is_integer = 1;
 	} else {
-		if ('.' == peekc(a_file, i + 1)) {
-			is_integer = 1;
-		} else {
-			++i;
-		}
+		++i;
 	}
 	if (is_integer) {
 		int sign, value;
