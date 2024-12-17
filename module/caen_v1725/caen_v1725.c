@@ -97,6 +97,7 @@ caen_v1725_check_empty(struct Module *a_module)
 struct Module *
 caen_v1725_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 {
+	enum Keyword const c_version[] = {KW_DPP_PSD};
 	struct CaenV1725Module *v1725;
 
 	(void)a_crate;
@@ -107,6 +108,8 @@ caen_v1725_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 
 	v1725->address = config_get_block_param_int32(a_block, 0);
 	LOGF(info)(LOGL, "Address=%08x.", v1725->address);
+
+	v1725->version = CONFIG_GET_KEYWORD(a_block, KW_VERSION, c_version);
 
 	v1725->module.event_counter.mask = BITS_MASK_TOP(23);
 
@@ -204,6 +207,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	{
 		uint16_t thr[16];
 
+		/* TODO: change to get a double, and unit mV. */
 		CONFIG_GET_UINT_ARRAY(thr, v1725->module.config, KW_THRESHOLD,
 		    CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(13));
 		SET_THRESHOLDS(v1725, thr);
@@ -303,7 +307,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t post;
 
 		post = config_get_int32(v1725->module.config,
-		    KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(30));
+		    KW_SAMPLE_LENGTH, CONFIG_UNIT_NS, 0, BITS_MASK_TOP(30));
 		LOGF(verbose)(LOGL, "Post-trigger=0x%08x.", post);
 #if 0 /* No longer in register list. */
 		MAP_WRITE(v1725->sicy_map, post_trigger, post);
