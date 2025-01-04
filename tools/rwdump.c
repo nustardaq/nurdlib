@@ -83,7 +83,7 @@ usage(char const *a_fmt, ...)
 #else
 	fprintf(str, " (-c) CAEN controller support not built in.\n");
 #endif
-#ifdef SICY_MVLC
+#if defined(SICY_MVLC) || defined(SICY_CMVLC)
 	fprintf(str, "  -m, --mvlc=ip\n");
 	fprintf(str, "                              Mesytec MVLC config "
 	    "override.\n");
@@ -203,7 +203,7 @@ main(int argc, char *argv[])
 			map_caen_config_override(board_type, link_ip,
 			    link_number, conet_node);
 #endif
-#ifdef SICY_MVLC
+#if defined(SICY_MVLC) || defined(SICY_CMVLC)
 		} else if (arg_match(argc, argv, 'm', "mvlc", &str)) {
 			char link_ip[32] = "";
 

@@ -146,6 +146,19 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #       define SICY_MVLC
 #	define BLT_MVLC
 #       define BLT_DST_DUMB
+#elif NCONF_mMAP_bCMVLC
+/* NCONF_CFLAGS=$($CMVLC_CONFIG --cflags) */
+/* NCONF_LDFLAGS=$($CMVLC_CONFIG --ldflags) */
+/* NCONF_LIBS=$($CMVLC_CONFIG --libs) */
+/* NCONF_CFLAGS=$CMVLC_CFLAGS */
+/* NCONF_LIBS=$CMVLC_LIBS */
+#       if NCONFING_mMAP
+#		include <cmvlc.h>
+#	endif
+#	define POKE_CMVLC
+#       define SICY_CMVLC
+#	define BLT_DUMB
+#       define BLT_DST_DUMB
 #elif NCONF_mMAP_bRIMFAXE
 /* NCONF_LIBS=-lavb */
 /* NCONF_NOEXEC */
@@ -297,7 +310,7 @@ void		map_caen_config_override(char const *, char const *, int,
     int);
 #endif
 
-#ifdef SICY_MVLC
+#if defined(SICY_MVLC) || defined (SICY_CMVLC)
 /*
  * Overrides MVLC config.
  *  arg0: ip, NULL or empty will not override.
