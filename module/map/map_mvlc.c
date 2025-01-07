@@ -210,6 +210,7 @@ UNMAP_FUNC_EMPTY(sicy);
 		log_die(LOGL, "Poking %u bits unsupported.", a_bits); \
 	} \
 	LOGF(verbose)(LOGL, "poke_" #m " }"); \
+	return; \
 fail: \
 	log_die(LOGL, "poke_" #m " failed."); \
 }
