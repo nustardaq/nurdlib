@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2024
+ * Copyright (C) 2024-2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -20,29 +20,9 @@
  * MA  02110-1301  USA
  */
 
-#ifndef MVLCC_WRAP_H
-#define MVLCC_WRAP_H
+#ifndef MESYTEC_H
+#define MESYTEC_H
 
-struct mvlcc_s {
-	int	dummy;
-};
-struct MvlccBlockReadParams {
-	uint8_t	amod;
-	int	fifo;
-	int	swap;
-};
-typedef struct mvlcc_s *mvlcc_t;
-
-int mvlcc_connect(mvlcc_t);
-void mvlcc_disconnect(mvlcc_t);
-char const *mvlcc_strerror(int);
-void mvlcc_free_mvlc(mvlcc_t);
-int mvlcc_is_mvlc_valid(mvlcc_t);
-mvlcc_t mvlcc_make_mvlc(void const *);
-void mvlcc_set_global_log_level(const char *);
-int mvlcc_single_vme_read(mvlcc_t, unsigned, uint32_t *, unsigned, unsigned);
-int mvlcc_single_vme_write(mvlcc_t, unsigned, uint32_t, unsigned, unsigned);
-int mvlcc_vme_block_read(mvlcc_t, uint32_t, uint32_t *, size_t, size_t *,
-    struct MvlccBlockReadParams);
+void mesytec_dummy(void);
 
 #endif

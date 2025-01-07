@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2024
+ * Copyright (C) 2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -20,81 +20,52 @@
  * MA  02110-1301  USA
  */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <mvlcc_wrap.h>
+#include <cmvlc.h>
 
 int
-mvlcc_connect(mvlcc_t a)
+cmvlc_close(struct cmvlc_client *a)
 {
 	(void)a;
+	return 0;
 }
 
-void
-mvlcc_disconnect(mvlcc_t a)
+struct cmvlc_client *
+cmvlc_connect(const char *a_a, int a_b, const char **a_c, FILE *a_d)
 {
-	(void)a;
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	return NULL;
 }
 
-char const *
-mvlcc_strerror(int a)
+const char *
+cmvlc_last_error(struct cmvlc_client *a)
 {
 	(void)a;
-}
-
-void
-mvlcc_free_mvlc(mvlcc_t a)
-{
-	(void)a;
+	return NULL;
 }
 
 int
-mvlcc_is_mvlc_valid(mvlcc_t a)
+cmvlc_single_vme_read(struct cmvlc_client *a_a, uint32_t a_b, uint32_t *a_c,
+    enum cmvlc_vme_addr_width a_d, enum cmvlc_vme_data_width a_e)
 {
-	(void)a;
-}
-
-mvlcc_t
-mvlcc_make_mvlc(void const *a)
-{
-	(void)a;
-}
-
-void
-mvlcc_set_global_log_level(const char *a)
-{
-	(void)a;
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	return 0;
 }
 
 int
-mvlcc_single_vme_read(mvlcc_t a, unsigned b, uint32_t *c, unsigned d, unsigned
-    e)
+cmvlc_single_vme_write(struct cmvlc_client *a_a, uint32_t a_b, uint32_t a_c,
+    enum cmvlc_vme_addr_width a_d, enum cmvlc_vme_data_width a_e)
 {
-	(void)a;
-	(void)b;
-	(void)c;
-	(void)d;
-	(void)e;
-}
-
-int
-mvlcc_single_vme_write(mvlcc_t a, unsigned b, uint32_t c, unsigned d, unsigned
-    e)
-{
-	(void)a;
-	(void)b;
-	(void)c;
-	(void)d;
-	(void)e;
-}
-
-int
-mvlcc_vme_block_read(mvlcc_t a, uint32_t b, uint32_t *c, size_t d, size_t *e,
-    struct MvlccBlockReadParams f)
-{
-	(void)a;
-	(void)b;
-	(void)c;
-	(void)d;
-	(void)e;
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	return 0;
 }

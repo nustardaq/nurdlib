@@ -2,7 +2,7 @@
 
 # nurdlib, NUstar ReaDout LIBrary
 #
-# Copyright (C) 2024
+# Copyright (C) 2024-2025
 # Hans Toshihide Törnqvist
 #
 # This library is free software; you can redistribute it and/or
@@ -25,10 +25,10 @@ while [ $# -gt 0 ]
 do
 	case $1 in
 		--cflags)
-			out="$out -Imock/mvlc/include"
+			out="$out -Imock/mvlcc/include"
 			;;
 		--ldflags)
-			out="$out -Lmock/mvlc"
+			out="$out -Lmock/mvlcc"
 			;;
 		--libs)
 			out="$out -lmvlcc -lmesytec-mvlc"

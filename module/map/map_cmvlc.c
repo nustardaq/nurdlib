@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2020-2024
+ * Copyright (C) 2025
  * Anna Kawecka
  * Florian Lüke
  * Hans Toshihide Törnqvist

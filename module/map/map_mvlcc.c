@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2020-2024
+ * Copyright (C) 2020-2025
  * Anna Kawecka
  * Florian Lüke
  * Hans Toshihide Törnqvist
@@ -25,7 +25,7 @@
 #include <module/map/internal.h>
 #include <nurdlib/base.h>
 
-#ifdef SICY_MVLC
+#ifdef SICY_MVLCC
 
 #	include <mvlcc_wrap.h>
 #	include <nurdlib/log.h>
@@ -52,7 +52,7 @@ static struct {
 	char	ip[32];
 } g_override = {""};
 
-struct MvlcPrivate {
+struct MvlccPrivate {
 	enum	Keyword mode;
 	int	do_fifo;
 	int	do_mblt_swap;
@@ -169,7 +169,7 @@ fail:
 MAP_FUNC_EMPTY(sicy_shutdown);
 UNMAP_FUNC_EMPTY(sicy);
 
-#	ifdef POKE_MVLC
+#	ifdef POKE_MVLCC
 
 #		define POKE(m, value) \
 { \
@@ -236,7 +236,7 @@ map_mvlc_config_override(char const *a_ip)
 	}
 }
 
-#ifdef BLT_MVLC
+#ifdef BLT_MVLCC
 
 MAP_FUNC_EMPTY(blt_deinit);
 
@@ -244,7 +244,7 @@ void
 blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int
     a_do_mblt_swap)
 {
-	struct MvlcPrivate *private = NULL;
+	struct MvlccPrivate *private = NULL;
 
 	LOGF(verbose)(LOGL, "blt_map {");
 
@@ -272,7 +272,7 @@ int
 blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int
     a_berr_ok)
 {
-	struct MvlcPrivate *private = NULL;
+	struct MvlccPrivate *private = NULL;
 	size_t wordsOut = 0;
 	struct MvlccBlockReadParams params;
 	int ret = -1;

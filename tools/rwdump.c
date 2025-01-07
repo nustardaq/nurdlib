@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2016-2024
+ * Copyright (C) 2016-2025
  * Bastian Löher
  * Michael Munch
  * Hans Toshihide Törnqvist

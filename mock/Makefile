@@ -1,6 +1,6 @@
 # nurdlib, NUstar ReaDout LIBrary
 #
-# Copyright (C) 2023-2024
+# Copyright (C) 2023-2025
 # Hans Toshihide Törnqvist
 #
 # This library is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@ CHECK_TRLOII_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!
 
 .PHONY: all
 all: rio3find rio3smem rio4bma xpc326 xpc3310 rio2 universe rimfaxe \
-	caen mvlc_config mvlc_env \
+	caen mvlcc_config mvlcc_env cmvlc_config cmvlc_env \
 	etherbone pex \
 	tridi trlo \
 	drasi drasi_tridi drasi_trlo \
@@ -103,18 +103,35 @@ caen: caen/libCAENVME.a
 	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
 
-.PHONY: mvlc_config
-mvlc_config: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
+.PHONY: mvlcc_config
+mvlcc_config: mvlcc/libmesytec-mvlc.a mvlcc/libmvlcc.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlc/mvlcc-config.sh make -j8 -C ../ &&\
-	$(CHECK_MAP_PRE) MVLC $(CHECK_MAP_POST)
+	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlcc/mvlcc-config.sh make -j8 -C ../ &&\
+	$(CHECK_MAP_PRE) MVLCC $(CHECK_MAP_POST)
 
-.PHONY: mvlc_env
-mvlc_env: mvlc/libmesytec-mvlc.a mvlc/libmvlcc.a
+.PHONY: mvlcc_env
+mvlcc_env: mvlcc/libmesytec-mvlc.a mvlcc/libmvlcc.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ MVLCC_CFLAGS=-Imock/mvlc/include \
-	    MVLCC_LIBS="-Lmock/mvlc -lmvlcc -lmesytec-mvlc" make -j8 -C ../ &&\
-	$(CHECK_MAP_PRE) MVLC $(CHECK_MAP_POST)
+	BUILD_DIR_PREFIX=$@_ \
+	    MVLCC_CFLAGS=-Imock/mvlcc/include \
+	    MVLCC_LIBS="-Lmock/mvlcc -lmvlcc -lmesytec-mvlc" \
+	    make -j8 -C ../ &&\
+	$(CHECK_MAP_PRE) MVLCC $(CHECK_MAP_POST)
+
+.PHONY: cmvlc_config
+cmvlc_config: cmvlc/libcmvlc.a
+	$(QUIET) \
+	BUILD_DIR_PREFIX=$@_ CMVLC_CONFIG=mock/cmvlc/cmvlc-config.sh make -j8 -C ../ &&\
+	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
+
+.PHONY: cmvlc_env
+cmvlc_env: cmvlc/libcmvlc.a
+	$(QUIET) \
+	BUILD_DIR_PREFIX=$@_ \
+	    CMVLC_CFLAGS=-Imock/cmvlc/include \
+	    CMVLC_LIBS="-Lmock/cmvlc -lcmvlc" \
+	    make -j8 -C ../ &&\
+	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
 
 .PHONY: etherbone
 etherbone: etherbone_test
@@ -145,6 +162,7 @@ tridi: tridi/common/lib_mock/trcomlib.a \
 trlo: trlo/dtc_arch/arch_suffix_inc.mk \
 	trlo/common/lib_mock/trcomlib.a \
 	trlo/hwmap/lib_mock/libhwmap.a \
+	trlo/trloctrl/fw_cacad0d0_trlo/trlo_defs.h \
 	trlo/trloctrl/fw_cacad0d0_trlo/lib_mock/trlo_ctrllib.a
 	$(QUIET) \
 	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make -j8 -C ../ &&\
@@ -221,7 +239,10 @@ clean:
 	BUILD_DIR_PREFIX=universe_ make -C ../ clean
 	BUILD_DIR_PREFIX=rimfaxe_ make -C ../ clean
 	BUILD_DIR_PREFIX=caen_ make -C ../ clean
-	BUILD_DIR_PREFIX=mvlc_ make -C ../ clean
+	BUILD_DIR_PREFIX=mvlcc_config_ make -C ../ clean
+	BUILD_DIR_PREFIX=mvlcc_env_ make -C ../ clean
+	BUILD_DIR_PREFIX=cmvlc_config_ make -C ../ clean
+	BUILD_DIR_PREFIX=cmvlc_env_ make -C ../ clean
 	BUILD_DIR_PREFIX=etherbone_ make -C ../ clean
 	BUILD_DIR_PREFIX=pex_ make -C ../ clean
 	BUILD_DIR_PREFIX=tridi_ make -C ../ clean
@@ -256,8 +277,10 @@ rimfaxe/libavb.a: rimfaxe/avb.o
 
 caen/libCAENVME.a: caen/caen.o
 
-mvlc/libmesytec-mvlc.a: mvlc/mesytec-mvlc.o
-mvlc/libmvlcc.a: mvlc/mvlcc.o
+mvlcc/libmesytec-mvlc.a: mvlcc/mesytec-mvlc.o
+mvlcc/libmvlcc.a: mvlcc/mvlcc.o
+
+cmvlc/libcmvlc.a: cmvlc/cmvlc.o
 
 etherbone/lib/libetherbone.a: etherbone/lib.o
 
@@ -284,6 +307,9 @@ trlo/hwmap/hwmap_mapvme.h: tridi/hwmap/hwmap_mapvme.h
 trlo/hwmap/lib_mock/map.c: \
 	tridi/hwmap/lib_mock/map.c trlo/hwmap/hwmap_mapvme.h
 	$(QUIET)$(MKDIR) && cp $< $@
+trlo/trloctrl/fw_cacad0d0_trlo/trlo_defs.h: \
+	tridi/trloctrl/fw_cacad0d0_tridi/tridi_defs.h
+	$(QUIET)$(MKDIR) && $(SED) 's,tridi,trlo,g' $< > $@
 trlo/trloctrl/fw_cacad0d0_trlo/include/trlo_access.h: \
 	tridi/trloctrl/fw_cacad0d0_tridi/include/tridi_access.h
 	$(QUIET)$(MKDIR) && $(SED) 's,tridi,trlo,g;s,TRIDI,TRLO,g' $< > $@

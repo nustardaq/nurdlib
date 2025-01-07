@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2024
+ * Copyright (C) 2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -20,7 +20,40 @@
  * MA  02110-1301  USA
  */
 
-typedef struct trlo_scaler_map_t
-{
-  /*   79 0x613c */ uint32_t mux_src[93];
-} trlo_scaler_map;
+#ifndef CMVLC_H
+#define CMVLC_H
+
+#include <stdint.h>
+#include <stdio.h>
+
+#define CMVLC_CONNECT_FLAGS_DATA 1
+
+enum cmvlc_vme_addr_width {
+	vme_user_A16,
+	vme_user_A24,
+	vme_user_A32,
+	vme_user_CR,
+	vme_user_BLT_A24,
+	vme_user_BLT_A32,
+	vme_user_MBLT_A32
+};
+enum cmvlc_vme_data_width {
+	vme_D16,
+	vme_D32
+};
+
+struct cmvlc_client {
+	int	dummy;
+};
+
+int			cmvlc_close(struct cmvlc_client *);
+struct cmvlc_client	*cmvlc_connect(const char *, int, const char **, FILE
+    *);
+const char		*cmvlc_last_error(struct cmvlc_client *);
+
+int			cmvlc_single_vme_read(struct cmvlc_client *, uint32_t,
+    uint32_t *, enum cmvlc_vme_addr_width, enum cmvlc_vme_data_width);
+int			cmvlc_single_vme_write(struct cmvlc_client *,
+    uint32_t, uint32_t, enum cmvlc_vme_addr_width, enum cmvlc_vme_data_width);
+
+#endif

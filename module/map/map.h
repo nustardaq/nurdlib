@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2020-2024
+ * Copyright (C) 2020-2025
  * Michael Munch
  * Stephane Pietri
  * Hans Toshihide Törnqvist
@@ -133,7 +133,7 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #	define SICY_UNIVERSE
 #	define BLT_DUMB
 #       define BLT_DST_DUMB
-#elif NCONF_mMAP_bMVLC
+#elif NCONF_mMAP_bMVLCC
 /* NCONF_CFLAGS=$($MVLCC_CONFIG --cflags) */
 /* NCONF_LDFLAGS=$($MVLCC_CONFIG --ldflags) */
 /* NCONF_LIBS=$($MVLCC_CONFIG --libs) */
@@ -142,9 +142,9 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #       if NCONFING_mMAP
 #		include <mvlcc_wrap.h>
 #	endif
-#	define POKE_MVLC
-#       define SICY_MVLC
-#	define BLT_MVLC
+#	define POKE_MVLCC
+#       define SICY_MVLCC
+#	define BLT_MVLCC
 #       define BLT_DST_DUMB
 #elif NCONF_mMAP_bCMVLC
 /* NCONF_CFLAGS=$($CMVLC_CONFIG --cflags) */
@@ -310,7 +310,7 @@ void		map_caen_config_override(char const *, char const *, int,
     int);
 #endif
 
-#if defined(SICY_MVLC) || defined (SICY_CMVLC)
+#if defined(SICY_MVLCC) || defined (SICY_CMVLC)
 /*
  * Overrides MVLC config.
  *  arg0: ip, NULL or empty will not override.
