@@ -201,19 +201,19 @@ gcc latest debug:
   <<: *run-gcc-debug
 
 # rimfaxe _ release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rimfaxe"
+#   image: "$DOCKER_REG/sbc-mock/rimfaxe"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rimfaxe _ pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rimfaxe"
+  image: "$DOCKER_REG/sbc-mock/rimfaxe"
   <<: *common-no-virt
   <<: *debian-python
   <<: *run-gcc-pic
 
 rimfaxe _ debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rimfaxe"
+  image: "$DOCKER_REG/sbc-mock/rimfaxe"
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
@@ -333,128 +333,128 @@ ubuntu bionic clang debug:
   <<: *run-clang-debug
 
 # mvme _ release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/mvme"
+#   image: "$DOCKER_REG/sbc-mock/mvme"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 mvme _ pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/mvme"
+  image: "$DOCKER_REG/sbc-mock/mvme"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 mvme _ debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/mvme"
+  image: "$DOCKER_REG/sbc-mock/mvme"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
 
 # rio4 3.2.3 release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.2.3"
+#   image: "$DOCKER_REG/sbc-mock/rio4:3.2.3"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rio4 3.2.3 pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.2.3"
+  image: "$DOCKER_REG/sbc-mock/rio4:3.2.3"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 rio4 3.2.3 debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.2.3"
+  image: "$DOCKER_REG/sbc-mock/rio4:3.2.3"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
 
 # rio4 3.3.10 release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.3.10"
+#   image: "$DOCKER_REG/sbc-mock/rio4:3.3.10"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rio4 3.3.10 pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.3.10"
+  image: "$DOCKER_REG/sbc-mock/rio4:3.3.10"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 rio4 3.3.10 debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:3.3.10"
+  image: "$DOCKER_REG/sbc-mock/rio4:3.3.10"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
 
 # rio4 bma release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:bma"
+#   image: "$DOCKER_REG/sbc-mock/rio4:bma"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rio4 bma pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:bma"
+  image: "$DOCKER_REG/sbc-mock/rio4:bma"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 rio4 bma debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio4:bma"
+  image: "$DOCKER_REG/sbc-mock/rio4:bma"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
 
 
 # rio3 bma release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:bma"
+#   image: "$DOCKER_REG/sbc-mock/rio3:bma"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rio3 bma pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:bma"
+  image: "$DOCKER_REG/sbc-mock/rio3:bma"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 rio3 bma debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:bma"
+  image: "$DOCKER_REG/sbc-mock/rio3:bma"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
 
 # rio3 find release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:find"
+#   image: "$DOCKER_REG/sbc-mock/rio3:find"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rio3 find pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:find"
+  image: "$DOCKER_REG/sbc-mock/rio3:find"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 rio3 find debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio3:find"
+  image: "$DOCKER_REG/sbc-mock/rio3:find"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
 
 # rio2 smem release:
-#   image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio2:smem"
+#   image: "$DOCKER_REG/sbc-mock/rio2:smem"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
 
 rio2 smem pic:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio2:smem"
+  image: "$DOCKER_REG/sbc-mock/rio2:smem"
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
 
 rio2 smem debug:
-  image: "$CI_REGISTRY/expsubphys/images/sbc-mock/rio2:smem"
+  image: "$DOCKER_REG/sbc-mock/rio2:smem"
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
