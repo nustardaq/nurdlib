@@ -473,4 +473,4 @@ mock:
   <<: *common
   <<: *debian-mbs
   script:
-    - cd mock && make -k    # No $RUNNER_MAKE_J due to udp port conflicts.
+    - cd mock && make -k RUNNER_MAKE_J=$RUNNER_MAKE_J # Forward -jN to mock makefile.

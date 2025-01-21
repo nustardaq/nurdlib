@@ -22,6 +22,10 @@ QUIET=@
 MKDIR=[ -d $(@D) ] || mkdir -p $(@D)
 SED=sed
 
+ifdef (,$(RUNNER_MAKE_J))
+RUNNER_MAKE_J=-j8
+endif
+
 CHECK_MAP_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/map/map && if ! grep
 CHECK_MAP_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
 
@@ -49,13 +53,13 @@ rio3find: rio3find/lib/ces/libbma.a \
 	rio3find/lib/ces/libuio.a \
 	rio3find/lib/ces/libvme.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) RIO3_FINDCONTROLLER $(CHECK_MAP_POST)
 
 .PHONY: rio3smem
 rio3smem: rio3smem/lib/ces/libbma.a rio3smem/lib/ces/libuio.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) RIO3_SMEM $(CHECK_MAP_POST)
 
 .PHONY: rio4bma
@@ -64,49 +68,49 @@ rio4bma: rio4bma/lib/ces/libbma.a \
 	rio4bma/lib/ces/libuio.a \
 	rio4bma/lib/ces/libvme.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO4LDPATH=mock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO4LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) RIO4_BMA $(CHECK_MAP_POST)
 
 .PHONY: xpc326
 xpc326:
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) XPC_3_2_6 $(CHECK_MAP_POST)
 
 .PHONY: xpc3310
 xpc3310: xpc3310/libcesXpcLib.a xpc3310/libcesDma.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) XPC_3_3_10 $(CHECK_MAP_POST)
 
 .PHONY: rio2
 rio2: rio2/libsmem.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ LIBS=-lsmem make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ LIBS=-lsmem make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) RIO2 $(CHECK_MAP_POST)
 
 .PHONY: universe
 universe: universe/libvme.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) UNIVERSE $(CHECK_MAP_POST)
 
 .PHONY: rimfaxe
 rimfaxe: rimfaxe/libavb.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) RIMFAXE $(CHECK_MAP_POST)
 
 .PHONY: caen
 caen: caen/libCAENVME.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
 
 .PHONY: mvlcc_config
 mvlcc_config: mvlcc/libmesytec-mvlc.a mvlcc/libmvlcc.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlcc/mvlcc-config.sh make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlcc/mvlcc-config.sh make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) MVLCC $(CHECK_MAP_POST)
 
 .PHONY: mvlcc_env
@@ -115,13 +119,13 @@ mvlcc_env: mvlcc/libmesytec-mvlc.a mvlcc/libmvlcc.a
 	BUILD_DIR_PREFIX=$@_ \
 	    MVLCC_CFLAGS=-Imock/mvlcc/include \
 	    MVLCC_LIBS="-Lmock/mvlcc -lmvlcc -lmesytec-mvlc" \
-	    make -j8 -C ../ &&\
+	    make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) MVLCC $(CHECK_MAP_POST)
 
 .PHONY: cmvlc_config
 cmvlc_config: cmvlc/libcmvlc.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CMVLC_CONFIG=mock/cmvlc/cmvlc-config.sh make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CMVLC_CONFIG=mock/cmvlc/cmvlc-config.sh make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
 
 .PHONY: cmvlc_env
@@ -130,7 +134,7 @@ cmvlc_env: cmvlc/libcmvlc.a
 	BUILD_DIR_PREFIX=$@_ \
 	    CMVLC_CFLAGS=-Imock/cmvlc/include \
 	    CMVLC_LIBS="-Lmock/cmvlc -lcmvlc" \
-	    make -j8 -C ../ &&\
+	    make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
 
 .PHONY: etherbone
@@ -141,13 +145,13 @@ etherbone_test: etherbone_lib
 .PHONY: etherbone_lib
 etherbone_lib: etherbone/lib/libetherbone.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=etherbone_ make -j8 -C ../ WR_SYS=mock/etherbone &&\
+	BUILD_DIR_PREFIX=etherbone_ make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone &&\
 	$(CHECK_EBONE_PRE) ETHERBONE_bYES $(CHECK_EBONE_POST)
 
 .PHONY: pex
 pex: pex/dev/pexor
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-DPEX_DEV_PREFIX=mock/$@ -DMAP_LOCKED=0" make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-DPEX_DEV_PREFIX=mock/$@ -DMAP_LOCKED=0" make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_PEX_PRE) GSI_PEX_bYES $(CHECK_PEX_POST)
 
 .PHONY: tridi
@@ -155,7 +159,7 @@ tridi: tridi/common/lib_mock/trcomlib.a \
 	tridi/hwmap/lib_mock/libhwmap.a \
 	tridi/trloctrl/fw_cacad0d0_tridi/lib_mock/tridi_ctrllib.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_TRLOII_PRE) TRIDI_bYES $(CHECK_TRLOII_POST)
 
 .PHONY: trlo
@@ -165,7 +169,7 @@ trlo: trlo/dtc_arch/arch_suffix_inc.mk \
 	trlo/trloctrl/fw_cacad0d0_trlo/trlo_defs.h \
 	trlo/trloctrl/fw_cacad0d0_trlo/lib_mock/trlo_ctrllib.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make -j8 -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_TRLOII_PRE) VULOM4_bYES $(CHECK_TRLOII_POST)
 
 .PHONY: drasi
@@ -177,7 +181,7 @@ drasi: caen \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=caen_ CPPFLAGS="-Imock/drasi/ -Imock/caen" LDFLAGS=-Lmock/caen \
-	    make -j8 -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
+	    make $(RUNNER_MAKE_J) -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
 
 .PHONY: drasi_tridi
 drasi_tridi: tridi \
@@ -188,7 +192,7 @@ drasi_tridi: tridi \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=tridi_ TRLOII_PATH=mock/tridi CPPFLAGS=-Imock/drasi/ \
-	    make -j8 -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
+	    make $(RUNNER_MAKE_J) -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
 
 .PHONY: drasi_trlo
 drasi_trlo: trlo \
@@ -199,7 +203,7 @@ drasi_trlo: trlo \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=trlo_ TRLOII_PATH=mock/trlo CPPFLAGS=-Imock/drasi/ \
-	    make -j8 -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
+	    make $(RUNNER_MAKE_J) -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
 
 .PHONY: mbs
 mbs: caen \
@@ -208,7 +212,7 @@ mbs: caen \
 	mbs/obj/m_read_meb.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=caen_ CPPFLAGS="-Imock/mbs/ -Imock/caen" LDFLAGS="-Lmock/mbs -Lmock/caen" \
-	    make -j8 -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
+	    make $(RUNNER_MAKE_J) -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
 
 .PHONY: mbs_tridi
 mbs_tridi: tridi \
@@ -217,7 +221,7 @@ mbs_tridi: tridi \
 	mbs/obj/m_read_meb.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=tridi_ TRLOII_PATH=mock/tridi CPPFLAGS=-Imock/mbs/ LDFLAGS=-Lmock/mbs \
-	    make -j8 -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
+	    make $(RUNNER_MAKE_J) -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
 
 .PHONY: mbs_trlo
 mbs_trlo: trlo \
@@ -226,7 +230,7 @@ mbs_trlo: trlo \
 	mbs/obj/m_read_meb.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=trlo_ TRLOII_PATH=mock/trlo CPPFLAGS=-Imock/mbs/ LDFLAGS=-Lmock/mbs \
-	    make -j8 -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
+	    make $(RUNNER_MAKE_J) -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
 
 .PHONY: clean
 clean:
