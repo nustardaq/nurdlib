@@ -191,8 +191,14 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
  */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
+#               pragma GCC diagnostic ignored "-Wvariadic-macros"
+#               pragma GCC diagnostic ignored "-Wpedantic"
+#               pragma GCC diagnostic ignored "-Wendif-labels"
 #		include <CAENVMElib.h>
 #		define NCONF_TEST CAENVME_End(0)
+#               pragma GCC diagnostic warning "-Wvariadic-macros"
+#               pragma GCC diagnostic warning "-Wpedantic"
+#               pragma GCC diagnostic warning "-Wendif-labels"
 #	endif
 #	define POKE_CAEN
 #	define SICY_CAEN
