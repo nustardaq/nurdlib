@@ -178,6 +178,7 @@ drasi: caen \
 	drasi/lwroc_message_internal.o \
 	drasi/lwroc_thread_util.o \
 	drasi/lwroc_track_timestamp.o \
+	drasi/lwroc_triva_state.o \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=caen_ CPPFLAGS="-Imock/drasi/ -Imock/caen" LDFLAGS=-Lmock/caen \
@@ -189,6 +190,7 @@ drasi_tridi: tridi \
 	drasi/lwroc_message_internal.o \
 	drasi/lwroc_thread_util.o \
 	drasi/lwroc_track_timestamp.o \
+	drasi/lwroc_triva_state.o \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=tridi_ TRLOII_PATH=mock/tridi CPPFLAGS=-Imock/drasi/ \
@@ -200,6 +202,7 @@ drasi_trlo: trlo \
 	drasi/lwroc_message_internal.o \
 	drasi/lwroc_thread_util.o \
 	drasi/lwroc_track_timestamp.o \
+	drasi/lwroc_triva_state.o \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
 	BUILD_DIR_PREFIX=trlo_ TRLOII_PATH=mock/trlo CPPFLAGS=-Imock/drasi/ \

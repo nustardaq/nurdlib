@@ -29,6 +29,7 @@ then
        mock/drasi/lwroc_message_internal.o \
        mock/drasi/lwroc_thread_util.o \
        mock/drasi/lwroc_track_timestamp.o \
+       mock/drasi/lwroc_triva_state.o \
        mock/drasi/lmd/lwroc_lmd_ev_sev.o
 else
   exit 1

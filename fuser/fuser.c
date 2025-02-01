@@ -367,6 +367,9 @@ untriggered_loop(int *start_no_stop)
 	g_lmd_stream = lwroc_get_lmd_stream("READOUT_PIPE");
 	f_user_init(0, NULL, NULL, NULL);
 	crate_free_running_set(g_crate, 1);
+	/* Not really a TRIVA status, but a status... */
+	_lwroc_mon_main_system_handle->_block._aux_status =
+	    LWROC_TRIVA_STATUS_RUN;
 	for (cycle = 1; !_lwroc_main_thread->_terminate; cycle++) {
 		struct lwroc_lmd_subevent_info info;
 		lmd_event_10_1_host *event;
@@ -420,6 +423,9 @@ untriggered_loop(int *start_no_stop)
 		LWROC_MON_CHECK_COPY_CONN_MON_BLOCK(
 		    _lwroc_mon_main_system_handle, 0);
 	}
+	/* Not really a TRIVA status, but a status... */
+	_lwroc_mon_main_system_handle->_block._aux_status =
+	    LWROC_TRIVA_STATUS_STOP;
 }
 #endif
 

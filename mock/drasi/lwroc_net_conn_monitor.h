@@ -25,7 +25,13 @@
 
 #define LWROC_MON_CHECK_COPY_CONN_MON_BLOCK(a, b)
 
+typedef struct
+{
+	int	_aux_status;
+} lwroc_monitor_conn_block;
+
 typedef struct {
+	lwroc_monitor_conn_block	_block;
 	int	dummy;
 } lwroc_net_conn_monitor;
 

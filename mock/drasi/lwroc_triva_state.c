@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2024
+ * Copyright (C) 2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -20,15 +20,6 @@
  * MA  02110-1301  USA
  */
 
-#ifndef LWROC_READOUT_H
-#define LWROC_READOUT_H
+#include <lwroc_net_conn_monitor.h>
 
-struct lwroc_readout_functions {
-	void (*untriggered_loop)(int *);
-};
-
-/* Actually in lwroc_net_proto.h. */
-#define LWROC_TRIVA_STATUS_RUN               0x52554e2e
-#define LWROC_TRIVA_STATUS_STOP              0x53544f50
-
-#endif
+lwroc_net_conn_monitor *_lwroc_mon_main_system_handle;
