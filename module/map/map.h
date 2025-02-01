@@ -184,10 +184,17 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #       define BLT_DST_DUMB
 #elif NCONF_mMAP_bCAEN_VMELIB_LOCAL
 /*
- * Note: To build with CAENVMElib without having to install it:
+ * Note: To build with CAENVMElib without having to install ii:
+ * First, prepare:
+ *  ls <CAENVMElib-path>/include/CAENVME*.h | \
+ *    xargs sed -i -e "s,//.*,,"
+ *  ln -s <CAENVMElib-path>/lib/x64/libCAENVME.so.v* \
+ *    <CAENVMElib-path>/lib/x64/libCAENVME.so
+ * Then: build:
  *  make \
  *      CPPFLAGS="-isystem <CAENVMElib-path>/include" \
- *      LIBS=<CAENVMElib-path>/lib/<platform>/libCAENVME.so...
+ *      LDFLAGS="-L<CAENVMElib-path>/lib/x64 -Wl,-rpath=<CAENVMElib-path>/lib/x64"
+ *      LIBS=-lCAENVME
  */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP
