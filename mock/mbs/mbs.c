@@ -23,4 +23,4 @@
 #include <s_setup.h>
 
 int f_user_trig_clear(unsigned char a_a) { return 0; }
-int f_ut_get_setup_seg(int a_a, s_setup **a_b) { return 0; } 
+int f_ut_get_setup_seg(int a_a, s_setup **a_b) { return 0; }

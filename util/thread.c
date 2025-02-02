@@ -160,7 +160,7 @@ thread_mutex_is_locked(struct Mutex *a_mutex)
 	return 0;
 }
 
-int 
+int
 thread_mutex_lock(struct Mutex *a_mutex)
 {
 	if (0 != pthread_mutex_lock(&a_mutex->mutex)) {

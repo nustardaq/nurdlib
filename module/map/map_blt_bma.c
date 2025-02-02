@@ -49,7 +49,7 @@ blt_map(struct Map *a_map, enum Keyword a_mode, int a_do_fifo, int
 	struct BLT *private;
 
 	(void) a_do_mblt_swap;
-	
+
 	LOGF(verbose)(LOGL, "blt_map {");
 	CALLOC(private, 1);
 	private->ptr = (void *)(uintptr_t)(BLT_BMA_D32_BASE + a_map->address);

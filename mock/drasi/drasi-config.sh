@@ -23,7 +23,7 @@
 
 if echo $* | grep -q -- --cflags
 then
-  echo 
+  echo
 elif echo $* | grep -q -- --libs
 then
   echo mock/drasi/f_user_daq.o \

@@ -66,7 +66,7 @@ blt_read_common(struct Map *a_mapper, size_t a_offset, void *a_target, size_t
 	    a_mapper->do_mblt_swap) {
 		ret = mblt_swap(a_target, a_bytes);
 	}
-#endif	
+#endif
 	LOGF(spam)(LOGL, "blt_read_common(bytes=%d) }", ret);
 	return ret;
 }

@@ -430,7 +430,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 			    "Invalid family-code in board-info 0x%08x.",
 			    info);
 			goto v1725_init_slow_done;
-		}	
+		}
 		switch ((info >> 8) & 0xff) {
 		case 0x01: ch_mem_size = "640 kS"; break;
 		case 0x08: ch_mem_size = "5.12 MS"; break;
@@ -439,7 +439,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 			    "Invalid ch-mem-size in board-info 0x%08x.",
 			    info);
 			goto v1725_init_slow_done;
-		}	
+		}
 		LOGF(verbose)(LOGL, "Ch-mem-size = %s.", ch_mem_size);
 		switch ((info >> 16) & 0xff) {
 		case 0x10: v1725->ch_num = 16; break;
@@ -448,7 +448,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 			log_error(LOGL,
 			    "Invalid ch-num in board-info 0x%08x.", info);
 			goto v1725_init_slow_done;
-		}	
+		}
 	}
 
 	/* Enable BERR/SIGBUS to end DMA readout. */
@@ -459,7 +459,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	if (KW_NOBLT != v1725->blt_mode) {
 		v1725->dma_map = map_map(v1725->address, 0x1000,
-		    v1725->blt_mode, 1, 0, 
+		    v1725->blt_mode, 1, 0,
 		    MAP_POKE_REG(dummy32(0)), MAP_POKE_REG(dummy32(0)), 0);
 	}
 

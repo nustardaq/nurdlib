@@ -361,7 +361,7 @@ sis_3316_reset(struct Sis3316Module* m)
 
 	/* Disarm */
 	MAP_WRITE(m->sicy_map, disarm_sampling_logic, 1);
-	
+
 	/* get current bank */
 	m->current_bank = ((
 	    MAP_READ(m->sicy_map, channel_actual_sample_address(0))
@@ -538,7 +538,7 @@ sis_3316_set_offset(struct Sis3316Module *m, int i)
 {
 	int j;
 
-	MAP_WRITE(m->sicy_map, fpga_adc_offset_dac_control(i), 
+	MAP_WRITE(m->sicy_map, fpga_adc_offset_dac_control(i),
 	    0x88f00000 + 0x1); /* internal reference */
 	time_sleep(1e-3);
 
@@ -779,7 +779,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	int i;
 
 	(void)a_crate;
-	
+
 	LOGF(info)(LOGL, NAME" init_fast {");
 
 	MODULE_CAST(KW_SIS_3316, m, a_module);
@@ -792,19 +792,19 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	clocks_per_ns = 1000 / m->config.clk_freq;
 
 	/* This can only be done after knowing the bit depth. */
-        /* 
-         * This calculates: 
-         * config.gate parameters (width, delay) 
-         * config.pileup / repileup 
-         * config.sample_length (raw, maw) 
-         * config.pretrigger_delay 
-         * (disabled) dac offsets 
-         * (disabled) peak time / gap time 
-         * config.trigger_gate_window_length 
-         * tau table / tau factor 
-         * config.extra_filter 
-         * config.histogram_divider 
-         * config.threshold 
+        /*
+         * This calculates:
+         * config.gate parameters (width, delay)
+         * config.pileup / repileup
+         * config.sample_length (raw, maw)
+         * config.pretrigger_delay
+         * (disabled) dac offsets
+         * (disabled) peak time / gap time
+         * config.trigger_gate_window_length
+         * tau table / tau factor
+         * config.extra_filter
+         * config.histogram_divider
+         * config.threshold
          */
 	sis_3316_calculate_settings((struct Sis3316Module *)m);
 
@@ -1196,7 +1196,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 	 */
 	if (m->config.use_rataclock == 0) {
 		uint32_t nim_in_control = 0;
-		
+
 		if (m->config.use_user_counter) {
 			/*
 			 * Enable TI and UI for user counter
@@ -1445,7 +1445,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	LOGF(verbose)(LOGL, "May discard data for channels: %08x.",
 	    m->config.discard_data);
-	
+
 	/* Note: Timestamp clear is now done in post_init function. */
 
 	LOGF(info)(LOGL, NAME" init_fast }");
@@ -1955,8 +1955,8 @@ sis_3316_read_stat_counters(struct Sis3316Module *m)
 		if (m->stat.ch[i].internal == 0xffffffff) {
 			log_error(LOGL, "Internal Counter reached limit!");
 		}
-		
-		/* Reset the FSM */	
+
+		/* Reset the FSM */
 		MAP_WRITE(m->sicy_map,
 		    fpga_ctrl_status_data_transfer_control(i), 0x0);
 	}
@@ -2071,7 +2071,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 
 	if (m->config.do_readout == 0) {
-		a_module->event_counter.value++; 
+		a_module->event_counter.value++;
 		goto sis_3316_readout_done;
 	}
 
@@ -2154,7 +2154,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 			}
 			/*result |= CRATE_READOUT_FAIL_DATA_MISSING;*/
 			LOGF(debug)(LOGL, "No data (same bank).");
-			a_module->event_counter.value++; 
+			a_module->event_counter.value++;
 			goto sis_3316_readout_done;
 		}
 	} else {
@@ -2204,7 +2204,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	}
 	else if (m->config.run_mode == RM_ASYNC_AUTO_BANK_SWITCH
 		|| m->config.run_mode == RM_ASYNC) {
-		a_module->event_counter.value++; 
+		a_module->event_counter.value++;
 	}
 sis_3316_readout_done:
 	LOGF(debug)(LOGL, NAME" readout_dt(ctr=0x%08x) }",
@@ -2516,7 +2516,7 @@ sis_3316_channel_readout_done:
 		m->last_read = now;
 
 		sis_3316_test_clock_sync(m);
-	
+
 	}
 
 sis_3316_readout_done:
@@ -2879,8 +2879,8 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		LOGF(spam)(LOGL, "use_maw3 = %d.",
 		    a_sis3316->config.use_maw3);
 
-		/* 
-		 * Have to read a multiple of 4 words in 2eSST mode to stay 
+		/*
+		 * Have to read a multiple of 4 words in 2eSST mode to stay
 		 * properly aligned. Settle for 8, we'll have the status flag
 		 * in there in any case.
 		 * If readout of the gates is enabled, then only 6+2 is
@@ -2983,8 +2983,8 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 				LOGF(spam)(LOGL,
 				    "Status flag is not set! SKIP!");
 
-				/* 
-				 * rewrite *header_end_ptr and *avg_samples_ptr to not confuse 
+				/*
+				 * rewrite *header_end_ptr and *avg_samples_ptr to not confuse
 				 * the unpacker.
 				 */
 				LOGF(spam)(LOGL,
@@ -3433,7 +3433,7 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 		}
 		else {
 			header_word = *(p + header_words - 1);
-			discarded_event = extract_bit_range(header_word, 25, 25); /* using one of the two overhead bits to flag a discarded event */			
+			discarded_event = extract_bit_range(header_word, 25, 25); /* using one of the two overhead bits to flag a discarded event */
 		}
 	}
 
@@ -3453,20 +3453,20 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 		}
 		payload_maw = buffer_words_maw;
 		/* Check paranoid (also payload in buffer) */
-		if (a_sis3316->config.check_level >= CL_PARANOID) {			
+		if (a_sis3316->config.check_level >= CL_PARANOID) {
 			if (payload_raw != buffer_words_raw) {
 				{
 					log_error(LOGL,
 			    	" raw payload in header looks fishy, expected: %u, instead: %u, header word: 0x%08x", payload_raw, buffer_words_raw, header_word_raw);
 					goto err;
-				}				
+				}
 			}
 			if (payload_avg != buffer_words_avg) {
 				{
 					log_error(LOGL,
 			    	" avg payload in header looks fishy, expected: %u, instead: %u, header word: 0x%08x", payload_avg, buffer_words_avg, header_word_avg);
 					goto err;
-				}				
+				}
 			}
 
 		}

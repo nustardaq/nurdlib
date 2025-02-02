@@ -75,7 +75,7 @@ stages:
     - clang --version || true
     - flex --version
     - bison --version
-    - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6    
+    - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6
 
 .debian-mbs: &debian-mbs
   before_script:
