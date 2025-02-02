@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2021, 2024
+ * Copyright (C) 2015-2021, 2024-2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@ NTEST(DefaultConfig)
 
 NTEST(Tacquila)
 {
+#if HAS_GSI_TACQUILA
 	struct ConfigBlock *block;
 	struct GsiSamModule *sam;
 	struct Module *module;
@@ -72,10 +73,12 @@ NTEST(Tacquila)
 
 	module = &sam->module;
 	module_free(&module);
+#endif
 }
 
 NTEST(Cros3)
 {
+#if HAS_PNPI_CROS3
 	struct ConfigBlock *block;
 	struct GsiSamModule *sam;
 	struct Module *module;
@@ -95,10 +98,12 @@ NTEST(Cros3)
 
 	module = &sam->module;
 	module_free(&module);
+#endif
 }
 
 NTEST(Siderem)
 {
+#if HAS_GSI_SIDEREM
 	struct ConfigBlock *block;
 	struct GsiSamModule *sam;
 	struct Module *module;
@@ -118,10 +123,12 @@ NTEST(Siderem)
 
 	module = &sam->module;
 	module_free(&module);
+#endif
 }
 
 NTEST(Mixed)
 {
+#if HAS_GSI_TACQUILA
 	struct ConfigBlock *block;
 	struct GsiSamModule *sam;
 
@@ -130,10 +137,12 @@ NTEST(Mixed)
 	NTRY_PTR(NULL, !=, block);
 	NTRY_SIGNAL(sam = (void *)module_create(NULL, KW_GSI_SAM, block));
 	(void)sam;
+#endif
 }
 
 NTEST(OverloadForbidden)
 {
+#if HAS_GSI_TACQUILA || HAS_PNPI_CROS3
 	struct ConfigBlock *block;
 	struct GsiSamModule *sam;
 
@@ -142,6 +151,7 @@ NTEST(OverloadForbidden)
 	NTRY_PTR(NULL, !=, block);
 	NTRY_SIGNAL(sam = (void *)module_create(NULL, KW_GSI_SAM, block));
 	(void)sam;
+#endif
 }
 
 NTEST_SUITE(GSI_SAM)

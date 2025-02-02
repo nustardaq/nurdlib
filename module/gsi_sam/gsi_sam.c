@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2024
+ * Copyright (C) 2015-2025
  * Bastian Löher
  * Michael Munch
  * Hans Toshihide Törnqvist
@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <sched.h>
 #include <stddef.h>
+#include <module/genlist.h>
 #include <module/gsi_sam/internal.h>
 #include <module/gsi_sam/offsets.h>
 #include <module/gsi_siderem/internal.h>
@@ -85,13 +86,24 @@ gsi_sam_crate_collect(struct GsiSamCrate *a_sam_crate, struct GsiSideremCrate
 		client = sam->gtb_client[gtb_i];
 		if (NULL == client) {
 			continue;
-		}
-		if (KW_GSI_SIDEREM == client->type) {
+		} else if (KW_GSI_SIDEREM == client->type) {
+#if HAS_GSI_SIDEREM
 			gsi_siderem_crate_add(a_siderem_crate, client);
+#else
+			(void)a_siderem_crate;
+#endif
 		} else if (KW_GSI_TACQUILA == client->type) {
+#if HAS_GSI_TACQUILA
 			gsi_tacquila_crate_add(a_tacquila_crate, client);
+#else
+			(void)a_tacquila_crate;
+#endif
 		} else if (KW_PNPI_CROS3 == client->type) {
+#if HAS_PNPI_CROS3
 			pnpi_cros3_crate_add(a_cros3_crate, client);
+#else
+			(void)a_cros3_crate;
+#endif
 		}
 	}
 	sam->crate = a_sam_crate;
@@ -166,7 +178,9 @@ gsi_sam_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	};
 	struct GsiSamModule *sam;
 	struct ConfigBlock *client_block;
-	unsigned siderem_num, tacquila_num, cros3_num;
+	unsigned siderem_num = 0;
+	unsigned tacquila_num = 0;
+	unsigned cros3_num = 0;
 
 	(void)a_crate;
 	LOGF(verbose)(LOGL, NAME" create {");
@@ -182,6 +196,7 @@ gsi_sam_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 	    keyword_get_string(sam->blt_mode));
 
 	ZERO(sam->gtb_client);
+	(void)client_block;
 #define PARSE_CLIENTS(Type, creator, counter)\
 	do {\
 		counter = 0;\
@@ -203,9 +218,15 @@ gsi_sam_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
 			++counter;\
 		}\
 	} while (0)
+#if HAS_GSI_SIDEREM
 	PARSE_CLIENTS(KW_GSI_SIDEREM, gsi_siderem_create, siderem_num);
+#endif
+#if HAS_GSI_TACQUILA
 	PARSE_CLIENTS(KW_GSI_TACQUILA, gsi_tacquila_create, tacquila_num);
+#endif
+#if HAS_PNPI_CROS3
 	PARSE_CLIENTS(KW_PNPI_CROS3, pnpi_cros3_create, cros3_num);
+#endif
 	if (1 < (0 != siderem_num) + (0 != tacquila_num) + (0 != cros3_num)) {
 		log_die(LOGL, "Mixing GTB clients in one SAM prohibited "
 		    "(tacq=%d cros3=%d)!", tacquila_num, cros3_num);

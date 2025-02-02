@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2021, 2024
+ * Copyright (C) 2015-2021, 2024-2025
  * Michael Munch
  * Hans Toshihide Törnqvist
  *
@@ -24,6 +24,7 @@
 #include <ntest/ntest.h>
 #include <util/stdint.h>
 #include <crate/internal.h>
+#include <module/genlist.h>
 #include <module/module.h>
 #include <module/gsi_pex/internal.h>
 #include <module/gsi_tacquila/internal.h>
@@ -51,6 +52,7 @@ NTEST(DefaultConfig)
 
 NTEST(BarriersAndTags)
 {
+#if HAS_CAEN_V775 && HAS_CAEN_V820 && HAS_CAEN_V830
 	struct Crate *crate;
 	struct CrateTag *t1, *t2;
 
@@ -66,10 +68,12 @@ NTEST(BarriersAndTags)
 	t1 = crate_get_tag_by_name(crate, "Scalers2");
 	NTRY_I(3, ==, crate_tag_get_module_num(t1));
 	crate_free(&crate);
+#endif
 }
 
 NTEST(Scaler)
 {
+#if HAS_CAEN_V820 && HAS_CAEN_V830 && HAS_GSI_VULOM
 	struct Crate *crate;
 
 	config_load("tests/crate_scaler.cfg");
@@ -77,10 +81,12 @@ NTEST(Scaler)
 	NTRY_STR("Scaler", ==, crate_get_name(crate));
 	/* TODO: Test more? */
 	crate_free(&crate);
+#endif
 }
 
 NTEST(Tacquila)
 {
+#if HAS_GSI_TACQUILA
 	struct Crate *crate;
 
 	config_load("tests/crate_tacquila.cfg");
@@ -88,10 +94,12 @@ NTEST(Tacquila)
 	NTRY_BOOL(!TAILQ_EMPTY(&crate_get_tacquila_crate(crate)->list));
 	NTRY_BOOL(TAILQ_EMPTY(&crate_get_cros3_crate(crate)->list));
 	crate_free(&crate);
+#endif
 }
 
 NTEST(Cros3)
 {
+#if HAS_PNPI_CROS3
 	struct Crate *crate;
 
 	config_load("tests/crate_cros3.cfg");
@@ -99,11 +107,12 @@ NTEST(Cros3)
 	NTRY_BOOL(TAILQ_EMPTY(&crate_get_tacquila_crate(crate)->list));
 	NTRY_BOOL(!TAILQ_EMPTY(&crate_get_cros3_crate(crate)->list));
 	crate_free(&crate);
+#endif
 }
 
-#if NCONF_mGSI_PEX_bYES
 NTEST(Pex)
 {
+#if NCONF_mGSI_PEX_bYES
 	struct Crate *crate;
 	struct CrateTag *t1, *t2;
 
@@ -115,8 +124,8 @@ NTEST(Pex)
 	NTRY_BOOL(crate_tag_gsi_pex_is_needed(t1));
 	NTRY_BOOL(crate_tag_gsi_pex_is_needed(t2));
 	crate_free(&crate);
-}
 #endif
+}
 
 NTEST(IdSkip)
 {
@@ -153,9 +162,7 @@ NTEST_SUITE(Crate)
 	NTEST_ADD(Scaler);
 	NTEST_ADD(Tacquila);
 	NTEST_ADD(Cros3);
-#if NCONF_mGSI_PEX_bYES
 	NTEST_ADD(Pex);
-#endif
 	NTEST_ADD(IdSkip);
 
 	config_shutdown();

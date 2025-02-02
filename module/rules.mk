@@ -1,6 +1,6 @@
 # nurdlib, NUstar ReaDout LIBrary
 #
-# Copyright (C) 2015-2017, 2019-2021, 2023-2024
+# Copyright (C) 2015-2017, 2019-2021, 2023-2025
 # Bastian Löher
 # Michael Munch
 # Hans Toshihide Törnqvist
@@ -29,8 +29,6 @@ include gmake/c.mk
 include gmake/cgen.mk
 include gmake/close.mk
 
-MODULE_OBJ_LIST:=$(foreach mod,$(MODULE_LIST),$(BUILD_DIR)/module/$(mod)/$(mod).o)
-
 $(BUILD_DIR)/module/genlist.h: Makefile module/rules.mk
 	$(QUIET)echo "LSTH  $@" &&\
 	$(MKDIR) &&\
@@ -38,6 +36,9 @@ $(BUILD_DIR)/module/genlist.h: Makefile module/rules.mk
 	echo "#define MODULE_LIST_H" >> $@.tmp;\
 	echo "#include <module/module.h>" >> $@.tmp;\
 	echo "#include <module/reggen/registerlist.h>" >> $@.tmp;\
+	for i in $(MODULE_LIST); do \
+		echo "#define HAS_$$(echo $$i | tr '[:lower:]' '[:upper:]') 1" >> $@.tmp;\
+	done;\
 	echo "extern struct ModuleListEntry const c_module_list_[];" >> $@.tmp;\
 	echo "struct ModuleRegisterListEntryClient {" >> $@.tmp;\
 	echo "	enum Keyword type;" >> $@.tmp;\

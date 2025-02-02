@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2018-2024
+ * Copyright (C) 2018-2025
  * Bastian Löher
  * Michael Munch
  * Stephane Pietri
@@ -200,7 +200,6 @@ int
 main(int argc, char *argv[])
 {
 	struct GsiEtherboneModule vetar;
-	struct Counter vetar_counter;
 	struct ConfigBlock *module_block;
 #if NURDLIB_TRLOII
 	struct {
@@ -272,7 +271,11 @@ main(int argc, char *argv[])
 			TRLO2_BIND(rfx1, RFX1, LEMO);
 		}
 #endif
+#if HAS_GSI_VETAR
 		if (KW_GSI_VETAR == module_type) {
+			static struct Counter vetar_counter;
+
+			g_module_type = module_type;
 			gsi_etherbone_create(module_block, &vetar,
 			    module_type);
 			vetar.module.type = module_type;
@@ -283,7 +286,9 @@ main(int argc, char *argv[])
 			ZERO(vetar_counter);
 			vetar.module.crate_counter = &vetar_counter;
 			vetar_counter_soft = vetar.module.event_counter.value;
-		} else {
+		}
+#endif
+		if (!g_module_type) {
 			fprintf(stderr, "Weird module %s.\n",
 			    keyword_get_string(module_type));
 		}

@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2023-2024
+ * Copyright (C) 2023-2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -30,8 +30,11 @@
 #include <unistd.h>
 #include <nurdlib.h>
 #include <ctrl/ctrl.h>
+#include <module/genlist.h>
 #include <module/map/map.h>
 #include <nurdlib/base.h>
+
+#if HAS_MESYTEC_MDPP16SCP && HAS_CAEN_V1725
 
 #define SYSCALL(err, func, args) do { \
 	if (err == func args) { \
@@ -202,3 +205,11 @@ main(void)
 	return WIFEXITED(status) && WEXITSTATUS(status) == 0 ? 0 :
 	    EXIT_FAILURE;
 }
+
+#else
+int
+main(void)
+{
+	return 0;
+}
+#endif

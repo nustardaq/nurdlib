@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2024
+ * Copyright (C) 2015-2025
  * Bastian Löher
  * Michael Munch
  * Stephane Pietri
@@ -30,6 +30,7 @@
 #include <ctrl/ctrl.h>
 #include <module/module.h>
 #include <module/map/map.h>
+#include <module/genlist.h>
 #include <module/caen_v1n90/internal.h>
 #include <module/caen_v820/internal.h>
 #include <module/caen_v830/internal.h>
@@ -442,10 +443,18 @@ crate_create(void)
 	    KW_FREE_RUNNING);
 	FLAG_LOG(crate->is_free_running, "Free-running");
 
+#if HAS_GSI_SAM
 	gsi_sam_crate_create(&crate->gsi_sam_crate);
+#endif
+#if HAS_GSI_SIDEREM
 	gsi_siderem_crate_create(&crate->gsi_siderem_crate);
+#endif
+#if HAS_GSI_TACQUILA
 	gsi_tacquila_crate_create(&crate->gsi_tacquila_crate);
+#endif
+#if HAS_PNPI_CROS3
 	pnpi_cros3_crate_create(&crate->pnpi_cros3_crate);
+#endif
 
 	/*
 	 * Iterate over tags & barriers & modules, extract tag names and put
@@ -550,18 +559,24 @@ crate_create(void)
 			module->type = KW_BARRIER;
 			module_insert(crate, &tag_active_vec, module);
 			continue;
+#if HAS_GSI_SIDEREM
 		} else if (KW_GSI_SIDEREM_CRATE == module_type) {
 			gsi_siderem_crate_configure(&crate->gsi_siderem_crate,
 			    module_block);
 			continue;
+#endif
+#if HAS_GSI_TACQUILA
 		} else if (KW_GSI_TACQUILA_CRATE == module_type) {
 			gsi_tacquila_crate_configure(
 			    &crate->gsi_tacquila_crate, module_block);
 			continue;
+#endif
+#if HAS_PNPI_CROS3
 		} else if (KW_PNPI_CROS3_CRATE == module_type) {
 			pnpi_cros3_crate_configure(&crate->pnpi_cros3_crate,
 			    module_block);
 			continue;
+#endif
 #if !NCONF_mGSI_PEX_bNO
 		} else if (KW_GSI_PEX == module_type) {
 			if (NULL != crate->gsi_pex.config) {
@@ -579,6 +594,7 @@ crate_create(void)
 		module = module_create(crate, module_type, module_block);
 		module->id = module_id++;
 		module->crate_counter = &counter->cur;
+#if HAS_GSI_SAM
 		if (KW_GSI_SAM == module_type) {
 			/*
 			 * The GSI SAM is special since it has "client"
@@ -591,26 +607,40 @@ crate_create(void)
 			    &crate->gsi_siderem_crate,
 			    &crate->gsi_tacquila_crate,
 			    &crate->pnpi_cros3_crate, module);
+		}
+#endif
 #if !NCONF_mGSI_PEX_bNO
-		} else if (KW_GSI_CTDC == module_type) {
+#	if HAS_GSI_CTDC
+		if (KW_GSI_CTDC == module_type) {
 			gsi_ctdc_crate_add(&crate->gsi_ctdc_crate, module);
 			tags_need_pex = 1;
-		} else if (KW_GSI_KILOM == module_type) {
+		}
+#	endif
+#	if HAS_GSI_KILOM
+		if (KW_GSI_KILOM == module_type) {
 			gsi_kilom_crate_add(&crate->gsi_kilom_crate, module);
 			tags_need_pex = 1;
-		} else if (KW_GSI_MPPC_ROB == module_type) {
+		}
+#	endif
+#	if HAS_GSI_MPPC_ROB
+		if (KW_GSI_MPPC_ROB == module_type) {
 			gsi_mppc_rob_crate_add(&crate->gsi_mppc_rob_crate,
 			    module);
 			tags_need_pex = 1;
-		} else if (KW_GSI_FEBEX == module_type) {
+		}
+#	endif
+#	if HAS_GSI_FEBEX
+		if (KW_GSI_FEBEX == module_type) {
 			gsi_febex_crate_add(&crate->gsi_febex_crate, module);
 			tags_need_pex = 1;
-		} else if (KW_GSI_TAMEX == module_type) {
+		}
+#	endif
+#	if HAS_GSI_TAMEX
+		if (KW_GSI_TAMEX == module_type) {
 			gsi_tamex_crate_add(&crate->gsi_tamex_crate, module);
 			tags_need_pex = 1;
-#endif
 		}
-#if !NCONF_mGSI_PEX_bNO
+#	endif
 		VECTOR_FOREACH(tag_ref, &tag_active_vec) {
 			tag = *tag_ref;
 			tag->gsi_pex_is_needed |= tags_need_pex;
@@ -650,6 +680,7 @@ crate_create(void)
 			}
 		}
 
+#if HAS_GSI_VULOM || HAS_GSI_TRIDI
 		if (KW_GSI_TRIDI == module->type ||
 		    KW_GSI_VULOM == module->type) {
 			char const *tag_name;
@@ -670,6 +701,7 @@ crate_create(void)
 				crate->trloii_multi_event.tag_name = tag_name;
 			}
 		}
+#endif
 
 		module_insert(crate, &tag_active_vec, module);
 	}
@@ -762,7 +794,9 @@ crate_deinit(struct Crate *a_crate)
 			pop_log_level(module);
 		}
 	}
+#if HAS_GSI_SAM
 	gsi_sam_crate_deinit(&a_crate->gsi_sam_crate);
+#endif
 #if !NCONF_mGSI_PEX_bNO
 	if (NULL != a_crate->gsi_pex.pex) {
 		gsi_pex_deinit(a_crate->gsi_pex.pex);
@@ -893,9 +927,15 @@ crate_free(struct Crate **a_crate)
 		TAILQ_REMOVE(&crate->tag_list, tag, next);
 		FREE(tag);
 	}
+#if HAS_GSI_SIDEREM
 	gsi_siderem_crate_destroy(&crate->gsi_siderem_crate);
+#endif
+#if HAS_GSI_TACQUILA
 	gsi_tacquila_crate_destroy(&crate->gsi_tacquila_crate);
+#endif
+#if HAS_PNPI_CROS3
 	pnpi_cros3_crate_destroy(&crate->pnpi_cros3_crate);
+#endif
 	thread_mutex_clean(&crate->mutex);
 	map_blt_dst_free(&crate->shadow.dst);
 	TAILQ_REMOVE(&g_crate_list, crate, next);
@@ -1082,7 +1122,9 @@ crate_init_there_is_no_try:
 		}\
 	} while (0)
 #define INIT_CRATE(name) INIT_BATCH(name, name)
+#if HAS_GSI_SAM
 	INIT_CRATE(gsi_sam_crate);
+#endif
 	/* Init_slow. */
 	TAILQ_FOREACH(module, &a_crate->module_list, next) {
 		if (NULL == module->props) {
@@ -1131,11 +1173,13 @@ crate_init_there_is_no_try:
 		LOGF(verbose)(LOGL, "%s: max events/trig=%u.", tag->name,
 		    tag->event_max);
 	}
+#if HAS_GSI_VULOM || HAS_GSI_TRIDI
 	if (NULL != a_crate->trloii_multi_event.module) {
 		trloii_multi_event_set_limit(
 		    a_crate->trloii_multi_event.module,
 		    a_crate->trloii_multi_event.tag->event_max);
 	}
+#endif
 	/* Init fast. */
 	TAILQ_FOREACH(module, &a_crate->module_list, next) {
 		if (NULL == module->props) {
@@ -1153,18 +1197,36 @@ crate_init_there_is_no_try:
 		pop_log_level(module);
 	}
 	module_init_id_clear(a_crate);
+#if HAS_CAEN_V1N90
 	INIT_BATCH(caen_v1n90_micro, module_list);
 	if (!caen_v1n90_micro_init_fast(&a_crate->module_list)) {
 		goto crate_init_done;
 	}
+#endif
+#if HAS_GSI_CTDC
 	INIT_CRATE(gsi_ctdc_crate);
+#endif
+#if HAS_GSI_FEBEX
 	INIT_CRATE(gsi_febex_crate);
+#endif
+#if HAS_GSI_KILOM
 	INIT_CRATE(gsi_kilom_crate);
+#endif
+#if HAS_GSI_MPPC_ROB
 	INIT_CRATE(gsi_mppc_rob_crate);
+#endif
+#if HAS_GSI_SIDEREM
 	INIT_CRATE(gsi_siderem_crate);
+#endif
+#if HAS_GSI_TACQUILA
 	INIT_CRATE(gsi_tacquila_crate);
+#endif
+#if HAS_GSI_TAMEX
 	INIT_CRATE(gsi_tamex_crate);
+#endif
+#if HAS_GSI_PNPI_CROS3
 	INIT_CRATE(pnpi_cros3_crate);
+#endif
 	time_sleep(a_crate->postinit_sleep_s);
 	/* Post-init, after all modules have been inited. */
 	TAILQ_FOREACH(module, &a_crate->module_list, next) {
@@ -1773,12 +1835,14 @@ crate_readout_finalize(struct Crate *a_crate)
 		}
 		module_init_id_clear(a_crate);
 		VECTOR_FREE(&a_crate->module_configed_vec);
+#if HAS_CAEN_V1N90
 		if (do_v1n90) {
 			if (!caen_v1n90_micro_init_fast(
 			    &a_crate->module_list)) {
 				a_crate->state = STATE_REINIT;
 			}
 		}
+#endif
 		thread_mutex_unlock(&a_crate->mutex);
 	}
 	LOGF(spam)(LOGL, "crate_readout_finalize(%s) }", a_crate->name);

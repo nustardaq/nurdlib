@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2024
+ * Copyright (C) 2015-2025
  * Bastian Löher
  * Håkan T Johansson
  * Michael Munch
@@ -95,6 +95,7 @@ NTEST(EmptyCrate)
 
 NTEST(SimpleCrate)
 {
+#if HAS_CAEN_V775
 	struct CtrlClient *client;
 	struct CtrlServer *server;
 	struct CtrlCrateArray crate_array;
@@ -133,10 +134,12 @@ NTEST(SimpleCrate)
 
 	crate_free(&crate);
 	config_shutdown();
+#endif
 }
 
 NTEST(UnknownCrate)
 {
+#if HAS_CAEN_V775
 	struct CtrlClient *client;
 	struct CtrlServer *server;
 	struct Crate *crate;
@@ -164,10 +167,12 @@ NTEST(UnknownCrate)
 
 	crate_free(&crate);
 	config_shutdown();
+#endif
 }
 
 NTEST(UnknownModule)
 {
+#if HAS_CAEN_V775
 	struct CtrlRegisterArray reg_array;
 	struct CtrlClient *client;
 	struct CtrlServer *server;
@@ -190,10 +195,12 @@ NTEST(UnknownModule)
 
 	crate_free(&crate);
 	config_shutdown();
+#endif
 }
 
 NTEST(UnsupportedModule)
 {
+#if HAS_GSI_SAM
 	struct CtrlRegisterArray reg_array;
 	struct CtrlClient *client;
 	struct CtrlServer *server;
@@ -215,6 +222,7 @@ NTEST(UnsupportedModule)
 
 	crate_free(&crate);
 	config_shutdown();
+#endif
 }
 
 NTEST(Confed)
