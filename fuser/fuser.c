@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2023-2024
+ * Copyright (C) 2023-2025
  * Håkan T Johansson
  * Hans Toshihide Törnqvist
  *
