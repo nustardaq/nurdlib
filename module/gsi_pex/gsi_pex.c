@@ -115,6 +115,13 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 	    0, 0x70000000);
 	buf_ofs_hi = config_get_int32(a_block, KW_BUF_OFS_HI,
 	    CONFIG_UNIT_NONE, 0, 0x70000000);
+
+#ifndef __LP64__
+	assert(buf_ofs_hi == 0 && "upgrade now to amd64 to use buf_ofs_high!");
+#else
+	assert(sizeof(uintptr_t)==sizeof(void*) && "pointer size missmatch");
+#endif
+
 	buf_bytes = config_get_int32(a_block, KW_BUF_BYTES, CONFIG_UNIT_NONE,
 	    0, 0x70000000);
 
@@ -152,8 +159,8 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 		log_die(LOGL, "mmap("PEX_DEV",ofs=0,bytes=0x%08x): %s",
 		    PCI_BAR0_SIZE, strerror(errno));
 	}
-	LOGF(verbose)(LOGL, "Bar0=%p.", (void *)bar0);
 
+	LOGF(info)(LOGL, "Bar0=%p.", (void *)bar0);
 	if (0 != buf_ofs) {
 		buf = mmap(NULL, buf_bytes, PROT_WRITE | PROT_READ,
 		    MAP_SHARED, fd, buf_ofs);
@@ -162,7 +169,7 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 			    "bytes=0x%"PRIpx"): %s", buf_ofs, buf_bytes,
 			    strerror(errno));
 		}
-		LOGF(verbose)(LOGL, "Buf=%p (ofs=0x%"PRIpx","
+		LOGF(info)(LOGL, "DMA Buf=%p (ofs=0x%"PRIpx","
 		    "bytes=0x%"PRIpx").", buf, buf_ofs, buf_bytes);
 	}
 
@@ -172,7 +179,7 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 
 	a_pex->bar0 = bar0;
 	a_pex->dma = (void *)(bar0 + PEX_DMA_OFS);
-	LOGF(verbose)(LOGL, "DMA=%p.", (void volatile *)a_pex->dma);
+	LOGF(info)(LOGL, "DMA=%p.", (void volatile *)a_pex->dma);
 	a_pex->buf = buf;
 	a_pex->buf_bytes = buf_bytes;
 	a_pex->buf_physical_minus_virtual = buf_ofs - (uintptr_t)buf;
@@ -180,7 +187,7 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 	for (i = 0; i < LENGTH(a_pex->sfp); ++i) {
 		a_pex->sfp[i].phys = PEX_MEM_OFS + PEX_SFP_OFS * i;
 		a_pex->sfp[i].virt = bar0 + a_pex->sfp[i].phys;
-		LOGF(verbose)(LOGL, "SFP=%"PRIz": phys=0x%"PRIpx", virt=%p.",
+		LOGF(info)(LOGL, "SFP=%"PRIz": phys=0x%"PRIpx", virt=%p.",
 		    i, a_pex->sfp[i].phys, a_pex->sfp[i].virt);
 	}
 
@@ -528,5 +535,6 @@ gsi_pex_reset(struct GsiPex *a_pex)
 {
 	(void)a_pex;
 }
+
 
 #endif

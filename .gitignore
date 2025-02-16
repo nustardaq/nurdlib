@@ -28,3 +28,4 @@ mock/**/*.a
 mock/**/*.o
 mock/pex/*
 mock/trlo/*
+.*.swp

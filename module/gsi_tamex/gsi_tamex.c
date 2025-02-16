@@ -21,6 +21,8 @@
  * MA  02110-1301  USA
  */
 
+
+
 #include <module/gsi_tamex/gsi_tamex.h>
 #include <sched.h>
 #include <module/gsi_pex/internal.h>
@@ -93,6 +95,22 @@ gsi_tamex_check_empty(struct Module *a_module)
 	(void)a_module;
 	return 0;
 }
+
+
+
+void gsi_pex_dump_dma_regs(volatile struct GsiPexDma* ptr);
+/*static void (*_dummy)(struct GsiPexDma*)=dma_dump;*/
+void gsi_pex_dump_dma_regs(volatile struct GsiPexDma* ptr)
+{
+        LOGF(info)(LOGL, "DMA control register dump: %p", (volatile void*)ptr);     
+        LOGF(info)(LOGL, "src:             0x%16x", ptr->src);
+        LOGF(info)(LOGL, "dst:             0x%16x", ptr->dst);
+        LOGF(info)(LOGL, "transport_size:  0x%16x", ptr->transport_size);
+        LOGF(info)(LOGL, "burst_size:      0x%16x", ptr->burst_size);
+        LOGF(info)(LOGL, "dst_high:        0x%16x", ptr->dst_high);
+}
+
+
 
 struct Module *
 gsi_tamex_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
@@ -515,7 +533,7 @@ gsi_tamex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	for (;;) {
 		struct GsiTamexModuleCard const *card;
 		uint32_t w, bytes;
-
+		uint32_t card_err_count=0;
 		if (p32 == end || p32 + 1 == end) {
 			break;
 		}
@@ -637,10 +655,11 @@ gsi_tamex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 				}
 				fine = (0x003ff000 & w) >> 12;
 				if (0x3ff == fine) {
-					log_error(LOGL, "card[%u] TDC data "
+					/*log_error(LOGL, "card[%u] TDC data "
 					    "(0x%08x) has fine time=0x3ff!",
-					    card_i, w);
+					    card_i, w);*/
 					++err_count;
+					++card_err_count;
 				} else if (card->sync_ch >= 0) {
 					int ch;
 
@@ -672,8 +691,12 @@ gsi_tamex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 		w = *p32;
 		CHECK_MARKERS("footer", 0xbb);
 		++p32;
+		if (card_err_count > 2)
+		{
+			log_error(LOGL, "card[%u] TDC data contained %d fine times with 0x3ff ", card_i, card_err_count);
+		}
 	}
-	if (err_count > 8) {
+	if (err_count > 8 * tam->card_num) {
 		log_error(LOGL, "Too many 0x3ff fine times, "
 		    "something is wrong!");
 		ret |= CRATE_READOUT_FAIL_DATA_CORRUPT;
@@ -742,6 +765,9 @@ gsi_tamex_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 /* TODO: Check Sicy vs DMA. */
 if (1) {
+	struct GsiPexDma dma_dummy;
+	uintptr_t dest_phys;
+	memset((void*)&dma_dummy, 0x42, sizeof(struct GsiPexDma));
 
 	assert(IS_POW2(burst));
 	LOGF(spam)(LOGL, "bytes=0x%08x burst=0x%08x.", bytes, burst);
@@ -750,6 +776,7 @@ if (1) {
 	COPY(eb, *a_event_buffer);
 	gsi_pex_buf_get(pex, &eb, &phys_minus_virt);
 	dst_bursted = ((uintptr_t)eb.ptr + burst_mask) & ~burst_mask;
+	dest_phys=phys_minus_virt + dst_bursted;
 	bytes_bursted = (bytes + burst_mask) & ~burst_mask;
 	if (dst_bursted + bytes_bursted > (uintptr_t)eb.ptr + eb.bytes) {
 		log_error(LOGL, NAME":SFP=%"PRIz": Wanted to read %u B, "
@@ -770,7 +797,10 @@ if (1) {
 		    bytes_bursted,
 		    burst);
 		if (0 < bytes_bursted) {
-			pex->dma->dst = phys_minus_virt + dst_bursted;
+			pex->dma->dst = (uint32_t)(dest_phys);
+#ifdef __LP64__
+			pex->dma->dst_high = (uint32_t)(dest_phys>>32);
+#endif
 			pex->dma->transport_size = bytes_bursted;
 			pex->dma->burst_size = burst;
 			/* The next line will start the DMA with v5 FW. */
@@ -779,14 +809,24 @@ if (1) {
 				pex->dma->stat = 1;
 			}
 		}
-	} else {
+	} else { /* not parallel */
 		LOGF(spam)(LOGL, "SFP=%"PRIz" DMA dst=%p->%p burst=0x%08x.",
 		    tam->sfp_i,
 		    eb.ptr,
 		    (void *)dst_bursted,
 		    burst);
 		pex->dma->stat = 1 << (1 + tam->sfp_i);
-		pex->dma->dst = phys_minus_virt + dst_bursted;
+		dma_dummy.stat = 1 << (1 + tam->sfp_i);
+		pex->dma->dst = (uint32_t)(dest_phys);
+		dma_dummy.dst = (uint32_t)(dest_phys);
+#ifdef __LP64__
+		pex->dma->dst_high = (uint32_t)(dest_phys>>32);
+		dma_dummy.dst_high = (uint32_t)(dest_phys>>32);
+#endif
+		/*LOGF(spam)(LOGL, "raw dma dest=%p", (void*)pex->dma->dst);*/
+		*(uint32_t*)dst_bursted=0xdead0bad;
+		pex->dma->transport_size=0xffffffff;
+		dma_dummy.transport_size=0xffffffff;
 		/*
 		 * Now we request data on a single SFP to go all the way to
 		 * the DMA target.
@@ -822,6 +862,30 @@ if (1) {
 		sched_yield();
 	}
 	if (!pex->is_parallel) {
+		if (pex->dma->transport_size==0xffffffff)
+		{
+			log_error(LOGL, "DMA transfer did not set transport size");
+			pex->dma->transport_size=1;
+			ret=42;
+		}
+		else if (pex->dma->transport_size==0)
+		{
+			log_error(LOGL, "DMA transfer reports size zero");
+			ret=42;
+		}
+		else if (*(uint32_t*)dst_bursted==0xdead0bad)
+		{
+			log_error(LOGL, "DMA transfer did not write anything, claims to have written %d bytes!", 
+					pex->dma->transport_size);
+			pex->dma->transport_size=1;
+			ret=42;
+		}
+		if (ret==42)
+		{
+			gsi_pex_dump_dma_regs(pex->dma);
+			log_error(LOGL, "Dummy RAM dma regs for comparison:");
+			gsi_pex_dump_dma_regs(&dma_dummy);
+		}
 		bytes = pex->dma->transport_size;
 		pex->dma->stat = 0;
 		/* TODO: In original impl, but seems not needed. */

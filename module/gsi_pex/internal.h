@@ -25,6 +25,9 @@
 
 #include <module/gsi_pex/nconf.h>
 #include <module/module.h>
+#include <nurdlib/log.h>
+#include <assert.h>
+#include <stddef.h>
 
 #define REG_DATA_RED   0xffffb0
 #define REG_MEM_DIS    0xffffb4
@@ -59,8 +62,16 @@ struct GsiPexDma {
 	uint32_t	dst;
 	uint32_t	transport_size;
 	uint32_t	burst_size;
-	uint32_t	stat;
+	uint32_t	stat; /* aka dma_ctl */
+	/* new pex5 registers */
+	uint32_t        irq_ctl;   /* unused */
+	uint32_t        irq_stat;  /* unused */
+	uint32_t        dst_high; 
 };
+
+/*static_assert(offsetof(GsiPexDma, dst_high)==0x1c); */
+
+
 struct GsiPexGoc {
 	enum	GsiPexGocCmd cmd;
 	uint8_t	sfp_i;
