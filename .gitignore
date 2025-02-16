@@ -30,3 +30,4 @@ mock/**/*.so
 mock/**/*.so.*
 mock/pex/*
 mock/trlo/*
+.*.swp
