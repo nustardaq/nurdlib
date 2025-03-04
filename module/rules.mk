@@ -64,8 +64,7 @@ $(BUILD_DIR)/module/genlist.c: $(BUILD_DIR)/module/genlist.h
 	echo "#include <nurdlib/keyword.h>" >> $@.tmp;\
 	echo "struct ModuleListEntry const c_module_list_[] = {" >> $@.tmp;\
 	for i in $(MODULE_LIST); do \
-		if [ -f module/$$i/$$i.h ] && \
-		   [ ! -f $(BUILD_DIR)/module/$$i/fake ]; then \
+		if [ -f module/$$i/$$i.h ]; then \
 			up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
 			down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
 			echo "	{KW_$$up, $${down}_setup_, $${down}_create_, \"$$down.cfg\"}," >> $@.tmp;\
@@ -82,8 +81,7 @@ $(BUILD_DIR)/module/genlist.c: $(BUILD_DIR)/module/genlist.h
 	done;\
 	echo "struct ModuleRegisterListEntryClient const c_module_register_list_client_[] = {" >> $@.tmp;\
 	for i in $(MODULE_LIST); do \
-		if [ -f module/$$i/$$i.h -a -f module/$$i/register_list.txt ] \
-		   && [ ! -f $(BUILD_DIR)/module/$$i/fake ]; then \
+		if [ -f module/$$i/$$i.h -a -f module/$$i/register_list.txt ]; then \
 			up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
 			down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
 			echo "	{KW_$$up, c_$${down}_register_list_client_}," >> $@.tmp;\
@@ -93,8 +91,7 @@ $(BUILD_DIR)/module/genlist.c: $(BUILD_DIR)/module/genlist.h
 	echo "};" >> $@.tmp;\
 	echo "struct ModuleRegisterListEntryServer const c_module_register_list_server_[] = {" >> $@.tmp;\
 	for i in $(MODULE_LIST); do \
-		if [ -f module/$$i/$$i.h -a -f module/$$i/register_list.txt ] \
-		   && [ ! -f $(BUILD_DIR)/module/$$i/fake ]; then \
+		if [ -f module/$$i/$$i.h -a -f module/$$i/register_list.txt ]; then \
 			up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
 			down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
 			echo "	{KW_$$up, c_$${down}_register_list_server_}," >> $@.tmp;\

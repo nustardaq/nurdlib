@@ -25,7 +25,6 @@ C_$(NAME):=$(addprefix $(DIR_$(NAME))/,caen_v1n90.c micro.c)
 
 include gmake/c.mk
 include gmake/close.mk
-include module/fake.mk
 include module/reggen/module.mk
 
 $(BUILD_DIR)/$(DIR_$(NAME))/microdumper: $(BUILD_DIR)/$(DIR_$(NAME))/microdump.o $(BUILD_DIR)/$(DIR_$(NAME))/micro.o $(BUILD_DIR)/module/libmodule.a $(BUILD_DIR)/config/libconfig.a $(BUILD_DIR)/util/libutil.a

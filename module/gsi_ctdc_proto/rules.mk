@@ -24,6 +24,5 @@ C_$(NAME):=$(wildcard $(DIR_$(NAME))/*.c)
 
 include gmake/c.mk
 include gmake/close.mk
-include module/fake.mk
 
 $(DEP_$(NAME)): $(BUILD_DIR)/module/gsi_pex/offsets.h

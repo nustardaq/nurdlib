@@ -24,5 +24,4 @@ C_$(NAME):=$(wildcard $(DIR_$(NAME))/*.c)
 
 include gmake/c.mk
 include gmake/close.mk
-include module/fake.mk
 include module/reggen/module.mk
