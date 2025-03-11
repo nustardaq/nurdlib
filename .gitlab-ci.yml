@@ -470,7 +470,7 @@ cppcheck:
 
 mock:
   image: ubuntu:xenial
-  <<: *common
+  <<: *common-no-virt
   <<: *debian-mbs
   script:
     - cd mock && make -k RUNNER_MAKE_J=$RUNNER_MAKE_J # Forward -jN to mock makefile.
