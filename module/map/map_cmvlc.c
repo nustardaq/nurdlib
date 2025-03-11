@@ -84,7 +84,7 @@ cmvlc_init(void)
 		}
 		g_cmvlc = cmvlc_connect(str,
 					CMVLC_CONNECT_FLAGS_DATA,
-					&error_str, NULL/*stdout*/);
+					&error_str, stdout, NULL/*stdout*/);
 		if (g_cmvlc == NULL) {
 			log_die(LOGL, "cmvlc_connect failure for "
 				"url='%s': '%s'.", str, error_str);

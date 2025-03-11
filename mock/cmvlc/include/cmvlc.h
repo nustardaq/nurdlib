@@ -48,7 +48,7 @@ struct cmvlc_client {
 
 int			cmvlc_close(struct cmvlc_client *);
 struct cmvlc_client	*cmvlc_connect(const char *, int, const char **, FILE
-    *);
+    *, FILE *);
 const char		*cmvlc_last_error(struct cmvlc_client *);
 
 int			cmvlc_single_vme_read(struct cmvlc_client *, uint32_t,
