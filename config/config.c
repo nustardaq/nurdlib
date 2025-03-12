@@ -164,6 +164,7 @@ MAKE_UNIT(mV, MV, 9);
 MAKE_UNIT(B, B, 10);
 MAKE_UNIT(KiB, KIB, 11);
 MAKE_UNIT(MiB, MIB, 12);
+MAKE_UNIT(fC, FC, 13);
 
 void
 assert_src_path(struct Item const *a_l, char const *a_rp, int a_rl, int a_rc)
@@ -1956,6 +1957,8 @@ unit_dump(struct ConfigUnit const *a_unit)
 		return "KiB";
 	} else if (CONFIG_UNIT_MIB == a_unit) {
 		return "MIB";
+	} else if (CONFIG_UNIT_FC == a_unit) {
+		return "fC";
 	}
 	log_die(LOGL, "Unknown unit.");
 }
@@ -1990,6 +1993,8 @@ unit_from_id(unsigned a_id)
 		return CONFIG_UNIT_KIB;
 	case 12:
 		return CONFIG_UNIT_MIB;
+	case 13:
+		return CONFIG_UNIT_FC;
 	}
 	return NULL;
 }
@@ -2027,6 +2032,9 @@ unit_get_factor(struct ConfigUnit const *a_unit)
 	}
 	if (CONFIG_UNIT_MIB == a_unit) {
 		return 1024 * 1024;
+	}
+	if (CONFIG_UNIT_FC == a_unit) {
+		return 1e-15;
 	}
 	return 1.0;
 }
@@ -2080,6 +2088,9 @@ unit_is_compatible(struct ConfigUnit const *a_u1, struct ConfigUnit const
 		return CONFIG_UNIT_B == a_u2 ||
 		    CONFIG_UNIT_KIB == a_u2 ||
 		    CONFIG_UNIT_MIB == a_u2;
+	}
+	if (CONFIG_UNIT_FC == a_u1) {
+		return CONFIG_UNIT_FC == a_u2;
 	}
 	assert(0 && "Non-existent unit.");
 	return 0;

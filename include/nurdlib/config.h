@@ -69,6 +69,7 @@ extern struct ConfigUnit const *const CONFIG_UNIT_MV;
 extern struct ConfigUnit const *const CONFIG_UNIT_B;
 extern struct ConfigUnit const *const CONFIG_UNIT_KIB;
 extern struct ConfigUnit const *const CONFIG_UNIT_MIB;
+extern struct ConfigUnit const *const CONFIG_UNIT_FC;
 
 enum ConfigScalarType {
 	CONFIG_SCALAR_EMPTY,
