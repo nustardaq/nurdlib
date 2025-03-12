@@ -172,6 +172,7 @@ static char const g_keyword_array[][52] = {
 	"data_format",
 	"data_path",
 	"data_reduction",
+	"data_threshold",
 	"deadtime",
 	"deadtime_release",
 	"debug",
