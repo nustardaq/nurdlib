@@ -184,10 +184,19 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #       define BLT_DST_DUMB
 #elif NCONF_mMAP_bCAEN_VMELIB_LOCAL
 /*
- * Note: To build with CAENVMElib without having to install it:
- *  make \
+ * Note: To build with a fresh CAENVMElib without having to install it, you
+ * can link directly to the versioned lib (use absolute paths!):
+ *  - make \
  *      CPPFLAGS="-isystem <CAENVMElib-path>/include" \
- *      LIBS=<CAENVMElib-path>/lib/<platform>/libCAENVME.so...
+ *      LIBS=<CAENVMElib-path>/lib/<platform>/libCAENVME.so.version...
+ *
+ * If you prefer to use the runtime linker better, you can give search paths
+ * to pass the CAEN_VMELIB branch:
+ *  - Symlink in CAENVMELib: ln -s libCAENVME.so.version libCAENVME.so
+ *  - make  \
+ *      CPPFLAGS="-isystem <CAENVMElib-path>/include" \
+ *      LDFLAGS="-L<CAENVMElib-path>/lib/<platform> \
+ *            -Wl,-rpath=<CAENVMElib-path>/lib/<platform>"
  */
 /* NCONF_NOEXEC */
 #	if NCONFING_mMAP

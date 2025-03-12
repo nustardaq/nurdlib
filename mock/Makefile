@@ -41,7 +41,7 @@ CHECK_TRLOII_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!
 
 .PHONY: all
 all: rio3find rio3smem rio4bma xpc326 xpc3310 rio2 universe rimfaxe \
-	caen mvlcc_config mvlcc_env cmvlc_config cmvlc_env \
+	caenlocal caensys mvlcc_config mvlcc_env cmvlc_config cmvlc_env \
 	etherbone pex \
 	tridi trlo \
 	drasi drasi_tridi drasi_trlo \
@@ -102,10 +102,16 @@ rimfaxe: rimfaxe/libavb.a
 	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
 	$(CHECK_MAP_PRE) RIMFAXE $(CHECK_MAP_POST)
 
-.PHONY: caen
-caen: caen/libCAENVME.a
+.PHONY: caenlocal
+caenlocal: caenlocal/libCAENVME.so.suff
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LIBS=$(shell pwd)/$< make $(RUNNER_MAKE_J) -C ../ && \
+	$(CHECK_MAP_PRE) CAEN_VMELIB_LOCAL $(CHECK_MAP_POST)
+
+.PHONY: caensys
+caensys: caensys/CAENVMElib.h caensys/libCAENVME.so
+	$(QUIET) \
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS="-L$(shell pwd)/$@ -Wl,-rpath=$(shell pwd)/$@" make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
 
 .PHONY: mvlcc_config
@@ -170,11 +176,11 @@ trlo: trlo/dtc_arch/arch_suffix_inc.mk \
 	trlo/trloctrl/fw_cacad0d0_trlo/trlo_defs.h \
 	trlo/trloctrl/fw_cacad0d0_trlo/lib_mock/trlo_ctrllib.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_TRLOII_PRE) VULOM4_bYES $(CHECK_TRLOII_POST)
 
 .PHONY: drasi
-drasi: caen \
+drasi: caenlocal \
 	drasi/f_user_daq.o \
 	drasi/lwroc_message_internal.o \
 	drasi/lwroc_thread_util.o \
@@ -182,7 +188,7 @@ drasi: caen \
 	drasi/lwroc_triva_state.o \
 	drasi/lmd/lwroc_lmd_ev_sev.o
 	$(QUIET) \
-	BUILD_DIR_PREFIX=caen_ CPPFLAGS="-Imock/drasi/ -Imock/caen" LDFLAGS=-Lmock/caen \
+	BUILD_DIR_PREFIX=caenlocal_ CPPFLAGS="-Imock/drasi/ -Imock/caenlocal" LIBS=$(shell pwd)/caenlocal/libCAENVME.so.suff \
 	    make $(RUNNER_MAKE_J) -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
 
 .PHONY: drasi_tridi
@@ -210,12 +216,12 @@ drasi_trlo: trlo \
 	    make $(RUNNER_MAKE_J) -C ../ DRASI_CONFIG=mock/drasi/drasi-config.sh fuser_drasi
 
 .PHONY: mbs
-mbs: caen \
+mbs: caenlocal \
 	mbs/lib/lib_mbs.a \
 	mbs/lib/lib_tools.a \
 	mbs/obj/m_read_meb.o
 	$(QUIET) \
-	BUILD_DIR_PREFIX=caen_ CPPFLAGS="-Imock/mbs/ -Imock/caen" LDFLAGS="-Lmock/mbs -Lmock/caen" \
+	BUILD_DIR_PREFIX=caenlocal_ CPPFLAGS="-Imock/mbs/ -Imock/caenlocal" LDFLAGS=-Lmock/mbs LIBS=$(shell pwd)/caenlocal/libCAENVME.so.suff \
 	    make $(RUNNER_MAKE_J) -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
 
 .PHONY: mbs_tridi
@@ -246,7 +252,8 @@ clean:
 	BUILD_DIR_PREFIX=rio2_ make -C ../ clean
 	BUILD_DIR_PREFIX=universe_ make -C ../ clean
 	BUILD_DIR_PREFIX=rimfaxe_ make -C ../ clean
-	BUILD_DIR_PREFIX=caen_ make -C ../ clean
+	BUILD_DIR_PREFIX=caenlocal_ make -C ../ clean
+	BUILD_DIR_PREFIX=caensys_ make -C ../ clean
 	BUILD_DIR_PREFIX=mvlcc_config_ make -C ../ clean
 	BUILD_DIR_PREFIX=mvlcc_env_ make -C ../ clean
 	BUILD_DIR_PREFIX=cmvlc_config_ make -C ../ clean
@@ -283,7 +290,15 @@ universe/libvme.a: universe/vme.o
 
 rimfaxe/libavb.a: rimfaxe/avb.o
 
-caen/libCAENVME.a: caen/caen.o
+caenlocal/libCAENVME.so.suff: caenlocal/caen.o
+caensys/CAENVMElib.h: caenlocal/CAENVMElib.h
+	$(QUIET)echo CAEN $@ && \
+	$(MKDIR) && \
+	ln -s ../$< $@
+caensys/libCAENVME.so: caenlocal/libCAENVME.so.suff
+	$(QUIET)echo CAEN $@ && \
+	$(MKDIR) && \
+	ln -s ../$< $@
 
 mvlcc/libmesytec-mvlc.a: mvlcc/mesytec-mvlc.o
 mvlcc/libmvlcc.a: mvlcc/mvlcc.o
@@ -339,6 +354,12 @@ trlo/trloctrl/fw_cacad0d0_trlo/lib_mock/trlo_ctrllib.a: \
 	$(QUIET)echo A $@ && \
 	$(MKDIR) && \
 	ar crs $@.tmp $^ && \
+	mv -f $@.tmp $@
+
+%.so.suff:
+	$(QUIET)echo A $@ && \
+	$(MKDIR) && \
+	gcc -shared -o $@.tmp $^ && \
 	mv -f $@.tmp $@
 
 %.o: %.c Makefile

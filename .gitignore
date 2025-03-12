@@ -26,5 +26,7 @@ build*/
 \#*\#
 mock/**/*.a
 mock/**/*.o
+mock/**/*.so
+mock/**/*.so.*
 mock/pex/*
 mock/trlo/*
