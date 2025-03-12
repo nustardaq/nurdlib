@@ -615,6 +615,10 @@ parse_unit(struct File *a_file, struct ScalarList *a_scalar_list, unsigned
 		parser_push_unit(a_scalar_list, a_vector_index,
 		    CONFIG_UNIT_MIB);
 		advancec(a_file, 3);
+	} else if (is_exactly_identifier(a_file, "fC")) {
+		parser_push_unit(a_scalar_list, a_vector_index,
+		    CONFIG_UNIT_FC);
+		advancec(a_file, 2);
 	}
 }
 
