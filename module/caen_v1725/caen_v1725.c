@@ -194,8 +194,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			u32 = MIN(u32, 255);
 			LOGF(verbose)(LOGL, " [%"PRIz"]=%uns (0x%08x).",
 			    i, u32 * v1725->period_ns, u32);
+#if 0 /* No longer in register list. */
 			MAP_WRITE(v1725->sicy_map, channel_n_pulse_width(i),
 			    u32);
+#endif
 		}
 	}
 	{
@@ -217,8 +219,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 			u32 = logic[i];
 			LOGF(verbose)(LOGL, " [%"PRIz"]=0x%08x.", i, u32);
+#if 0 /* No longer in register list. */
 			MAP_WRITE(v1725->sicy_map,
 			    couple_n_self_trigger_logic(i), u32);
+#endif
 		}
 	}
 	{
@@ -300,7 +304,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		post = config_get_int32(v1725->module.config,
 		    KW_SAMPLE_LENGTH, CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(30));
 		LOGF(verbose)(LOGL, "Post-trigger=0x%08x.", post);
+#if 0 /* No longer in register list. */
 		MAP_WRITE(v1725->sicy_map, post_trigger, post);
+#endif
 	}
 	{
 		enum Keyword const c_kw_lemo[] = {KW_NIM, KW_TTL};
@@ -599,8 +605,11 @@ set_thresholds(struct CaenV1725Module *a_v1725, uint16_t const
 
 		u32 = a_threshold_array[i];
 		LOGF(verbose)(LOGL, " [%"PRIz"]=0x%08x.", i, u32);
+#if 0 /* No longer in register list. */
 		MAP_WRITE(a_v1725->sicy_map, channel_n_trigger_threshold(i),
 		    u32);
+#endif
+		(void) a_v1725;
 	}
 	LOGF(verbose)(LOGL, NAME" set_thresholds }");
 }
