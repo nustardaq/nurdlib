@@ -174,6 +174,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}
 	}
 	{
+#if 0  /* Removed from cfg/default/caen_v1725.cfg ? */
 		double pwidth[16];
 		size_t i;
 
@@ -191,6 +192,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			MAP_WRITE(v1725->sicy_map, channel_n_pulse_width(i),
 			    u32);
 		}
+#endif
 	}
 	{
 		uint16_t thr[16];
@@ -199,6 +201,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    CONFIG_UNIT_MV, 0, BITS_MASK_TOP(13));
 		SET_THRESHOLDS(v1725, thr);
 	}
+#if 0  /* Changed implementation in cfg/default/caen_v1725.cfg ? */
 	{
 		uint8_t logic[8];
 		size_t i;
@@ -215,6 +218,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    couple_n_self_trigger_logic(i), u32);
 		}
 	}
+#endif
 	{
 		uint16_t offset[16];
 		double init_sleep;
