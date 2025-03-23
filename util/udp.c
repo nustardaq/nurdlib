@@ -327,7 +327,7 @@ udp_address_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 		addri.ai_family = get_family(a_flags);
 		addri.ai_socktype = SOCK_DGRAM;
 		addri.ai_protocol = IPPROTO_UDP;
-		snprintf_(port_str, sizeof port_str, "%d", a_port);
+		snprintf_(port_str, sizeof port_str, "%u", a_port);
 		ret = getaddrinfo(a_hostname, port_str, &addri, &result);
 		if (0 != ret) {
 			gaif(ret, a_hostname, port_str);
@@ -438,7 +438,7 @@ udp_client_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 		addri.ai_family = get_family(a_flags);
 		addri.ai_socktype = SOCK_DGRAM;
 		addri.ai_protocol = IPPROTO_UDP;
-		snprintf_(port_str, sizeof port_str, "%d", a_port);
+		snprintf_(port_str, sizeof port_str, "%u", a_port);
 		ret = getaddrinfo(a_hostname, port_str, &addri, &result);
 		if (0 != ret) {
 			gaif(ret, a_hostname, port_str);
@@ -499,7 +499,7 @@ udp_client_create(unsigned a_flags, char const *a_hostname, uint16_t a_port)
 	}
 #endif
 	if (!set_non_blocking(sock)) {
-		log_warn(LOGL, "set_non_blocking(%s:%d)", a_hostname, a_port);
+		log_warn(LOGL, "set_non_blocking(%s:%u)", a_hostname, a_port);
 		close(sock);
 		return NULL;
 	}
@@ -570,7 +570,7 @@ udp_server_create(unsigned a_flags, uint16_t a_port)
 		char port_str[10];
 		struct addrinfo *result, *p;
 
-		snprintf_(port_str, sizeof port_str, "%d", a_port);
+		snprintf_(port_str, sizeof port_str, "%u", a_port);
 		ZERO(addri);
 		addri.ai_family = get_family(a_flags);
 		addri.ai_socktype = SOCK_DGRAM;
@@ -589,7 +589,7 @@ udp_server_create(unsigned a_flags, uint16_t a_port)
 				continue;
 			}
 			if (0 != bind(sock, p->ai_addr, p->ai_addrlen)) {
-				log_warn(LOGL, "connect(NULL:%s)", port_str);
+				log_warn(LOGL, "bind(NULL:%s)", port_str);
 				close(sock);
 				sock = INVALID_SOCKET;
 				continue;
@@ -608,7 +608,7 @@ udp_server_create(unsigned a_flags, uint16_t a_port)
 
 		sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if (0 > sock) {
-			log_error(LOGL, "socket");
+			log_warn(LOGL, "socket");
 			goto udp_server_create_fail;
 		}
 		ZERO(me);
@@ -616,13 +616,13 @@ udp_server_create(unsigned a_flags, uint16_t a_port)
 		me.sin_addr.s_addr = htonl(INADDR_ANY);
 		me.sin_port = htons(a_port);
 		if (0 != bind(sock, (void *)&me, sizeof me)) {
-			log_error(LOGL, "bind");
+			log_warn(LOGL, "bind(NULL:%u)", a_port);
 			goto udp_server_create_fail;
 		}
 	}
 #endif
 	if (!set_non_blocking(sock)) {
-		log_warn(LOGL, "set_non_blocking(NULL:%d)", a_port);
+		log_warn(LOGL, "set_non_blocking(NULL:%u)", a_port);
 		goto udp_server_create_fail;
 	}
 	server->socket = sock;

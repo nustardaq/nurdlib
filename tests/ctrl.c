@@ -257,7 +257,7 @@ NTEST(CustomPort)
 	NTRY_BOOL(!ctrl_client_is_online(client));
 	ctrl_client_free(&client);
 
-	client = ctrl_client_create("127.0.0.1", 10000);
+	client = ctrl_client_create("127.0.0.1", 50000);
 	NTRY_BOOL(ctrl_client_is_online(client));
 	ctrl_client_free(&client);
 

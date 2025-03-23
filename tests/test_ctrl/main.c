@@ -130,7 +130,7 @@ main(void)
 		int ok;
 
 		printf("Client connecting...\n");
-		client = ctrl_client_create("localhost", 10000);
+		client = ctrl_client_create("localhost", 50001);
 
 		ok = 1;
 
