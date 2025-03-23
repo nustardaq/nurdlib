@@ -54,13 +54,13 @@ rio3find: rio3find/lib/ces/libbma.a \
 	rio3find/lib/ces/libuio.a \
 	rio3find/lib/ces/libvme.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) RIO3_FINDCONTROLLER $(CHECK_MAP_POST)
 
 .PHONY: rio3smem
 rio3smem: rio3smem/lib/ces/libbma.a rio3smem/lib/ces/libuio.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO3LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) RIO3_SMEM $(CHECK_MAP_POST)
 
 .PHONY: rio4bma
@@ -69,37 +69,37 @@ rio4bma: rio4bma/lib/ces/libbma.a \
 	rio4bma/lib/ces/libuio.a \
 	rio4bma/lib/ces/libvme.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO4LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ RIO4LDPATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) RIO4_BMA $(CHECK_MAP_POST)
 
 .PHONY: xpc326
 xpc326:
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) XPC_3_2_6 $(CHECK_MAP_POST)
 
 .PHONY: xpc3310
 xpc3310: xpc3310/libcesXpcLib.a xpc3310/libcesDma.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) XPC_3_3_10 $(CHECK_MAP_POST)
 
 .PHONY: rio2
 rio2: rio2/libsmem.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ LIBS=-lsmem make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ LIBS=-lsmem make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) RIO2 $(CHECK_MAP_POST)
 
 .PHONY: universe
 universe: universe/libvme.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) UNIVERSE $(CHECK_MAP_POST)
 
 .PHONY: rimfaxe
 rimfaxe: rimfaxe/libavb.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS=-Imock/$@ LDFLAGS=-Lmock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) RIMFAXE $(CHECK_MAP_POST)
 
 .PHONY: caenabs
@@ -117,7 +117,7 @@ caensys: caensys/CAENVMElib.h caensys/libCAENVME.so
 .PHONY: mvlcc_config
 mvlcc_config: mvlcc/libmesytec-mvlc.a mvlcc/libmvlcc.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlcc/mvlcc-config.sh make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ MVLCC_CONFIG=mock/mvlcc/mvlcc-config.sh make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) MVLCC $(CHECK_MAP_POST)
 
 .PHONY: mvlcc_env
@@ -126,13 +126,13 @@ mvlcc_env: mvlcc/libmesytec-mvlc.a mvlcc/libmvlcc.a
 	BUILD_DIR_PREFIX=$@_ \
 	    MVLCC_CFLAGS=-Imock/mvlcc/include \
 	    MVLCC_LIBS="-Lmock/mvlcc -lmvlcc -lmesytec-mvlc" \
-	    make $(RUNNER_MAKE_J) -C ../ &&\
+	    make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) MVLCC $(CHECK_MAP_POST)
 
 .PHONY: cmvlc_config
 cmvlc_config: cmvlc/libcmvlc.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CMVLC_CONFIG=mock/cmvlc/cmvlc-config.sh make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CMVLC_CONFIG=mock/cmvlc/cmvlc-config.sh make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
 
 .PHONY: cmvlc_env
@@ -141,7 +141,7 @@ cmvlc_env: cmvlc/libcmvlc.a
 	BUILD_DIR_PREFIX=$@_ \
 	    CMVLC_CFLAGS=-Imock/cmvlc/include \
 	    CMVLC_LIBS="-Lmock/cmvlc -lcmvlc" \
-	    make $(RUNNER_MAKE_J) -C ../ &&\
+	    make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
 
 .PHONY: etherbone
@@ -152,13 +152,13 @@ etherbone_test: etherbone_lib
 .PHONY: etherbone_lib
 etherbone_lib: etherbone/lib/libetherbone.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=etherbone_ make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone &&\
+	BUILD_DIR_PREFIX=etherbone_ make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone && \
 	$(CHECK_EBONE_PRE) ETHERBONE_bYES $(CHECK_EBONE_POST)
 
 .PHONY: pex
 pex: pex/dev/pexor
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-DPEX_DEV_PREFIX=mock/$@ -DMAP_LOCKED=0" make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-DPEX_DEV_PREFIX=mock/$@ -DMAP_LOCKED=0" make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_PEX_PRE) GSI_PEX_bYES $(CHECK_PEX_POST)
 
 .PHONY: tridi
@@ -166,7 +166,7 @@ tridi: tridi/common/lib_mock/trcomlib.a \
 	tridi/hwmap/lib_mock/libhwmap.a \
 	tridi/trloctrl/fw_cacad0d0_tridi/lib_mock/tridi_ctrllib.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ &&\
+	BUILD_DIR_PREFIX=$@_ TRLOII_PATH=mock/$@ make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_TRLOII_PRE) TRIDI_bYES $(CHECK_TRLOII_POST)
 
 .PHONY: trlo
@@ -312,7 +312,7 @@ mbs/lib/lib_tools.a: mbs/tools.o
 
 pex/dev/pexor: Makefile
 	$(QUIET)echo PEX $@ && \
-	$(MKDIR) &&\
+	$(MKDIR) && \
 	touch $@
 
 tridi/common/lib_mock/trcomlib.a: tridi/common/lib_mock/com.o
