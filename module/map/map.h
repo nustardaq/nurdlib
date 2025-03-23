@@ -182,7 +182,7 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
 #	define SICY_CAEN
 #	define BLT_CAEN
 #       define BLT_DST_DUMB
-#elif NCONF_mMAP_bCAEN_VMELIB_LOCAL
+#elif NCONF_mMAP_bCAEN_VMELIB_ABSOLUTE
 /*
  * Note: To build with a fresh CAENVMElib without having to install it, you
  * can link directly to the versioned lib (use absolute paths!):
