@@ -168,6 +168,9 @@ NCONF_ARGS:=$(BUILD_DIR)/nconf.args
 
 .PHONY: all
 all: lib $(MEMTEST_TARGET) $(NURDCTRL_TARGET) $(RWDUMP_TARGET) $(WRSLEW_TARGET)
+	$(QUIET)j=$(BUILD_DIR)/nconf/module/map/map.h; \
+		grep " NCONF_m[^ ]*" $$j | \
+		$(SED) 's,.*NCONF_m.*_b\(.*\) .*,Mapping = \1,'
 	@echo "$(BUILD_DIR): Simon says: Alles wird gut ;o)"
 
 bin/m_read_meb.drasi:
