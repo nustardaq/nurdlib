@@ -192,7 +192,9 @@ intptr_t	find_controller(uintptr_t, size_t, unsigned, unsigned,
  *
  * If you prefer to use the runtime linker better, you can give search paths
  * to pass the CAEN_VMELIB branch:
- *  - Symlink in CAENVMELib: ln -s libCAENVME.so.version libCAENVME.so
+ *  - Symlink in <CAENVMElib-path>/lib/<platform>:
+ *    ( cd <CAENVMElib-path>/lib/<platform> ; \
+ *      ln -s libCAENVME.so.version libCAENVME.so )
  *  - make  \
  *      CPPFLAGS="-isystem <CAENVMElib-path>/include" \
  *      LDFLAGS="-L<CAENVMElib-path>/lib/<platform> \
