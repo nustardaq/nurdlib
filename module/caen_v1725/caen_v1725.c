@@ -331,6 +331,73 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(v1725->sicy_map, channel_enable_mask,
 		    v1725->channel_enable);
 	}
+	{
+	  uint32_t dummy;
+	  uint32_t dummy_array[16];
+	  double dummy_dbl_array[16];
+
+	  /* Note: min/max values not checked vs. manual. */
+
+	  dummy = config_get_int32(v1725->module.config,
+				   KW_AGGREGATE_NUM,
+				   CONFIG_UNIT_NONE, 0, 1);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_PRETRIGGER_DELAY,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_CFD_DELAY,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_CFD_FRACTION,
+			       CONFIG_UNIT_NONE, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_CFD_WIDTH,
+			       CONFIG_UNIT_NONE, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_CFD_WIDTH,
+			       CONFIG_UNIT_NONE, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_ZERO_SUPPRESS,
+			       CONFIG_UNIT_NONE, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_GATE_SHORT,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_GATE_LONG,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_GATE_OFFSET,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_BASELINE_FIXED,
+			       CONFIG_UNIT_NONE, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_INTERNAL_TRIGGER_DELAY,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_INTERNAL_TRIGGER_WIDTH,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_INTERNAL_TRIGGER_HOLDOFF,
+			       CONFIG_UNIT_NS, 0, 1000);
+	  CONFIG_GET_DOUBLE_ARRAY(dummy_dbl_array, v1725->module.config,
+				  KW_THRESHOLD_PSD,
+				  CONFIG_UNIT_NONE, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_THRESHOLD_PUR_GAP,
+			       CONFIG_UNIT_MV, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_CHARGE,
+			       CONFIG_UNIT_FC, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_TEST_PULSE_FREQ,
+			       CONFIG_UNIT_KHZ, 0, 1000);
+	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
+			       KW_BASELINE_AVERAGE,
+			       CONFIG_UNIT_NONE, 0, 1000);
+
+	  (void) dummy;
+	}
 
 	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
