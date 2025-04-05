@@ -335,6 +335,15 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  uint32_t dummy;
 	  uint32_t dummy_array[16];
 	  double dummy_dbl_array[16];
+	  /*
+	  enum Keyword dummy_keyword_array[16];
+	  */
+	  /*
+	  enum Keyword c_pedestal[] = {
+	    KW_FALSE,
+	    KW_TRUE,
+	    };
+	  */
 
 	  /* Note: min/max values not checked vs. manual. */
 
@@ -389,6 +398,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
 			       KW_CHARGE,
 			       CONFIG_UNIT_FC, 0, 1000);
+	  /*
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array, v1725->module.config,
+				   KW_PEDESTAL, c_pedestal);
+	  */
 	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
 			       KW_TEST_PULSE_FREQ,
 			       CONFIG_UNIT_KHZ, 0, 1000);
