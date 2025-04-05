@@ -344,6 +344,12 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	    KW_TRUE,
 	    };
 	  */
+	  /*
+	  enum Keyword c_polarity[] = {
+	    KW_POS,
+	    KW_NEG
+	    };
+	  */
 
 	  /* Note: min/max values not checked vs. manual. */
 
@@ -405,6 +411,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
 			       KW_TEST_PULSE_FREQ,
 			       CONFIG_UNIT_KHZ, 0, 1000);
+	  /*
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array, v1725->module.config,
+				   KW_TEST_PULSE_POLARITY, c_polarity);
+	  */
 	  CONFIG_GET_INT_ARRAY(dummy_array, v1725->module.config,
 			       KW_BASELINE_AVERAGE,
 			       CONFIG_UNIT_NONE, 0, 1000);
