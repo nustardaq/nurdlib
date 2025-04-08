@@ -1266,12 +1266,14 @@ crate_module_access_pack(uint8_t a_crate_i, uint8_t a_module_j, int
 	if (NULL == crate) {
 		PACKER_LIST_PACK(*a_list, 16, -1);
 		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Crate not found");
 		goto done;
 	}
 	module = get_module(crate, a_module_j);
 	if (NULL == module) {
 		PACKER_LIST_PACK(*a_list, 16, -1);
 		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Module not found");
 		goto done;
 	}
 	THREAD_MUTEX_LOCK(&crate->mutex);
@@ -1784,12 +1786,14 @@ crate_register_array_pack(struct PackerList *a_list, int a_crate_i, int
 	if (NULL == crate) {
 		PACKER_LIST_PACK(*a_list, 16, -1);
 		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Crate not found");
 		goto crate_register_array_pack_done;
 	}
 	module = get_module(crate, a_module_j);
 	if (NULL == module) {
 		PACKER_LIST_PACK(*a_list, 16, -1);
 		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Module not found");
 		goto crate_register_array_pack_done;
 	}
 	THREAD_MUTEX_LOCK(&crate->mutex);

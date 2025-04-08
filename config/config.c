@@ -2011,7 +2011,8 @@ unit_dump(struct ConfigUnit const *a_unit)
 	} else if (CONFIG_UNIT_FC == a_unit) {
 		return "fC";
 	}
-	log_die(LOGL, "Unknown unit.");
+	log_error(LOGL, "Unknown unit.");
+	return "Error";
 }
 
 struct ConfigUnit const *

@@ -48,7 +48,7 @@
 #define PACK_LOC(packer, label) \
 	do { \
 		if (!pack_str(&packer, __FILE__) || \
-		    !pack32(&packer, __LINE__)) { \
+		    !pack16(&packer, __LINE__)) { \
 			goto label; \
 		} \
 	} while (0)

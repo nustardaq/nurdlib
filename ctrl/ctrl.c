@@ -85,7 +85,7 @@ static void	send_register_array(struct UDPServer *, struct UDPAddress
 static void	server_run(void *);
 static int	unpack_config_list(struct DatagramArray *, size_t *, struct
     Packer *, struct CtrlConfigList *) FUNC_RETURNS;
-static void	unpack_loc(struct Packer *);
+static void	unpack_empty(struct Packer *);
 static int	unpack_module_access(struct CtrlModuleAccess *, size_t, struct
     DatagramArray *, size_t *) FUNC_RETURNS;
 static int	unpack_scalar(struct DatagramArray *, size_t *, struct Packer
@@ -103,7 +103,7 @@ client_recv(struct CtrlClient const *a_client, struct UDPDatagram *a_dgram,
 
 	for (trial = 0; 3 > trial; ++trial) {
 		a_dgram->bytes = 0;
-		if (!udp_client_receive(a_client->client, a_dgram, 1.0)) {
+		if (!udp_client_receive(a_client->client, a_dgram, 5.0)) {
 			break;
 		}
 		if (0 != a_dgram->bytes) {
@@ -479,7 +479,7 @@ fail:
 		return 0;
 	}
 	if (0xffff == u16) {
-		unpack_loc(&packer);
+		unpack_empty(&packer);
 		return 0;
 	}
 	if (!unpack8(&packer, &a_crate_info->dt_release) ||
@@ -824,7 +824,7 @@ ctrl_client_register_array_unpack(struct CtrlRegisterArray *a_register_array,
 	if (65535 == module_type16) {
 		log_error(LOGL, "Packer could not dump requested module, -1 "
 		    "returned.");
-		unpack_loc(a_packer);
+		unpack_empty(a_packer);
 		return 0;
 	}
 	a_register_array->module_type = module_type16;
@@ -1193,7 +1193,7 @@ server_run(void *a_server)
 
 		udp_address_free(&address);
 		dgram.bytes = 0;
-		udp_server_receive(server->server, &address, &dgram, 1.0);
+		udp_server_receive(server->server, &address, &dgram, 5.0);
 		if (0 == dgram.bytes) {
 			continue;
 		}
@@ -1364,18 +1364,24 @@ unpack_config_list(struct DatagramArray *a_dgram_array, size_t
 }
 
 void
-unpack_loc(struct Packer *a_packer)
+unpack_empty(struct Packer *a_packer)
 {
+	char *descr;
 	char *file;
-	uint32_t line;
+	uint16_t line;
 
 	file = unpack_strdup(a_packer);
-	if (!unpack32(a_packer, &line)) {
+	if (!unpack16(a_packer, &line)) {
 		line = -1;
 	}
-	log_error(LOGL, " __FILE__=%s __LINE__=%d.",
+	log_error(LOGL, " __FILE__=%s __LINE__=%u.",
 	    NULL == file ? "-nofile-" : file, line);
-	FREE(file);
+	free(file);
+	descr = unpack_strdup(a_packer);
+	if (descr) {
+		log_error(LOGL, "Description = %s.", descr);
+		free(descr);
+	}
 }
 
 int
@@ -1398,7 +1404,7 @@ unpack_module_access(struct CtrlModuleAccess *a_arr, size_t a_arrn, struct
 	if (255 == num) {
 		log_error(LOGL, "Could not access requested module, "
 		    "-1 returned.");
-		unpack_loc(&packer);
+		unpack_empty(&packer);
 		return 0;
 	}
 	for (i = 0; i < a_arrn; ++i) {

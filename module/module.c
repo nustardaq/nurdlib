@@ -78,17 +78,20 @@ module_access_pack(struct PackerList *a_list, struct Packer *a_packer, struct
 	if (NULL == list) {
 		PACKER_LIST_PACK(*a_list, 8, -1);
 		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Reglist not found");
+		return;
+	}
+	map = a_module->props->get_map(a_module);
+	if (!map) {
+		PACKER_LIST_PACK(*a_list, 8, -1);
+		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Module not mapped");
 		return;
 	}
 	packer = packer_list_get(a_list, 8);
 	nump = PACKER_GET_PTR(*packer);
 	PACK(*packer, 8, 0, fail);
 fail:
-	map = a_module->props->get_map(a_module);
-	if (!map) {
-		/* Module currently unmapped or undumpable, nop. */
-		return;
-	}
 	ofs = 0;
 	while (a_packer->ofs < a_packer->bytes) {
 		unsigned bits;
@@ -400,6 +403,7 @@ module_register_list_pack(struct PackerList *a_list, struct Module *a_module,
 	if (NULL == list) {
 		PACKER_LIST_PACK(*a_list, 16, -1);
 		PACKER_LIST_PACK_LOC(*a_list);
+		PACKER_LIST_PACK_STR(*a_list, "Reglist not found");
 		return;
 	}
 	PACKER_LIST_PACK(*a_list, 16, a_module->type);
