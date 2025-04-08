@@ -179,6 +179,8 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 	{
 #if FUSER_DRASI
 		g_ev_bytes[0] = fud_get_max_event_length();
+		LOGF(info)(LOGL, "Event size per trigger=0x%u B.",
+		    g_ev_bytes[0]);
 		for (i = 1; i < LENGTH(g_ev_bytes); ++i) {
 			g_ev_bytes[i] = g_ev_bytes[0];
 		}
@@ -273,7 +275,6 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 	struct EventBuffer event_buffer_orig;
 	struct EventBuffer event_buffer;
 	uint32_t *p32, *header;
-	uint32_t ret = 0;
 
 	(void)bh_crate_nr;
 	(void)pl_loc_hwacc;
@@ -312,6 +313,9 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 	header = (void *)pl_dat;
 	p32 = header + 1;
 
+	/* 0 = good, everything else bad. */
+	*header = 0;
+
 	/* This help keep the event-buffer consistent while building it. */
 	EVENT_BUFFER_ADVANCE(event_buffer, p32);
 
@@ -319,21 +323,18 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 	 * Readout that must happen during deadtime, eg data-sizes and event
 	 * counters.
 	 */
-	ret |= crate_readout_dt(g_crate);
-	if (0 != ret) {
-		*header = ret;
+	*header |= crate_readout_dt(g_crate);
+	if (0 != *header) {
+		log_error(LOGL, "readout_dt failed.");
 		goto f_user_readout_crate_done;
 	}
 
 	/* Readout of bulk data, potentially out of deadtime. */
-	ret |= crate_readout(g_crate, &event_buffer);
-	if (0 != ret) {
-		*header = ret;
+	*header |= crate_readout(g_crate, &event_buffer);
+	if (0 != *header) {
+		log_error(LOGL, "readout failed.");
 		goto f_user_readout_crate_done;
 	}
-
-	/* 0 = good, everything else bad. */
-	*header = 0;
 
 f_user_readout_crate_done:
 
@@ -346,9 +347,9 @@ f_user_readout_crate_done:
 	 */
 	EVENT_BUFFER_INVARIANT(event_buffer, event_buffer_orig);
 
-	if (0 != ret) {
-		log_error(LOGL, "Had readout error: ret=0x%x, trg=%u", ret,
-		    bh_trig_typ);
+	if (0 != *header) {
+		log_error(LOGL, "Had readout error: ret=0x%x, trg=%u",
+		    *header, bh_trig_typ);
 	}
 
 	*l_se_read_len = (uintptr_t)event_buffer.ptr - (uintptr_t)pl_dat;
