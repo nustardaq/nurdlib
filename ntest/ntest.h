@@ -48,6 +48,7 @@
 			unsigned fails_ = g_ntest_try_fail_; \
 			printf("%s[%s:%d: %s]%s\n", g_ntest_blue_, __FILE__, \
 			    __LINE__, #name, g_ntest_reset_); \
+			fflush(stdout); \
 			ntest_##name##_(); \
 			++g_ntest_i_; \
 			++g_ntest_test_num_; \
@@ -71,6 +72,7 @@ extern unsigned g_ntest_test_fail_;
 #define NTRY_FAIL_HEADER_ do { \
 		printf(" %s%s:%d: Failed: %s", g_ntest_red_, __FILE__, \
 		    __LINE__, g_ntest_reset_); \
+		fflush(stdout); \
 	} while (0)
 #define NTRY_FAIL_FOOTER_ do { \
 		printf("\n"); \
