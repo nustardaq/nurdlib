@@ -73,7 +73,8 @@ $(BUILD_DIR)/module/genlist.c: $(BUILD_DIR)/module/genlist.h
 	echo "	{KW_NONE, NULL, NULL, NULL}" >> $@.tmp;\
 	echo "};" >> $@.tmp;\
 	for i in $(MODULE_LIST); do \
-		if [ -f module/$$i/register_list.txt ]; then \
+		if [ -f module/$$i/register_list.txt -o \
+		     -f $(BUILD_DIR)/module/$$i/register_list.txt ]; then \
 			down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
 			echo "extern struct RegisterEntryClient const c_$${down}_register_list_client_[];" >> $@.tmp;\
 			echo "extern struct RegisterEntryServer const c_$${down}_register_list_server_[];" >> $@.tmp;\
@@ -81,20 +82,26 @@ $(BUILD_DIR)/module/genlist.c: $(BUILD_DIR)/module/genlist.h
 	done;\
 	echo "struct ModuleRegisterListEntryClient const c_module_register_list_client_[] = {" >> $@.tmp;\
 	for i in $(MODULE_LIST); do \
-		if [ -f module/$$i/$$i.h -a -f module/$$i/register_list.txt ]; then \
-			up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
-			down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
-			echo "	{KW_$$up, c_$${down}_register_list_client_}," >> $@.tmp;\
+		if [ -f module/$$i/$$i.h ]; then \
+			if [ -f module/$$i/register_list.txt -o \
+			     -f $(BUILD_DIR)/module/$$i/register_list.txt ]; then \
+				up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
+				down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
+				echo "	{KW_$$up, c_$${down}_register_list_client_}," >> $@.tmp;\
+			fi;\
 		fi;\
 	done;\
 	echo "	{KW_NONE, NULL}" >> $@.tmp;\
 	echo "};" >> $@.tmp;\
 	echo "struct ModuleRegisterListEntryServer const c_module_register_list_server_[] = {" >> $@.tmp;\
 	for i in $(MODULE_LIST); do \
-		if [ -f module/$$i/$$i.h -a -f module/$$i/register_list.txt ]; then \
-			up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
-			down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
-			echo "	{KW_$$up, c_$${down}_register_list_server_}," >> $@.tmp;\
+		if [ -f module/$$i/$$i.h ]; then \
+			if [ -f module/$$i/register_list.txt -o \
+			     -f $(BUILD_DIR)/module/$$i/register_list.txt ]; then \
+				up=`echo $$i | tr '[:lower:]' '[:upper:]'`;\
+				down=`echo $$i | tr '[:upper:]' '[:lower:]'`;\
+				echo "	{KW_$$up, c_$${down}_register_list_server_}," >> $@.tmp;\
+			fi;\
 		fi;\
 	done;\
 	echo "	{KW_NONE, NULL}" >> $@.tmp;\
@@ -104,8 +111,7 @@ $(BUILD_DIR)/module/genlist.c: $(BUILD_DIR)/module/genlist.h
 $(BUILD_DIR)/module/genlist.o: $(BUILD_DIR)/module/genlist.h
 
 MODULE_HEADER_LIST:=$(wildcard $(foreach mod,$(MODULE_LIST),module/$(mod)/$(mod).h))
-MODULE_REGLIST_LIST:=$(wildcard $(addsuffix register_list.txt,$(dir $(MODULE_HEADER_LIST))))
-MODULE_DUMPABLE_C:=$(patsubst %,$(BUILD_DIR)/%registerlist.c,$(dir $(MODULE_REGLIST_LIST)))
+MODULE_DUMPABLE_C:=$(wildcard $(patsubst %,$(BUILD_DIR)/%registerlist.c,$(dir $(MODULE_HEADER_LIST))))
 MODULE_DUMPABLE_O:=$(MODULE_DUMPABLE_C:.c=.o)
 
 $(BUILD_DIR)/module/module.d: $(BUILD_DIR)/module/genlist.h $(MODULE_DUMPABLE_O)
