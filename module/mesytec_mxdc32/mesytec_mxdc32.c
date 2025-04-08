@@ -248,18 +248,33 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 		for (; p32 < end;) {
 			uint32_t u32, msb, id;
 
-			u32 = *p32++;
+			u32 = *p32;
 			msb = u32 >> 30;
 			if (0x1 != msb) {
 				module_parse_error(LOGL, a_event_buffer, p32,
-				    "Module header MSBs corrupt");
+				    "Header MSBs corrupt "
+				    "(exp=0x1, have=0x%x)",
+				    msb);
 				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
 				goto mesytec_mxdc32_parse_data_done;
 			}
 			id = (0x3f000000 & u32) >> 24;
 			if (a_mxdc32->module.id != id) {
 				module_parse_error(LOGL, a_event_buffer, p32,
-				    "Module header ID corrupt");
+				    "Header ID corrupt "
+				    "(exp=%u, have=%u)",
+				    a_mxdc32->module.id, id);
+				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
+				goto mesytec_mxdc32_parse_data_done;
+			}
+			++p32;
+			u32 = *p32;
+			msb = u32 >> 30;
+			if (0x3 != msb) {
+				module_parse_error(LOGL, a_event_buffer, p32,
+				    "EoE MSBs corrupt "
+				    "(exp=0x3, have=0x%x)",
+				    msb);
 				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
 				goto mesytec_mxdc32_parse_data_done;
 			}
