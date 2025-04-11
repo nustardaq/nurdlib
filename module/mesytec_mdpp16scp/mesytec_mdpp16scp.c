@@ -132,7 +132,8 @@ mesytec_mdpp16scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 			*pz /= 12.5;
 		}
 		LOGF(verbose)(LOGL, "Threshold[%u] = %5u Pz[%u] = %u ns.",
-		    i, mdpp16scp->mdpp.config.threshold[i], i, *pz);
+		    i, mdpp16scp->mdpp.config.threshold[i], i,
+		    (int32_t) (*pz * 12.5));
 	}
 
 	/* Pairwise settings */
