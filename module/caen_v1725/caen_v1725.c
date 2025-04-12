@@ -457,7 +457,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	    v1725->do_berr ? "yes" : "no");
 
 	v1725->sicy_map = map_map(v1725->address, MAP_SIZE, KW_NOBLT, 0, 0,
-	    MAP_POKE_REG(dummy32(0)), MAP_POKE_REG(dummy32(0)), 0);
+	    MAP_POKE_REG(scratch), MAP_POKE_REG(scratch), 0);
 
 	/* TODO: Check geo before reset! */
 
@@ -558,7 +558,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	if (KW_NOBLT != v1725->blt_mode) {
 		v1725->dma_map = map_map(v1725->address, 0x1000,
 		    v1725->blt_mode, 1, 0,
-		    MAP_POKE_REG(dummy32(0)), MAP_POKE_REG(dummy32(0)), 0);
+		    MAP_POKE_REG(scratch), MAP_POKE_REG(scratch), 0);
 	}
 
 	result = 1;
