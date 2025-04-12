@@ -1,5 +1,7 @@
 nambs
 
+Event Readout Buffer                          0x0000  r  32     0
+
 Record Length                                 0x1020  RW 32 0x100
 Input Dynamic Range                           0x1028  RW 32 0x100
 Number of Events per Aggregate                0x1034  RW 32 0x100
