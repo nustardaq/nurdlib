@@ -2,32 +2,32 @@ nambs
 
 Event Readout Buffer                          0x0000  r  32     0
 
-Record Length                                 0x1020  RW 32 0x100
-Input Dynamic Range                           0x1028  RW 32 0x100
-Number of Events per Aggregate                0x1034  RW 32 0x100
-Pre Trigger                                   0x1038  RW 32 0x100
-CFD settings                                  0x103C  RW 32 0x100
-Forced Data Flush                             0x1040  W  32 0x100
-Charge Zero Suppression Threshold             0x1044  RW 32 0x100
-Short Gate Width                              0x1054  RW 32 0x100
-Long Gate Width                               0x1058  RW 32 0x100
-Gate Offset                                   0x105C  RW 32 0x100
-Trigger Threshold                             0x1060  RW 32 0x100
-Fixed Baseline                                0x1064  RW 32 0x100
-Trigger Latency                               0x106C  RW 32 0x100
-Shaped Trigger Width                          0x1070  RW 32 0x100
-Trigger Hold-Off Width                        0x1074  RW 32 0x100
-Threshold for the PSD cut                     0x1078  RW 32 0x100
-PUR-GAP Threshold                             0x107C  RW 32 0x100
-DPP Algorithm Control                         0x1080  RW 32 0x100
-DPP Algorithm Control 2                       0x1084  RW 32 0x100
-Channel n Status                              0x1088  R  32 0x100
-AMC Firmware Revision                         0x108C  R  32 0x100
-DC Offset                                     0x1098  RW 32 0x100
-Channel n ADC Temperature                     0x10A8  R  32 0x100
-Individual Software Trigger                   0x10C0  W  32 0x100
-Veto Width                                    0x10D4  RW 32 0x100
-Early Baseline Freeze                         0x10D8  RW 32 0x100
+Record Length[8]                              0x1020  RW 32 0x100
+Input Dynamic Range[16]                       0x1028  RW 32 0x100
+Number of Events per Aggregate[8]             0x1034  RW 32 0x100
+Pre Trigger[16]                               0x1038  RW 32 0x100
+CFD settings[16]                              0x103C  RW 32 0x100
+Forced Data Flush[16]                         0x1040  W  32 0x100
+Charge Zero Suppression Threshold[16]         0x1044  RW 32 0x100
+Short Gate Width[16]                          0x1054  RW 32 0x100
+Long Gate Width[16]                           0x1058  RW 32 0x100
+Gate Offset[16]                               0x105C  RW 32 0x100
+Trigger Threshold[16]                         0x1060  RW 32 0x100
+Fixed Baseline[16]                            0x1064  RW 32 0x100
+Trigger Latency[16]                           0x106C  RW 32 0x100
+Shaped Trigger Width[16]                      0x1070  RW 32 0x100
+Trigger Hold-Off Width[16]                    0x1074  RW 32 0x100
+Threshold for the PSD cut[16]                 0x1078  RW 32 0x100
+PUR-GAP Threshold[16]                         0x107C  RW 32 0x100
+DPP Algorithm Control[16]                     0x1080  RW 32 0x100
+DPP Algorithm Control 2[8]                    0x1084  RW 32 0x100
+Channel n Status[16]                          0x1088  R  32 0x100
+AMC Firmware Revision[16]                     0x108C  R  32 0x100
+DC Offset[16]                                 0x1098  RW 32 0x100
+Channel n ADC Temperature[16]                 0x10A8  R  32 0x100
+Individual Software Trigger[16]               0x10C0  W  32 0x100
+Veto Width[16]                                0x10D4  RW 32 0x100
+Early Baseline Freeze[16]                     0x10D8  RW 32 0x100
 
 Board Configuration                           0x8000  RW 32     0
 Board Configuration Bit Set                   0x8004  RW 32     0
@@ -54,7 +54,7 @@ Fan Speed Control                             0x8168  RW 32     0
 Run/Start/Stop Delay                          0x8170  RW 32     0
 Board Failure Status                          0x8178  R  32     0
 Disable External Trigger                      0x817C  RW 32     0
-Trigger Validation Mask                       0x8180  RW 32     0
+Trigger Validation Mask[8]                    0x8180  RW 32     4
 Front Panel LVDS I/O New Features             0x81A0  RW 32     0
 Buffer Occupancy Gain                         0x81B4  RW 32     0
 Extended Veto Delay                           0x81C4  RW 32     0
