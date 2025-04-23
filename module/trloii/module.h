@@ -179,7 +179,7 @@ gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 	STATIC_ASSERT(MAP_SIZE > 0); \
 	LOGF(info)(LOGL, NAME" init_slow {"); \
 	MODULE_CAST(KW_GSI_##NLIB_NAME, trloii, a_module); \
-	opaque = t2_name##_setup_map_hardware(trloii->address >> 24, \
+	opaque = t2_name##_setup_map_hardware(NULL, trloii->address >> 24, \
 	    &trloii->unmapinfo); \
 	trloii->hwmap = opaque; \
 	trloii->ctrl = malloc(sizeof(struct t2_name##_readout_control)); \

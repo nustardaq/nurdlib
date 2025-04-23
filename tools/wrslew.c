@@ -102,7 +102,7 @@
 #define TRLO2_BIND(type, TYPE, CONN) do {\
 	uint32_t address;\
 	address = config_get_block_param_int32(module_block, 0);\
-	trlo2.hwmap = hwmap_map_vme(address, VME_MAP_LENGTH, \
+	trlo2.hwmap = hwmap_map_vme(NULL, address, VME_MAP_LENGTH, \
 	    "Nurdlib:slew:TRLO II", &trlo2.unmapinfo); \
 	trlo2.pulse_mux_dests = TYPE##_PULSE_MUX_DESTS;\
 	trlo2.slew_counter_hi = TYPE##_SLEW_COUNTER_ADD_OFFSET_HI;\

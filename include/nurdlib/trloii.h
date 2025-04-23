@@ -46,7 +46,7 @@ typedef void (*hwmap_error_internal_func)(int, const char *, int, const char
 /* NCONF_NOEXEC */
 #	include <include/tridi_functions.h>
 #	if NCONFING_mTRIDI
-#		define NCONF_TEST tridi_setup_map_hardware(0, NULL)
+#		define NCONF_TEST tridi_setup_map_hardware(NULL, 0, NULL)
 #	endif
 #elif NCONF_mTRIDI_bNO
 /* NCONF_NOLINK */
@@ -64,7 +64,7 @@ typedef void (*hwmap_error_internal_func)(int, const char *, int, const char
 /* NCONF_NOEXEC */
 #	include <include/trlo_functions.h>
 #	if NCONFING_mVULOM4
-#		define NCONF_TEST trlo_setup_map_hardware(0, NULL)
+#		define NCONF_TEST trlo_setup_map_hardware(NULL, 0, NULL)
 #	endif
 #elif NCONF_mVULOM4_bNO
 /* NCONF_NOLINK */
