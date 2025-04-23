@@ -1350,9 +1350,9 @@ crate_pack(struct PackerList *a_list)
 			if (NULL == module->props ||
 			    NULL == module->props->sub_module_pack) {
 				PACKER_LIST_PACK(*a_list, 8, 0);
-			} else {
-				module->props->sub_module_pack(module,
-				    a_list);
+			} else if (!module->props->sub_module_pack(module,
+			    a_list)) {
+				log_error(LOGL, "Could not pack submodule.");
 			}
 		}
 	}

@@ -865,7 +865,7 @@ caen_v1n90_readout_dt_done:
 	return result;
 }
 
-void
+int
 caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
     PackerList *a_list, unsigned a_ch_word_num)
 {
@@ -931,4 +931,6 @@ caen_v1n90_register_list_pack(struct CaenV1n90Module *a_v1n90, struct
 
 pack_fail:
 	LOGF(debug)(LOGL, NAME" register_list_pack }");
+	/* TODO: ... */
+	return 1;
 }

@@ -34,8 +34,8 @@
 
 MODULE_PROTOTYPES(gsi_ctdc);
 static struct ConfigBlock	*gsi_ctdc_get_submodule_config(struct Module
-    *, unsigned);
-static void			gsi_ctdc_sub_module_pack(struct Module *,
+    *, unsigned) FUNC_RETURNS;
+static int			gsi_ctdc_sub_module_pack(struct Module *,
     struct PackerList *);
 static int			threshold_set(struct ConfigBlock *, struct
     GsiPex *, unsigned, unsigned, int32_t, uint16_t const *) FUNC_RETURNS;
@@ -171,13 +171,13 @@ gsi_ctdc_setup_(void)
 	MODULE_CALLBACK_BIND(gsi_ctdc, sub_module_pack);
 }
 
-void
+int
 gsi_ctdc_sub_module_pack(struct Module *a_module, struct PackerList *a_list)
 {
 	struct GsiCTDCModule *ctdc;
 
 	MODULE_CAST(KW_GSI_CTDC, ctdc, a_module);
-	gsi_ctdc_proto_sub_module_pack(&ctdc->ctdcp, a_list);
+	return gsi_ctdc_proto_sub_module_pack(&ctdc->ctdcp, a_list);
 }
 
 #define CTDC_INIT_RD(a0, a1, label) do {\

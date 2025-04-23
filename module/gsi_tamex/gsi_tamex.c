@@ -62,7 +62,7 @@ static void			gate_get(struct ModuleGate *, struct
     ModuleGate const *, struct ConfigBlock *, int);
 static struct ConfigBlock	*gsi_tamex_get_submodule_config(struct Module
     *, unsigned);
-static void			gsi_tamex_sub_module_pack(struct Module *,
+static int			gsi_tamex_sub_module_pack(struct Module *,
     struct PackerList *);
 static int			padi_set_threshold(struct GsiPex *, unsigned,
     unsigned, uint16_t const *, int) FUNC_RETURNS;
@@ -885,7 +885,7 @@ gsi_tamex_setup_(void)
 	MODULE_CALLBACK_BIND(gsi_tamex, sub_module_pack);
 }
 
-void
+int
 gsi_tamex_sub_module_pack(struct Module *a_module, struct PackerList *a_list)
 {
 	struct GsiTamexModule *tam;
@@ -895,9 +895,11 @@ gsi_tamex_sub_module_pack(struct Module *a_module, struct PackerList *a_list)
 	MODULE_CAST(KW_GSI_TAMEX, tam, a_module);
 	PACKER_LIST_PACK(*a_list, 8, tam->card_num);
 	for (i = 0; i < tam->card_num; ++i) {
+		/* TODO: Error check! */
 		PACKER_LIST_PACK(*a_list, 16, KW_GSI_TAMEX_CARD);
 	}
 	LOGF(debug)(LOGL, NAME" sub_module_pack }");
+	return 1;
 }
 
 int

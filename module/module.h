@@ -218,12 +218,14 @@ struct ModuleProps {
 	 * 'register_list_pack' does custom reading of hardware registers,
 	 * when the built-in nurdlib approach doesn't cut it.
 	 */
-	void	(*register_list_pack)(struct Module *, struct PackerList *);
+	int	(*register_list_pack)(struct Module *, struct PackerList *)
+	    FUNC_RETURNS;
 	/*
 	 * 'sub_module_pack' packs information about sub-modules into the
 	 * given packer.
 	 */
-	void	(*sub_module_pack)(struct Module *, struct PackerList *);
+	int	(*sub_module_pack)(struct Module *, struct PackerList *)
+	    FUNC_RETURNS;
 	/*
 	 * 'use_pedestals' is called when the module pedestal array has been
 	 * updated. This is called only for modules created with

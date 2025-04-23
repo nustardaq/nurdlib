@@ -30,7 +30,7 @@
 
 MODULE_PROTOTYPES(caen_v1290);
 
-static void	caen_v1290_register_list_pack(struct Module *, struct
+static int	caen_v1290_register_list_pack(struct Module *, struct
     PackerList *);
 
 uint32_t
@@ -148,14 +148,14 @@ caen_v1290_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	return caen_v1n90_readout_dt(&v1290->v1n90);
 }
 
-void
+int
 caen_v1290_register_list_pack(struct Module *a_module, struct PackerList
     *a_list)
 {
 	struct CaenV1290Module *v1290;
 
 	MODULE_CAST(KW_CAEN_V1290, v1290, a_module);
-	caen_v1n90_register_list_pack(&v1290->v1n90, a_list, 8);
+	return caen_v1n90_register_list_pack(&v1290->v1n90, a_list, 8);
 }
 
 void
