@@ -60,6 +60,8 @@ static int nconf_test_(void) {
 #	include <time.h>
 #	define ASCTIME_R(tm, buf) asctime_r(tm, buf)
 #	define GMTIME_R(tt, tm) gmtime_r(tt, tm)
+char *asctime_r(const struct tm *tm, char *buf);
+struct tm *gmtime_r(const time_t *clock, struct tm *result);
 #	if NCONFING_mTIME_DRAFT9
 #		define NCONF_TEST nconf_test_()
 static int nconf_test_(void) {
