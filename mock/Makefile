@@ -111,7 +111,7 @@ caenabs: caenabs/libCAENVME.so.suff
 .PHONY: caensys
 caensys: caensys/CAENVMElib.h caensys/libCAENVME.so
 	$(QUIET) \
-	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS="-L$(shell pwd)/$@ -Wl,-rpath=$(shell pwd)/$@" make $(RUNNER_MAKE_J) -C ../ && \
+	BUILD_DIR_PREFIX=$@_ CPPFLAGS="-isystem mock/$@" LDFLAGS="-L$(shell pwd)/$@ -Wl,-rpath,$(shell pwd)/$@" make $(RUNNER_MAKE_J) -C ../ && \
 	$(CHECK_MAP_PRE) CAEN_VMELIB $(CHECK_MAP_POST)
 
 .PHONY: mvlcc_config
@@ -359,8 +359,7 @@ trlo/trloctrl/fw_cacad0d0_trlo/lib_mock/trlo_ctrllib.a: \
 %.so.suff:
 	$(QUIET)echo A $@ && \
 	$(MKDIR) && \
-	gcc -shared -o $@.tmp $^ && \
-	mv -f $@.tmp $@
+	gcc -shared -o $(shell pwd)/$@ $^
 
 %.o: %.c Makefile
 	$(QUIET)echo O $@ && \

@@ -28,6 +28,7 @@ int
 mvlcc_connect(mvlcc_t a)
 {
 	(void)a;
+	return 0;
 }
 
 void
@@ -40,6 +41,7 @@ char const *
 mvlcc_strerror(int a)
 {
 	(void)a;
+	return NULL;
 }
 
 void
@@ -52,12 +54,14 @@ int
 mvlcc_is_mvlc_valid(mvlcc_t a)
 {
 	(void)a;
+	return 0;
 }
 
 mvlcc_t
 mvlcc_make_mvlc(void const *a)
 {
 	(void)a;
+	return NULL;
 }
 
 void
@@ -75,6 +79,7 @@ mvlcc_single_vme_read(mvlcc_t a, unsigned b, uint32_t *c, unsigned d, unsigned
 	(void)c;
 	(void)d;
 	(void)e;
+	return 0;
 }
 
 int
@@ -86,6 +91,7 @@ mvlcc_single_vme_write(mvlcc_t a, unsigned b, uint32_t c, unsigned d, unsigned
 	(void)c;
 	(void)d;
 	(void)e;
+	return 0;
 }
 
 int
@@ -97,4 +103,5 @@ mvlcc_vme_block_read(mvlcc_t a, uint32_t b, uint32_t *c, size_t d, size_t *e,
 	(void)c;
 	(void)d;
 	(void)e;
+	return 0;
 }
