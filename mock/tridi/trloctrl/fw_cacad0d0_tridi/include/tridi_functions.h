@@ -102,7 +102,7 @@ struct tridi_readout_control {
 	int	dummy;
 };
 
-volatile tridi_opaque *tridi_setup_map_hardware(int, void **);
+volatile tridi_opaque *tridi_setup_map_hardware(void *, int, void **);
 void tridi_unmap_hardware(void *);
 
 void tridi_setup_check_version(volatile tridi_opaque *);
