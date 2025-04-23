@@ -31,7 +31,7 @@
 
 #define NAME "Gsi CTDC-proto"
 
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 #	include <math.h>
 #	include <module/map/map.h>
 #	include <nurdlib/config.h>

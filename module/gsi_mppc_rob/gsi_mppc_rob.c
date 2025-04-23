@@ -30,7 +30,7 @@
 
 #define NAME "Gsi Mppc-Rob"
 
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 
 #define MPPC_ROB_WR(a0, a1, label) do {\
 	if (!gsi_pex_slave_write(pex, sfp_i, card_i, a0, a1)) {\

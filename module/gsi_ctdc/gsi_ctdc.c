@@ -30,7 +30,7 @@
 
 #define NAME "Gsi CTDC"
 
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 
 MODULE_PROTOTYPES(gsi_ctdc);
 static struct ConfigBlock	*gsi_ctdc_get_submodule_config(struct Module

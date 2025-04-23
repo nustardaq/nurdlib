@@ -31,7 +31,7 @@
 
 #define NAME "Gsi Kilom"
 
-#if NCONF_mGSI_PEX_bYES
+#if !NCONF_mGSI_PEX_bNO
 
 #define REG_KILOM_TEMP 0x20005c
 
