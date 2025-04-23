@@ -209,13 +209,26 @@ merge_vars(struct VarArray *a_dst, struct VarArray const *a_left, struct
 	size_t i;
 
 	var_array_grow(a_dst, a_left->num + a_right->num);
+	a_dst->num = 0;
 	for (i = 0; i < a_left->num; ++i) {
 		a_dst->array[i] = strdup_(a_left->array[i]);
+		++a_dst->num;
 	}
 	for (i = 0; i < a_right->num; ++i) {
-		a_dst->array[a_left->num + i] = strdup_(a_right->array[i]);
+		size_t j;
+
+		for (j = 0; j < a_left->num; ++j) {
+			/* Don't add duplicates. */
+			if (0 == strcmp(a_left->array[j], a_right->array[i]))
+			{
+				break;
+			}
+		}
+		if (a_left->num == j) {
+			a_dst->array[a_dst->num] = strdup_(a_right->array[i]);
+			++a_dst->num;
+		}
 	}
-	a_dst->num = a_dst->size;
 }
 
 void
