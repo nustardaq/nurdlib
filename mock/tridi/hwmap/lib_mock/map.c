@@ -28,8 +28,8 @@ typedef void (*hwmap_error_internal_func)(int, const char *, int, const char
     *, ...);
 extern hwmap_error_internal_func _hwmap_error_internal;
 
-volatile hwmap_opaque *hwmap_map_vme(uint32_t a_a, uint32_t a_b, const char
-    *a_c, void **a_d)
+volatile hwmap_opaque *hwmap_map_vme(char const *a_a, uint32_t a_b, uint32_t
+    a_c, const char *a_d, void **a_e)
 {
 	_hwmap_error_internal(0, NULL, 0, "");
 	return NULL;

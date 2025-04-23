@@ -27,8 +27,8 @@ typedef struct hwmap_opaque_t {
 	int	dummy;
 } hwmap_opaque;
 
-volatile hwmap_opaque *hwmap_map_vme(uint32_t, uint32_t, const char *, void
-    **);
+volatile hwmap_opaque *hwmap_map_vme(char const *, uint32_t, uint32_t, const
+    char *, void **);
 void hwmap_unmap_vme(void *);
 
 #endif

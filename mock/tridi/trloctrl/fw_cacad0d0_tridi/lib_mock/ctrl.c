@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <../include/tridi_functions.h>
 
-volatile tridi_opaque *tridi_setup_map_hardware(void *a_a, int a_b, void
+volatile tridi_opaque *tridi_setup_map_hardware(char const *a_a, int a_b, void
     **a_c)
 {
 	return NULL;
