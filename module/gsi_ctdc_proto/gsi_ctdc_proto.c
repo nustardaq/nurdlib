@@ -597,21 +597,29 @@ gsi_ctdc_proto_readout_done:
 	return ret;
 }
 
-void
+int
 gsi_ctdc_proto_sub_module_pack(struct GsiCTDCProtoModule *a_ctdcp, struct
     PackerList *a_list)
 {
 	struct Packer *packer;
 	size_t i;
+	int ret = 0;
 
 	LOGF(debug)(LOGL, NAME" sub_module_pack {");
 	packer = packer_list_get(a_list, 8);
-	pack8(packer, a_ctdcp->card_num);
+	if (!pack8(packer, a_ctdcp->card_num)) {
+		goto fail;
+	}
 	for (i = 0; i < a_ctdcp->card_num; ++i) {
 		packer = packer_list_get(a_list, 16);
-		pack16(packer, KW_GSI_CTDC_CARD);
+		if (!pack16(packer, KW_GSI_CTDC_CARD)) {
+			goto fail;
+		}
 	}
+	ret = 1;
+fail:
 	LOGF(debug)(LOGL, NAME" sub_module_pack }");
+	return ret;
 }
 
 #endif

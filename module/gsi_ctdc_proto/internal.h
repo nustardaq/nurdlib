@@ -61,7 +61,7 @@ uint32_t		gsi_ctdc_proto_parse_data(struct Crate const *, struct
     GsiCTDCProtoModule *, struct EventConstBuffer const *) FUNC_RETURNS;
 uint32_t		gsi_ctdc_proto_readout(struct Crate *, struct
     GsiCTDCProtoModule *, struct EventBuffer *) FUNC_RETURNS;
-void			gsi_ctdc_proto_sub_module_pack(struct
-    GsiCTDCProtoModule *, struct PackerList *);
+int			gsi_ctdc_proto_sub_module_pack(struct
+    GsiCTDCProtoModule *, struct PackerList *) FUNC_RETURNS;
 
 #endif

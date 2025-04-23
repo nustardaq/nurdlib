@@ -436,7 +436,10 @@ module_register_list_pack(struct PackerList *a_list, struct Module *a_module,
 		}
 	}
 	if (NULL != a_module->props->register_list_pack) {
-		a_module->props->register_list_pack(a_module, a_list);
+		if (!a_module->props->register_list_pack(a_module, a_list)) {
+			/* TODO: Do something about this! */
+			log_error(LOGL, "Could not pack registers.");
+		}
 	}
 }
 

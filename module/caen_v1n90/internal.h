@@ -79,8 +79,8 @@ uint32_t	caen_v1n90_parse_data(struct CaenV1n90Module *, struct
 uint32_t	caen_v1n90_readout(struct Crate *, struct CaenV1n90Module *,
     struct EventBuffer *) FUNC_RETURNS;
 uint32_t	caen_v1n90_readout_dt(struct CaenV1n90Module *) FUNC_RETURNS;
-void		caen_v1n90_register_list_pack(struct CaenV1n90Module *, struct
-    PackerList *, unsigned);
+int		caen_v1n90_register_list_pack(struct CaenV1n90Module *, struct
+    PackerList *, unsigned) FUNC_RETURNS;
 void		caen_v1n90_zero_suppress(struct CaenV1n90Module *, int);
 
 #endif

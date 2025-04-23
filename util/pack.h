@@ -57,6 +57,7 @@
 		struct Packer *packer_; \
 		packer_ = packer_list_get(&list, bits); \
 		if (!pack##bits(packer_, value)) { \
+			/* TODO: Ugggggh... */ \
 			log_die(LOGL, "Shouldn't happen!"); \
 		} \
 	} while (0)
