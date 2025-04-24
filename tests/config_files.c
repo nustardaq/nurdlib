@@ -299,8 +299,8 @@ NTEST(TouchedAssertion)
 	    -1, 0xff));
 	NTRY_I(0, ==, config_get_bitmask(crate, KW_RANGE, 0, 31));
 	NTRY_SIGNAL(config_touched_assert(NULL, 1));
-	CONFIG_GET_INT_ARRAY(array, crate, KW_THRESHOLD, CONFIG_UNIT_NONE, -2,
-	    2);
+	CONFIG_GET_INT_ARRAY(array, crate, KW_THRESHOLD, CONFIG_UNIT_NONE,
+	    -2, 2);
 	NTRY_SIGNAL(config_touched_assert(NULL, 1));
 	dum = CONFIG_GET_KEYWORD(crate, KW_SUPPRESS_INVALID, c_true);
 	NTRY_SIGNAL(config_touched_assert(NULL, 1));

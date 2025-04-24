@@ -112,7 +112,7 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	MODULE_CAST(KW_CAEN_V895, v895, a_module);
 
-	CONFIG_GET_INT_ARRAY(threshold_array, a_module->config, KW_THRESHOLD,
+	CONFIG_GET_UINT_ARRAY(threshold_array, a_module->config, KW_THRESHOLD,
 	    CONFIG_UNIT_MV, 0, 255);
 	ofs = snprintf_(str, sizeof str, "Thresholds=(");
 	for (i = 0; 16 > i; ++i) {

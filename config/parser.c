@@ -435,14 +435,14 @@ parse_scalar(struct File *a_file, struct ScalarList *a_scalar_list, unsigned
 	/* Hex? */
 	if ('0' == peekc(a_file, 0) && 'x' == peekc(a_file, 1)) {
 		advancec(a_file, 2);
-		parser_push_integer(a_scalar_list, a_vector_index,
+		parser_push_int32(a_scalar_list, a_vector_index,
 		    parse_int32(a_file, 16));
 		return;
 	}
 	if ('-' == peekc(a_file, 0) && '0' == peekc(a_file, 1) &&
 	     'x' == peekc(a_file, 2)) {
 		advancec(a_file, 3);
-		parser_push_integer(a_scalar_list, a_vector_index,
+		parser_push_int32(a_scalar_list, a_vector_index,
 		    -parse_int32(a_file, 16));
 		return;
 	}
@@ -493,7 +493,7 @@ parse_scalar(struct File *a_file, struct ScalarList *a_scalar_list, unsigned
 			return;
 		}
 		/* No range, integer + possible unit then. */
-		parser_push_integer(a_scalar_list, a_vector_index, value);
+		parser_push_int32(a_scalar_list, a_vector_index, value);
 		parse_unit(a_file, a_scalar_list, a_vector_index);
 		return;
 	}

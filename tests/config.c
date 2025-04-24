@@ -71,10 +71,10 @@ NTEST(ConfigNameCollisionOverwrites)
 
 	/* Filenames cannot be identical, make them unique. */
 	list = parser_push_config(KW_WIDTH, -1, "a"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 0);
+	parser_push_int32(list, 0, 0);
 
 	list = parser_push_config(KW_WIDTH, -1, "b"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 
 	NTRY_I(1, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
 	    0, 2));
@@ -86,12 +86,12 @@ NTEST(BlockTraversalInOrder)
 	struct ConfigBlock *block;
 
 	list = parser_prepare_block(KW_CRATE, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_block();
 	parser_pop_block();
 
 	list = parser_prepare_block(KW_GATE, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
+	parser_push_int32(list, 0, 2);
 	parser_push_block();
 	parser_pop_block();
 
@@ -111,7 +111,7 @@ NTEST(BlockNameCollisionParamDiffInOrder)
 	struct ConfigBlock *block;
 
 	list = parser_prepare_block(KW_CRATE, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_block();
 	parser_pop_block();
 
@@ -143,19 +143,19 @@ NTEST(BlockNameAndParamCollisionOverwrites)
 
 	/* File-names cannot be identical, make them unique. */
 	list = parser_prepare_block(KW_CRATE, "a"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_block();
 		list = parser_push_config(KW_WIDTH, -1, "a"__FILE__, __LINE__,
 		    1);
-		parser_push_integer(list, 0, 1);
+		parser_push_int32(list, 0, 1);
 	parser_pop_block();
 
 	list = parser_prepare_block(KW_CRATE, "b"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_block();
 		list = parser_push_config(KW_WIDTH, -1, "b"__FILE__, __LINE__,
 		    1);
-		parser_push_integer(list, 0, 2);
+		parser_push_int32(list, 0, 2);
 	parser_pop_block();
 
 	crate = config_get_block(NULL, KW_NONE);
@@ -171,12 +171,12 @@ NTEST(BlockNameFilter)
 	struct ConfigBlock *block;
 
 	list = parser_prepare_block(KW_CRATE, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_block();
 	parser_pop_block();
 
 	list = parser_prepare_block(KW_GATE, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
+	parser_push_int32(list, 0, 2);
 	parser_push_block();
 	parser_pop_block();
 
@@ -196,7 +196,7 @@ NTEST(BlockParamOutOfRange)
 	(void)dum;
 
 	list = parser_prepare_block(KW_CRATE, "froot.cfg", 321, 654);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_block();
 	parser_pop_block();
 
@@ -221,7 +221,7 @@ NTEST(PersistedInteger)
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	NTRY_I(1, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
 	    0, 2));
 }
@@ -246,7 +246,7 @@ NTEST(PersistedMixedBitmask)
 	/* Simulate "(2..3, 5, 7..9) = 0x3ac". */
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
 	parser_push_range(list, 0, 2, 3);
-	parser_push_integer(list, 1, 5);
+	parser_push_int32(list, 1, 5);
 	parser_push_range(list, 2, 7, 9);
 	parser_create_bitmask(list);
 	bitmask = config_get_bitmask(NULL, KW_WIDTH, 0, 31);
@@ -262,14 +262,24 @@ NTEST(PersistedString)
 	NTRY_STR("Peanutz", ==, config_get_string(NULL, KW_WIDTH));
 }
 
-NTEST(IntegerSign)
+NTEST(Int32Sign)
 {
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, -1);
+	parser_push_int32(list, 0, -1);
 	NTRY_I(-1, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
 	    -2, 2));
+}
+
+NTEST(Uint32Sign)
+{
+	struct ScalarList *list;
+
+	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
+	parser_push_int32(list, 0, -1);
+	NTRY_I(0xffffffff, ==, config_get_uint32(NULL, KW_WIDTH,
+	    CONFIG_UNIT_NONE, 0, 0xffffffff));
 }
 
 NTEST(KeywordFilter)
@@ -316,7 +326,7 @@ NTEST(Bitmasks)
 	NTRY_U(0x7ffffffe, ==, bitmask);
 
 	list = parser_push_config(KW_LOG_LEVEL, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_push_range(list, 1, 3, 4);
 	parser_create_bitmask(list);
 	bitmask = config_get_bitmask(NULL, KW_LOG_LEVEL, 0, 31);
@@ -328,7 +338,7 @@ NTEST(DoubleFromIntegerOk)
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	NTRY_DBL(1, ==, config_get_double(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
 	    0, 2));
 }
@@ -358,6 +368,8 @@ NTEST(UndefinedConfigsShouldSignalButBlockNot)
 	    0.0, 0.0));
 	NTRY_SIGNAL(dum = config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
 	    0, 0));
+	NTRY_SIGNAL(dum = config_get_uint32(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
+	    0, 0));
 	NTRY_SIGNAL(dum = CONFIG_GET_KEYWORD(NULL, KW_WIDTH, c_list));
 	NTRY_SIGNAL(dum = (intptr_t)config_get_string(NULL, KW_WIDTH));
 
@@ -366,54 +378,98 @@ NTEST(UndefinedConfigsShouldSignalButBlockNot)
 
 NTEST(DoubleRange)
 {
+	struct Limits {
+		double	value;
+		double	min;
+		double	max;
+		double	result;
+	};
+	struct Limits limits[] = {
+		{-3.0, -2.0,  0.0, -2.0},
+		{-1.0, -2.0,  0.0, -1.0},
+		{+1.0, -2.0,  0.0,  0.0},
+		{-1.0,  0.0, +2.0,  0.0},
+		{+1.0,  0.0, +2.0, +1.0},
+		{+3.0,  0.0, +2.0, +2.0}
+	};
 	struct ScalarList *list;
+	/* Identical file-names are not allowed, make them unique. */
+	char name[] = "a";
+	size_t i;
 
-	/* Filenames cannot be identical, make them unique. */
-	list = parser_push_config(KW_WIDTH, -1, "a"__FILE__, __LINE__, 1);
-	parser_push_double(list, 0, 1.0);
-	NTRY_DBL(1.0, ==, config_get_double(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
-	    1.0, 2.0));
+	for (i = 0; i < LENGTH(limits); ++i) {
+		struct Limits *l;
 
-	list = parser_push_config(KW_WIDTH, -1, "b"__FILE__, __LINE__, 1);
-	parser_push_double(list, 0, 0.0);
-	NTRY_DBL(1.0, ==, config_get_double(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
-	    1.0, 2.0));
-
-	list = parser_push_config(KW_WIDTH, -1, "c"__FILE__, __LINE__, 1);
-	parser_push_double(list, 0, 2.0);
-	NTRY_DBL(2.0, ==, config_get_double(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
-	    1.0, 2.0));
-
-	list = parser_push_config(KW_WIDTH, -1, "d"__FILE__, __LINE__, 1);
-	parser_push_double(list, 0, 3.0);
-	NTRY_DBL(2.0, ==, config_get_double(NULL, KW_WIDTH, CONFIG_UNIT_NONE,
-	    1.0, 2.0));
+		l = &limits[i];
+		list = parser_push_config(KW_WIDTH, -1, name, __LINE__, 1);
+		parser_push_double(list, 0, l->value);
+		NTRY_DBL(l->result, ==, config_get_double(NULL, KW_WIDTH,
+		    CONFIG_UNIT_NONE, l->min, l->max));
+		++name[0];
+	}
 }
 
-NTEST(IntegerRange)
+NTEST(Int32Range)
 {
+	struct Limits {
+		int32_t	value;
+		int32_t	min;
+		int32_t	max;
+		int32_t	result;
+	};
+	struct Limits limits[] = {
+		{INT32_MIN,   INT32_MIN,          -1,   INT32_MIN},
+		{INT32_MIN, INT32_MIN/2,          -1, INT32_MIN/2},
+		{        0,   INT32_MIN,          -1,          -1},
+		{INT32_MAX,   INT32_MIN,          -1,          -1},
+		{INT32_MIN,           1,   INT32_MAX,           1},
+		{        0,           1,   INT32_MAX,           1},
+		{INT32_MAX,           1, INT32_MAX/2, INT32_MAX/2},
+		{INT32_MAX,           1,   INT32_MAX,   INT32_MAX}
+	};
 	struct ScalarList *list;
+	char name[] = "a";
+	size_t i;
 
-	/* Identical file-names are not allowed, make them unique. */
-	list = parser_push_config(KW_WIDTH, -1, "a"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
-	NTRY_I(1, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE, 1,
-	    2));
+	for (i = 0; i < LENGTH(limits); ++i) {
+		struct Limits *l;
 
-	list = parser_push_config(KW_WIDTH, -1, "b"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 0);
-	NTRY_I(1, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE, 1,
-	    2));
+		l = &limits[i];
+		list = parser_push_config(KW_WIDTH, -1, name, __LINE__, 1);
+		parser_push_int32(list, 0, l->value);
+		NTRY_I(l->result, ==, config_get_int32(NULL, KW_WIDTH,
+		    CONFIG_UNIT_NONE, l->min, l->max));
+		++name[0];
+	}
+}
 
-	list = parser_push_config(KW_WIDTH, -1, "c"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
-	NTRY_I(2, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE, 1,
-	    2));
+NTEST(Uint32Range)
+{
+	struct Limits {
+		uint32_t	value;
+		uint32_t	min;
+		uint32_t	max;
+		uint32_t	result;
+	};
+	struct Limits limits[] = {
+		{         0, 0,   UINT32_MAX,            0},
+		{UINT32_MAX, 0,   UINT32_MAX,   UINT32_MAX},
+		{UINT32_MAX, 0, UINT32_MAX/2, UINT32_MAX/2}
+	};
+	struct ScalarList *list;
+	char name[] = "a";
+	size_t i;
 
-	list = parser_push_config(KW_WIDTH, -1, "d"__FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 3);
-	NTRY_I(2, ==, config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NONE, 1,
-	    2));
+	for (i = 0; i < LENGTH(limits); ++i) {
+		struct Limits *l;
+
+		l = &limits[i];
+		list = parser_push_config(KW_WIDTH, -1, name, __LINE__, 1);
+		parser_push_int32(list, 0, l->value);
+		NTRY_I(l->result, ==, config_get_uint32(NULL, KW_WIDTH,
+		    CONFIG_UNIT_NONE, l->min, l->max));
+		++name[0];
+	}
 }
 
 NTEST(BitmaskRange)
@@ -438,7 +494,7 @@ NTEST(UnitConversion)
 	(void)dum;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	NTRY_SIGNAL(dum = config_get_int32(NULL, KW_WIDTH, CONFIG_UNIT_NS, 0,
 	    1001));
 	parser_push_unit(list, 0, CONFIG_UNIT_US);
@@ -454,8 +510,8 @@ NTEST(ArraySize)
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
-	parser_push_integer(list, 1, 1);
+	parser_push_int32(list, 0, 2);
+	parser_push_int32(list, 1, 1);
 
 	NTRY_SIGNAL(CONFIG_GET_INT_ARRAY(array1, NULL, KW_WIDTH,
 	    CONFIG_UNIT_NONE, 0, 3));
@@ -473,15 +529,15 @@ NTEST(ArrayTypes)
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
+	parser_push_int32(list, 0, 2);
 	parser_push_double(list, 1, 0.1);
 
 	NTRY_SIGNAL(CONFIG_GET_INT_ARRAY(iarr, NULL, KW_WIDTH,
 	    CONFIG_UNIT_NONE, 0, 3));
 
 	list = parser_push_config(KW_LEMO, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
-	parser_push_integer(list, 1, 1);
+	parser_push_int32(list, 0, 2);
+	parser_push_int32(list, 1, 1);
 
 	CONFIG_GET_INT_ARRAY(iarr, NULL, KW_LEMO, CONFIG_UNIT_NONE, 0, 3);
 	NTRY_I(iarr[0], ==, 2);
@@ -502,9 +558,9 @@ NTEST(ArrayUnits)
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_integer(list, 0, 2);
+	parser_push_int32(list, 0, 2);
 	parser_push_unit(list, 0, CONFIG_UNIT_US);
-	parser_push_integer(list, 1, 1);
+	parser_push_int32(list, 1, 1);
 	parser_push_unit(list, 1, CONFIG_UNIT_NS);
 
 	NTRY_SIGNAL(CONFIG_GET_INT_ARRAY(array, NULL, KW_WIDTH,
@@ -537,7 +593,7 @@ NTEST(SourceLocation)
 	int src_line_no, src_col_no;
 
 	list = parser_push_config(KW_WIDTH, -1, "oranje", 10, 20);
-	parser_push_integer(list, 0, 1);
+	parser_push_int32(list, 0, 1);
 	parser_src_get(NULL, KW_WIDTH, &src_path, &src_line_no, &src_col_no);
 	NTRY_STR("oranje", ==, src_path);
 	NTRY_I(10, ==, src_line_no);
@@ -747,7 +803,8 @@ NTEST_SUITE(Config)
 	NTEST_ADD(PersistedKeyword);
 	NTEST_ADD(PersistedMixedBitmask);
 	NTEST_ADD(PersistedString);
-	NTEST_ADD(IntegerSign);
+	NTEST_ADD(Int32Sign);
+	NTEST_ADD(Uint32Sign);
 	NTEST_ADD(KeywordFilter);
 	NTEST_ADD(Boolean);
 	NTEST_ADD(Bitmasks);
@@ -755,7 +812,8 @@ NTEST_SUITE(Config)
 	NTEST_ADD(IntegerFromDoubleNotOk);
 	NTEST_ADD(UndefinedConfigsShouldSignalButBlockNot);
 	NTEST_ADD(DoubleRange);
-	NTEST_ADD(IntegerRange);
+	NTEST_ADD(Int32Range);
+	NTEST_ADD(Uint32Range);
 	NTEST_ADD(BitmaskRange);
 	NTEST_ADD(UnitConversion);
 	NTEST_ADD(ArraySize);

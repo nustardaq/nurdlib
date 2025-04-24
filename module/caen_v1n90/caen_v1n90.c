@@ -173,15 +173,15 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 	 * the double-value 25xx.
 	 */
 	if (0x2200 == a_v1n90->edge_code) {
-		int const c_25xx_code_lsb[] = {100, 200, 400, 800, 1600, 3200,
-			6250, 12500};
-		int const c_25xx_code_msb[] = {100, 200, 400, 800, 1600, 3200,
-			6250, 12500, 25000, 50000, 100000, 200000, 400000,
-			800000};
-		int resolution[2];
+		uint32_t const c_25xx_code_lsb[] = {100, 200, 400, 800, 1600,
+			3200, 6250, 12500};
+		uint32_t const c_25xx_code_msb[] = {100, 200, 400, 800, 1600,
+			3200, 6250, 12500, 25000, 50000, 100000, 200000,
+			400000, 800000};
+		uint32_t resolution[2];
 		size_t i;
 
-		CONFIG_GET_INT_ARRAY(resolution, a_v1n90->module.config,
+		CONFIG_GET_UINT_ARRAY(resolution, a_v1n90->module.config,
 		    KW_RESOLUTION, CONFIG_UNIT_PS, 0, 1e6);
 		for (i = 0; LENGTH(c_25xx_code_lsb) > i; ++i) {
 			if (c_25xx_code_lsb[i] == resolution[0]) {
@@ -201,11 +201,11 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 			}
 		}
 		if (LENGTH(c_25xx_code_msb) == i) {
-			log_die(LOGL, "Invalid width resolution %d ps for "
+			log_die(LOGL, "Invalid width resolution %u ps for "
 			    "pair mode, read the manual.", resolution[1]);
 		}
 	} else {
-		int resolution;
+		uint32_t resolution;
 
 		resolution = config_get_int32(a_v1n90->module.config,
 		    KW_RESOLUTION, CONFIG_UNIT_PS, 0, 900);
@@ -219,7 +219,7 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 		} else if (25 == resolution) {
 			a_v1n90->resolution_code |= 0x3;
 		} else {
-			log_die(LOGL, "Invalid LSB/resolution %d ps, should "
+			log_die(LOGL, "Invalid LSB/resolution %u ps, should "
 			    "be 25, 100, 200, or 800 ps.", resolution);
 		}
 

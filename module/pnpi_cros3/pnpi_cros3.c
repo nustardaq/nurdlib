@@ -371,18 +371,18 @@ pnpi_cros3_create(struct GsiSamModule *a_sam, struct ConfigBlock *a_block)
 		cros3->regs.thc |= step << 8 | begin;
 	}
 	{
-		int threshold_array[2];
+		uint32_t threshold_array[2];
 
-		CONFIG_GET_INT_ARRAY(threshold_array, a_block, KW_THRESHOLD,
+		CONFIG_GET_UINT_ARRAY(threshold_array, a_block, KW_THRESHOLD,
 		    CONFIG_UNIT_NONE, 0, 0xff);
 		cros3->regs.thl = threshold_array[0];
 		cros3->regs.thu = threshold_array[1];
 	}
 	{
-		int test_pulse_array[2];
+		uint32_t test_pulse_array[2];
 
-		CONFIG_GET_INT_ARRAY(test_pulse_array, a_block, KW_TEST_PULSE,
-		    CONFIG_UNIT_NONE, 0, 0xff);
+		CONFIG_GET_UINT_ARRAY(test_pulse_array, a_block,
+		    KW_TEST_PULSE, CONFIG_UNIT_NONE, 0, 0xff);
 		cros3->regs.tpe = test_pulse_array[0];
 		cros3->regs.tpo = test_pulse_array[1];
 	}

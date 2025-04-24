@@ -97,6 +97,11 @@ static void		assert_src_path(struct Item const *, char const *,
     int, int);
 struct Item		*block_find_matching(struct ItemList *, enum Keyword,
     struct ScalarList const *, char const *, int, int) FUNC_RETURNS;
+int32_t			get_int(struct ConfigBlock *, enum Keyword, struct
+    ConfigUnit const *) FUNC_RETURNS;
+void			get_int_array(void *, size_t, size_t, struct
+    ConfigBlock *, enum Keyword, struct ConfigUnit const *, int32_t, int32_t,
+    int);
 static void		item_free(struct Item **);
 static void		item_list_clear(struct ItemList *);
 static struct ItemList	*item_list_get(void) FUNC_RETURNS;
@@ -568,8 +573,8 @@ config_get_double_array(double *a_dst, size_t a_bytes, struct ConfigBlock
 }
 
 int32_t
-config_get_int32(struct ConfigBlock *a_parent, enum Keyword a_name, struct
-    ConfigUnit const *a_unit, int32_t a_min, int32_t a_max)
+get_int(struct ConfigBlock *a_parent, enum Keyword a_name, struct ConfigUnit
+    const *a_unit)
 {
 	struct ItemList *item_list;
 	struct Item *item;
@@ -593,7 +598,7 @@ config_get_int32(struct ConfigBlock *a_parent, enum Keyword a_name, struct
 					    scalar->unit, a_unit));
 				}
 				item->is_touched = 1;
-				return MIN(MAX(value, a_min), a_max);
+				return value;
 			}
 		}
 	}
@@ -601,10 +606,32 @@ config_get_int32(struct ConfigBlock *a_parent, enum Keyword a_name, struct
 	    keyword_get_string(a_name));
 }
 
+int32_t
+config_get_int32(struct ConfigBlock *a_parent, enum Keyword a_name, struct
+    ConfigUnit const *a_unit, int32_t a_min, int32_t a_max)
+{
+	int32_t i32;
+
+	i32 = get_int(a_parent, a_name, a_unit);
+	i32 = MIN(MAX(i32, a_min), a_max);
+	return i32;
+}
+
+uint32_t
+config_get_uint32(struct ConfigBlock *a_parent, enum Keyword a_name, struct
+    ConfigUnit const *a_unit, uint32_t a_min, uint32_t a_max)
+{
+	uint32_t u32;
+
+	u32 = get_int(a_parent, a_name, a_unit);
+	u32 = MIN(MAX(u32, a_min), a_max);
+	return u32;
+}
+
 void
-config_get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size,
-    struct ConfigBlock *a_parent, enum Keyword a_name, struct ConfigUnit const
-    *a_unit, int32_t a_min, int32_t a_max)
+get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size, struct
+    ConfigBlock *a_parent, enum Keyword a_name, struct ConfigUnit const
+    *a_unit, int32_t a_min, int32_t a_max, int a_is_signed)
 {
 	struct ItemList *item_list;
 	struct Item *item;
@@ -667,22 +694,28 @@ config_get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size,
 			p16 = a_dst;
 			p8 = a_dst;
 			TAILQ_FOREACH(scalar, &item->scalar_list, next) {
-				int32_t value;
+				int32_t i32;
 
 				if (CONFIG_UNIT_NONE == a_unit &&
 				    CONFIG_UNIT_NONE == scalar->unit) {
-					value = scalar->value.i;
+					i32 = scalar->value.i;
 				} else {
-					value = i32_round_double(
+					i32 = i32_round_double(
 					    scalar->value.i *
 					    unit_get_mult(a_name,
 					    scalar->unit, a_unit));
 				}
-				value = MIN(MAX(value, a_min), a_max);
+				if (a_is_signed) {
+					i32 = MIN(MAX(i32, a_min), a_max);
+				} else {
+					i32 = MIN(MAX((uint32_t)i32,
+					    (uint32_t)a_min),
+					    (uint32_t)a_max);
+				}
 				switch (a_dst_elem_size) {
-				case 1: *p8++ = value; break;
-				case 2: *p16++ = value; break;
-				case 4: *p32++ = value; break;
+				case 1: *p8++  = i32; break;
+				case 2: *p16++ = i32; break;
+				case 4: *p32++ = i32; break;
 				default:
 					log_die(LOGL, "Funny integer size "
 					    "%"PRIz".", a_dst_elem_size);
@@ -693,8 +726,26 @@ config_get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size,
 			return;
 		}
 	}
-	log_die(LOGL, "Could not find integer config '%s'.",
+	log_die(LOGL, "Could not find integer array config '%s'.",
 	    keyword_get_string(a_name));
+}
+
+void
+config_get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size,
+    struct ConfigBlock *a_parent, enum Keyword a_name, struct ConfigUnit const
+    *a_unit, int32_t a_min, int32_t a_max)
+{
+	get_int_array(a_dst, a_dst_size, a_dst_elem_size, a_parent, a_name,
+	    a_unit, a_min, a_max, 1);
+}
+
+void
+config_get_uint_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size,
+    struct ConfigBlock *a_parent, enum Keyword a_name, struct ConfigUnit const
+    *a_unit, uint32_t a_min, uint32_t a_max)
+{
+	get_int_array(a_dst, a_dst_size, a_dst_elem_size, a_parent, a_name,
+	    a_unit, a_min, a_max, 0);
 }
 
 enum Keyword
@@ -1689,7 +1740,7 @@ parser_push_double(struct ScalarList *a_scalar_list, unsigned a_vector_index,
 }
 
 void
-parser_push_integer(struct ScalarList *a_scalar_list, unsigned a_vector_index,
+parser_push_int32(struct ScalarList *a_scalar_list, unsigned a_vector_index,
     int32_t a_i32)
 {
 	struct Scalar *scalar;

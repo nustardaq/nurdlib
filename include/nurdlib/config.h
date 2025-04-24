@@ -37,6 +37,9 @@
 #define CONFIG_GET_INT_ARRAY(dst, block, name, unit, min, max) \
     config_get_int_array(dst, sizeof dst, sizeof dst[0], block, name,\
 	unit, min, max)
+#define CONFIG_GET_UINT_ARRAY(dst, block, name, unit, min, max) \
+    config_get_uint_array(dst, sizeof dst, sizeof dst[0], block, name,\
+	unit, min, max)
 
 #define CONFIG_GET_KEYWORD(block, name, keyword_list) \
     config_get_keyword_(block, name, LENGTH(keyword_list), keyword_list)
@@ -48,6 +51,8 @@
     keyword_list)
 #define CONFIG_SET_INT_ARRAY(block, name, unit, src) \
     config_set_int_array_(block, name, unit, dst, sizeof dst, sizeof dst[0])
+#define CONFIG_SET_UINT_ARRAY(block, name, unit, src) \
+    config_set_uint_array_(block, name, unit, dst, sizeof dst, sizeof dst[0])
 
 struct ConfigBlock;
 struct ConfigUnit;
@@ -117,6 +122,8 @@ int				config_get_block_param_exists(struct
     ConfigBlock const *, unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 int32_t				config_get_block_param_int32(struct
     ConfigBlock const *, unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
+uint32_t			config_get_block_param_uint32(struct
+    ConfigBlock const *, unsigned) FUNC_NONNULL(()) FUNC_RETURNS;
 enum Keyword			config_get_block_param_keyword_(struct
     ConfigBlock *, unsigned, size_t, enum Keyword const *) FUNC_NONNULL(())
 FUNC_RETURNS;
@@ -139,6 +146,12 @@ FUNC_RETURNS;
 void				config_get_int_array(void *, size_t, size_t,
     struct ConfigBlock *, enum Keyword, struct ConfigUnit const *, int32_t,
     int32_t) FUNC_NONNULL((1, 6));
+uint32_t			config_get_uint32(struct ConfigBlock *, enum
+    Keyword, struct ConfigUnit const *, uint32_t, uint32_t) FUNC_NONNULL((3))
+FUNC_RETURNS;
+void				config_get_uint_array(void *, size_t, size_t,
+    struct ConfigBlock *, enum Keyword, struct ConfigUnit const *, uint32_t,
+    uint32_t) FUNC_NONNULL((1, 6));
 enum Keyword			config_get_keyword_(struct ConfigBlock *, enum
     Keyword, size_t, enum Keyword const *) FUNC_NONNULL((4)) FUNC_RETURNS;
 void				config_get_keyword_array_(enum Keyword *,
@@ -154,6 +167,11 @@ void				config_set_bool(struct ConfigBlock *, enum
 void				config_set_int32(struct ConfigBlock *, enum
     Keyword, struct ConfigUnit const *, int32_t) FUNC_NONNULL(());
 void				config_set_int_array_(struct ConfigBlock *,
+    enum Keyword, struct ConfigUnit const *, void const *, size_t, size_t)
+	FUNC_NONNULL(());
+void				config_set_uint32(struct ConfigBlock *, enum
+    Keyword, struct ConfigUnit const *, uint32_t) FUNC_NONNULL(());
+void				config_set_uint_array_(struct ConfigBlock *,
     enum Keyword, struct ConfigUnit const *, void const *, size_t, size_t)
 	FUNC_NONNULL(());
 

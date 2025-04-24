@@ -192,7 +192,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	{
 		uint16_t thr[16];
 
-		CONFIG_GET_INT_ARRAY(thr, v1725->module.config, KW_THRESHOLD,
+		CONFIG_GET_UINT_ARRAY(thr, v1725->module.config, KW_THRESHOLD,
 		    CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(13));
 		SET_THRESHOLDS(v1725, thr);
 	}
@@ -200,7 +200,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint8_t logic[8];
 		size_t i;
 
-		CONFIG_GET_INT_ARRAY(logic, v1725->module.config,
+		CONFIG_GET_UINT_ARRAY(logic, v1725->module.config,
 		    KW_TRIGGER_METHOD, CONFIG_UNIT_NONE, 0, 3);
 		LOGF(verbose)(LOGL, "Self-trigger logic:");
 		for (i = 0; i < LENGTH(logic); ++i) {

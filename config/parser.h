@@ -48,7 +48,7 @@ struct ScalarList	*parser_push_config(enum Keyword, int, char const *,
     int, int) FUNC_RETURNS;
 void			parser_push_double(struct ScalarList *, unsigned,
     double);
-void			parser_push_integer(struct ScalarList *, unsigned,
+void			parser_push_int32(struct ScalarList *, unsigned,
     int32_t);
 void			parser_push_keyword(struct ScalarList *, unsigned,
     enum Keyword);

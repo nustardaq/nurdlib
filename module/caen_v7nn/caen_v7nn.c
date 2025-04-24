@@ -200,7 +200,7 @@ caen_v7nn_init_fast(struct Crate *a_crate, struct CaenV7nnModule *a_v7nn)
 	    KW_CHANNEL_ENABLE, 0, a_v7nn->number_of_channels - 1);
 
 	MALLOC(threshold_array, a_v7nn->number_of_channels);
-	config_get_int_array(threshold_array,
+	config_get_uint_array(threshold_array,
 	    sizeof *threshold_array * a_v7nn->number_of_channels,
 	    sizeof *threshold_array,
 	    a_v7nn->module.config, KW_THRESHOLD, CONFIG_UNIT_NONE, 0, 4095);
