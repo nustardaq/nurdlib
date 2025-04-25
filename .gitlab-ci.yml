@@ -66,6 +66,14 @@ stages:
   script:
     - CC=gcc NTEST_VERBOSE=1 make -k BUILD_MODE=cov $RUNNER_MAKE_J
 
+.run-gmake-gcc-pic: &run-gmake-gcc-pic
+  script:
+    - CC=gcc NTEST_VERBOSE=1 gmake BUILD_MODE=pic -k $RUNNER_MAKE_J
+
+.run-gmake-gcc-debug: &run-gmake-gcc-debug
+  script:
+    - CC=gcc NTEST_VERBOSE=1 gmake BUILD_MODE=release -k $RUNNER_MAKE_J
+
 .debian: &debian
   before_script:
     - apt-get update > /dev/null
@@ -129,6 +137,14 @@ stages:
 .only-chalmers: &only-chalmers
   rules:
     - if: $CI_SERVER_HOST == "git.chalmers.se"
+
+.freebsd: &freebsd
+  before_script:
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
 
 debian etch release:
   image: munken/debian:etch
@@ -486,6 +502,20 @@ rio2 smem debug:
   <<: *debian
   <<: *run-gcc-debug
   <<: *only-chalmers
+
+freebsd 10 pic:
+  stage: build
+  tags:
+    - bsd
+  <<: *freebsd
+  <<: *run-gmake-gcc-pic
+
+freebsd 10 debug:
+  stage: build
+  tags:
+    - bsd
+  <<: *freebsd
+  <<: *run-gmake-gcc-debug
 
 cppcheck:
   image: ubuntu:xenial
