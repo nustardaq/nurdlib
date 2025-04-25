@@ -197,6 +197,24 @@ NTEST(IncludeBig)
 	    CONFIG_UNIT_NONE, 0, 1));
 	NTRY_I(1, ==, config_get_int32(gate, KW_CLOCK_INPUT, CONFIG_UNIT_NONE,
 	    0, 2));
+
+	NTRY_I(-1, ==, config_get_int32(crate, KW_CHANNEL0_ENABLE,
+	    CONFIG_UNIT_NONE, -1, 1));
+	NTRY_I(-2, ==, config_get_int32(crate, KW_CHANNEL0_ENABLE,
+	    CONFIG_UNIT_NONE, -3, 3));
+	NTRY_U(0x1000, ==, config_get_uint32(crate, KW_CHANNEL0_ENABLE,
+	    CONFIG_UNIT_NONE, 0, 0x1000));
+	NTRY_U((uint32_t)-2, ==, config_get_uint32(crate, KW_CHANNEL0_ENABLE,
+	    CONFIG_UNIT_NONE, 0, UINT32_MAX));
+
+	NTRY_I(INT32_MIN, ==, config_get_int32(crate, KW_CHANNEL1_ENABLE,
+	    CONFIG_UNIT_NONE, INT32_MIN, INT32_MAX));
+	NTRY_I(-1, ==, config_get_int32(crate, KW_CHANNEL1_ENABLE,
+	    CONFIG_UNIT_NONE, -1, 1));
+	NTRY_U(0x1000, ==, config_get_uint32(crate, KW_CHANNEL1_ENABLE,
+	    CONFIG_UNIT_NONE, 0, 0x1000));
+	NTRY_U(0x80000000, ==, config_get_uint32(crate, KW_CHANNEL1_ENABLE,
+	    CONFIG_UNIT_NONE, 0, UINT32_MAX));
 }
 
 NTEST(IncludeAuto)
