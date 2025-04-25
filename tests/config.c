@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2024
+ * Copyright (C) 2015-2025
  * Bastian Löher
  * Oliver Papst
  * Hans Toshihide Törnqvist

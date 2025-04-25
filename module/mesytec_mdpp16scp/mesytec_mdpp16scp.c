@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2017-2021, 2023-2024
+ * Copyright (C) 2017-2021, 2023-2025
  * Bastian Löher
  * Michael Munch
  * Oliver Papst

@@ -1,6 +1,6 @@
 # nurdlib, NUstar ReaDout LIBrary
 #
-# Copyright (C) 2015-2017, 2021, 2024
+# Copyright (C) 2015-2017, 2021, 2024-2025
 # Bastian Löher
 # Hans Toshihide Törnqvist
 #

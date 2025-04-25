@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2018-2024
+ * Copyright (C) 2018-2025
  * Manuel Xarepe
  * Michael Munch
  * Hans Toshihide Törnqvist

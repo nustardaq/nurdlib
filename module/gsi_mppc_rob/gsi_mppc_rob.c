@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2022-2024
+ * Copyright (C) 2022-2025
  * Manuel Xarepe
  * Hans Toshihide Törnqvist
  *
