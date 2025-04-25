@@ -111,12 +111,12 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 
 	LOGF(info)(LOGL, NAME" init(0x%x) {", a_pex->sfp_bitmask);
 
-	buf_ofs_lo = config_get_int32(a_block, KW_BUF_OFS, CONFIG_UNIT_NONE,
-	    0, 0x70000000);
-	buf_ofs_hi = config_get_int32(a_block, KW_BUF_OFS_HI,
-	    CONFIG_UNIT_NONE, 0, 0x70000000);
-	buf_bytes = config_get_int32(a_block, KW_BUF_BYTES, CONFIG_UNIT_NONE,
-	    0, 0x70000000);
+	buf_ofs_lo = config_get_uint32(a_block, KW_BUF_OFS, CONFIG_UNIT_NONE,
+	    0, UINT32_MAX);
+	buf_ofs_hi = config_get_uint32(a_block, KW_BUF_OFS_HI,
+	    CONFIG_UNIT_NONE, 0, UINT32_MAX);
+	buf_bytes = config_get_uint32(a_block, KW_BUF_BYTES, CONFIG_UNIT_NONE,
+	    0, UINT32_MAX);
 
 	buf_ofs = (uintptr_t)((uint64_t)buf_ofs_hi << 32 | buf_ofs_lo);
 
