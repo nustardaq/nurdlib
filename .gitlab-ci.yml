@@ -37,7 +37,7 @@ stages:
   tags:
     - docker
 
-.run-clang-release: &run-clang-pic
+.run-clang-pic: &run-clang-pic
   script:
     - CC=clang NTEST_VERBOSE=1 make BUILD_MODE=pic -k $RUNNER_MAKE_J
 
@@ -49,7 +49,7 @@ stages:
   script:
     - CC=clang NTEST_VERBOSE=1 make -k $RUNNER_MAKE_J
 
-.run-gcc-release: &run-gcc-pic
+.run-gcc-pic: &run-gcc-pic
   script:
     - CC=gcc NTEST_VERBOSE=1 make BUILD_MODE=pic -k $RUNNER_MAKE_J
 
