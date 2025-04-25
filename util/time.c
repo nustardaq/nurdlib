@@ -1,7 +1,8 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2021, 2023-2024
+ * Copyright (C) 2021, 2023-2025
+ * Håkan T Johansson
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
@@ -76,6 +77,22 @@ static int nconf_test_(void) {
 #	include <time.h>
 #	define ASCTIME_R(tm, buf) asctime_r(tm, buf, 26)
 #	define GMTIME_R(tt, tm) gmtime_r(tm, tt)
+#	if NCONFING_mTIME_DRAFT9
+#		define NCONF_TEST nconf_test_()
+static int nconf_test_(void) {
+	time_t tt;
+	char buf[26];
+	time(&tt);
+	return NULL != asctime_r(localtime(&tt), buf, 0);
+}
+#	endif
+#elif NCONF_mTIME_DRAFT9_bFREEBSD
+/* NCONF_NOEXEC */
+#	undef _POSIX_C_SOURCE
+#	define _POSIX_C_SOURCE 199506
+#	include <time.h>
+#	define ASCTIME_R(tm, buf) asctime_r(tm, buf)
+#	define GMTIME_R(tt, tm) gmtime_r(tt, tm)
 #	if NCONFING_mTIME_DRAFT9
 #		define NCONF_TEST nconf_test_()
 static int nconf_test_(void) {
