@@ -302,8 +302,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			dyn_range_setting[i] = u32;
 			LOGF(verbose)(LOGL, " [%"PRIz"]=%fV (0x%08x).",
 			    i, u32 ? 0.5 : 2.0, u32);
+			/*
 			MAP_WRITE(v1725->sicy_map, input_dynamic_range(i),
 			    u32);
+			*/
 		}
 	}
 	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 8, 13);
@@ -416,7 +418,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 			u32 = offset[i];
 			LOGF(verbose)(LOGL, " [%"PRIz"]=0x%08x.", i, u32);
+			/*
 			MAP_WRITE(v1725->sicy_map, dc_offset(i), u32);
+			*/
 		}
 		time_sleep(init_sleep);
 	}
@@ -440,7 +444,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			acq |= ACQ_EXTERNAL_CLOCK;
 		}
 		LOGF(verbose)(LOGL, "Acquisition control=0x%08x.", acq);
+		/*
 		MAP_WRITE(v1725->sicy_map, acquisition_control, acq);
+		*/
 	}
 
 	{
@@ -477,7 +483,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    (level - 1) << 24 |
 		    in;
 		LOGF(verbose)(LOGL, "Global trigger mask=0x%08x.", u32);
+		/*
 		MAP_WRITE(v1725->sicy_map, global_trigger_mask, u32);
+		*/
 	}
 	{
 		/* TODO: front_panel_trg_out_gpo_enable_mask. */
@@ -503,15 +511,19 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    lvds[3] << 5 |
 		    0;
 		LOGF(verbose)(LOGL, "Front panel IO control=0x%08x.", u32);
+		/*
 		MAP_WRITE(v1725->sicy_map, front_panel_i_o_control, u32);
+		*/
 	}
 	{
 		v1725->channel_enable = config_get_bitmask(
 		    v1725->module.config, KW_CHANNEL_ENABLE, 0, 15);
 		LOGF(verbose)(LOGL, "Channel mask=0x%08x.",
 		    v1725->channel_enable);
+		/*
 		MAP_WRITE(v1725->sicy_map, channel_enable_mask,
 		    v1725->channel_enable);
+		*/
 	}
 	/* DPP Algorithm Control */
 	{
@@ -863,7 +875,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	MAP_WRITE(v1725->sicy_map, software_reset, 1);
 	MAP_WRITE(v1725->sicy_map, software_clear, 1);
 	time_sleep(0.1);
-
+	/*
 	{
 		uint32_t u32;
 
@@ -873,6 +885,7 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(v1725->sicy_map, board_configuration_bit_clear,
 		    ~u32);
 	}
+	*/
 
 	SERIALIZE_IO;
 
@@ -938,10 +951,12 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	}
 
 	/* Enable BERR/SIGBUS to end DMA readout. */
+	/*
 	MAP_WRITE(v1725->sicy_map, readout_control,
 	    (v1725->do_berr ? CTL_BERR_ENABLE : 0) |
 	    CTL_ALIGN64 |
 	    (v1725->do_blt_ext ? CTL_BLT_EXTENDED : 0));
+	*/
 
 	if (KW_NOBLT != v1725->blt_mode) {
 		v1725->dma_map = map_map(v1725->address, 0x1000,
