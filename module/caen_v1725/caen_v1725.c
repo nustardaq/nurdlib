@@ -79,7 +79,9 @@ caen_v1725_check_empty(struct Module *a_module)
 
 	LOGF(spam)(LOGL, NAME" check_empty {");
 	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
-	events = MAP_READ(v1725->sicy_map, event_stored);
+	/* events = MAP_READ(v1725->sicy_map, event_stored); */
+	(void) v1725;
+	events = 0;
 	LOGF(spam)(LOGL, NAME" check_empty(events=%u) }", events);
 	return events > 0 ? CRATE_READOUT_FAIL_DATA_TOO_MUCH : 0;
 }
