@@ -705,10 +705,31 @@ caen_v1725_readout(struct Crate *a_crate, struct Module *a_module, struct
 		}
 	} else {
 		size_t bytes;
+		int ret;
 
 		bytes = event_size * sizeof(uint32_t);
 		p32 = map_align(p32, &bytes, v1725->blt_mode, DMA_FILLER);
-		p32 += bytes / sizeof(uint32_t);
+		ret = map_blt_read_berr(v1725->dma_map, 0, p32, bytes);
+		if (-1 == ret) {
+			log_error(LOGL, "DMA read failed!");
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto caen_v1725_readout_fail;
+		} else if (bytes == (size_t) ret) {
+			/* Got all data that was promised. */
+			p32 += bytes / sizeof(uint32_t);
+		} else if (0 == ret) {
+			/* The V1725 sometimes lies about event_size.
+			 * Looks like it has the previous event_size, but
+			 * there is no new data available.
+			 * We accept and treat that as no data available.
+			 */
+			/* printf ("0 read from v1725.\n"); */
+		} else {
+			/* Short read.  Not expected. */
+			log_error(LOGL, "Partial DMA read - unexpected!");
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto caen_v1725_readout_fail;
+		}
 	}
 
 caen_v1725_readout_fail:
