@@ -737,6 +737,71 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			       0, 1 /* ?? - figure*/);
 	}
 
+{
+#define VME_WRITE_A32_D32(offset, value) do { \
+	  map_sicy_write(v1725->sicy_map, 4/*MAP_MOD_W*/, 32, offset, value); \
+	} while (0)
+
+#define vme_base 0
+
+  int i;
+
+  /* Module setup. */
+  VME_WRITE_A32_D32(vme_base + 0x8120, 0xffff); /* Channel enable. */
+
+  VME_WRITE_A32_D32(vme_base + 0x8020, 128        ); /* Record length     */
+  VME_WRITE_A32_D32(vme_base + 0x8028, 0          ); /* Input dynamic rng */
+  VME_WRITE_A32_D32(vme_base + 0x8034, 16         ); /* Events per agg.   */
+  VME_WRITE_A32_D32(vme_base + 0x8038, 250        ); /* Pre trigger       */
+  VME_WRITE_A32_D32(vme_base + 0x803c, 0x0000010a ); /* CFD setting       */
+  VME_WRITE_A32_D32(vme_base + 0x8044, 0          ); /* Charge zero thres */
+  VME_WRITE_A32_D32(vme_base + 0x8054, 25         ); /* Short gate        */
+  VME_WRITE_A32_D32(vme_base + 0x8058, 50         ); /* Long gate         */
+  VME_WRITE_A32_D32(vme_base + 0x805c, 1          ); /* Gate offset       */
+  VME_WRITE_A32_D32(vme_base + 0x8060, 200        ); /* Threshold         */
+  VME_WRITE_A32_D32(vme_base + 0x8064, 0          ); /* Fixed baseline    */
+  VME_WRITE_A32_D32(vme_base + 0x8070, 50         ); /* Trigger width     */
+  VME_WRITE_A32_D32(vme_base + 0x8074, 50         ); /* Trigger holdoff   */
+  VME_WRITE_A32_D32(vme_base + 0x8078, 0          ); /* PSD threshold     */
+  VME_WRITE_A32_D32(vme_base + 0x807c, 0          ); /* PUR-GAP threshold */
+  VME_WRITE_A32_D32(vme_base + 0x8080, 0x40150055 ); /* DPP algo ctrl     */
+#if 1
+  VME_WRITE_A32_D32(vme_base + 0x1f80, 0x40110055 ); /* DPP algo ctrl     */
+#endif
+  VME_WRITE_A32_D32(vme_base + 0x8084, 0x00002a75 ); /* DPP algo ctrl 2   */
+  VME_WRITE_A32_D32(vme_base + 0x8098, 0x8000     ); /* DC offset         */
+  VME_WRITE_A32_D32(vme_base + 0x80d4, 0          ); /* Veto width        */
+  VME_WRITE_A32_D32(vme_base + 0x80d8, 5          ); /* Early bline freeze */
+
+  for (i = 0; i < 8; i++)
+    VME_WRITE_A32_D32(vme_base + 0x8180+4*i, 1 << i); /* Trig val mask. */
+
+  /* Board configuration. */
+  VME_WRITE_A32_D32(vme_base + 0x8004, 1);          /* Auto flush. */
+  VME_WRITE_A32_D32(vme_base + 0x8004, 4);          /* Propagate trigger. */
+  VME_WRITE_A32_D32(vme_base + 0x8004, 0x00020000); /* Extras recording. */
+  VME_WRITE_A32_D32(vme_base + 0x8004, 0x000c0100); /* Per manual. */
+#if 0
+  VME_WRITE_A32_D32(vme_base + 0x8004, 0x00010000); /* Waveform recording. */
+#endif
+  VME_WRITE_A32_D32(vme_base + 0x800c, 8);          /* Aggregate org. */
+#if 0
+  VME_WRITE_A32_D32(vme_base + 0x8080, 0x100); /* Internal pulser. */
+#endif
+  VME_WRITE_A32_D32(vme_base + 0x810c, 0x01100000); /* Global trigger mask. */
+  VME_WRITE_A32_D32(vme_base + 0x8110, 0x40000000); /* FP trigger out. */
+
+  VME_WRITE_A32_D32(vme_base + 0xef00, 0x10);       /* Readout control. */
+  VME_WRITE_A32_D32(vme_base + 0xef08, 0);          /* Board ID. */
+#if 0
+  /* This setting fails BLT. */
+  VME_WRITE_A32_D32(vme_base + 0xef1c, 1);          /* Aggregate per BLT. */
+#endif
+
+  /* Enable acquisition. */
+  VME_WRITE_A32_D32(vme_base + 0x8100, 0x04);
+}
+
 	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
