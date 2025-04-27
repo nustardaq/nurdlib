@@ -452,7 +452,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
   VME_WRITE_A32_D32(vme_base + 0x8020, 128        ); /* Record length     */
   VME_WRITE_A32_D32(vme_base + 0x8028, 0          ); /* Input dynamic rng */
-  VME_WRITE_A32_D32(vme_base + 0x8034, 16         ); /* Events per agg.   */
+  VME_WRITE_A32_D32(vme_base + 0x8034, 64         ); /* Events per agg.   */
   VME_WRITE_A32_D32(vme_base + 0x8038, 250        ); /* Pre trigger       */
   VME_WRITE_A32_D32(vme_base + 0x803c, 0x0000010a ); /* CFD setting       */
   VME_WRITE_A32_D32(vme_base + 0x8044, 0          ); /* Charge zero thres */
