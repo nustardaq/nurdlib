@@ -36,7 +36,7 @@
 #	define CALL_(func, args, label, is_init) do { \
 		CVErrorCodes code_; \
 		code_ = func args; \
-		if (cvSuccess != code_) { \
+		if (cvSuccess != code_ && cvBusError != code_) { \
 			log_error(LOGL, "%d=%s.", code_, \
 			    CAENVME_DecodeError(code_)); \
 			if (is_init) { \
