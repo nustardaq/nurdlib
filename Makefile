@@ -164,6 +164,7 @@ WRSLEW_TARGET:=$(BUILD_DIR)/tools/wrslew
 ifeq (pic,$(BUILD_MODE))
  PYNURDLIBCTRL_INSTALL=pynurdlibctrl_install
 endif
+VIMSYN:=$(BUILD_DIR)/nurdlib.vim
 NCONF_ARGS:=$(BUILD_DIR)/nconf.args
 
 .PHONY: all
@@ -195,6 +196,9 @@ bin/wrslew:
 .PHONY: lib
 lib: $(NURDLIB_TARGET)
 
+.PHONY: vim
+vim: $(VIMSYN)
+
 .PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
@@ -212,6 +216,7 @@ help:
 	@echo " make cppcheck        - cppcheck all source files without NCONF macros."
 	@echo " make pynurdlibctrl_install"
 	@echo "                      - Install Python ctrl package."
+	@echo " make vim             - Install vim syntax file."
 	@echo " make clean           - Remove everything that has been built."
 	@echo " make help            - Print what you are now reading."
 	@echo

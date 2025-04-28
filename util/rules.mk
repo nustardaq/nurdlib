@@ -57,3 +57,13 @@ $(BUILD_DIR)/md5summer: $(BUILD_DIR)/util/md5summer.o $(BUILD_DIR)/util/md5.o
 
 $(BUILD_DIR)/ctrl/ctrl.d: $(BUILD_DIR)/util/md5sum.h
 $(BUILD_DIR)/util/pack.d: $(BUILD_DIR)/util/md5sum.h
+
+$(VIMSYN): util/nurdlib.vim config/kwarray.h util/rules.mk
+	$(QUIET)echo "VIM   $@" &&\
+	$(MKDIR) &&\
+	list=$$($(SED) -n 's/.*\"\([A-Za-z].*\)\".*/\1/p' config/kwarray.h | tr '\n' ' ') &&\
+	$(SED) "s/\(nurdlibFunctions\)$$/\1 $$list/" util/nurdlib.vim > $@.tmp2 &&\
+	mv $@.tmp2 $@ &&\
+	d=$$HOME/.vim/syntax &&\
+	[ -d $$d ] || mkdir -p $$d;\
+	cp $@ $$d
