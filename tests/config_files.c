@@ -215,6 +215,9 @@ NTEST(IncludeBig)
 	    CONFIG_UNIT_NONE, 0, 0x1000));
 	NTRY_U(0x80000000, ==, config_get_uint32(crate, KW_CHANNEL1_ENABLE,
 	    CONFIG_UNIT_NONE, 0, UINT32_MAX));
+
+	NTRY_DBL(-10.0, ==, config_get_double(crate, KW_CHANNEL2_ENABLE,
+	    CONFIG_UNIT_NONE, -100.0, 0.0));
 }
 
 NTEST(IncludeAuto)

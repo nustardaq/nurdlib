@@ -449,8 +449,8 @@ parse_scalar(struct File *a_file, struct ScalarList *a_scalar_list, unsigned
 
 	/*
 	 * Hmm, either a double or an integer...
-	 * A double is recognized by a single decimal sign, whereas an integer
-	 * may be followed by a range specifier (..).
+	 * A double is recognized by a single decimal sign or exponential,
+	 * whereas an integer may be followed by a range specifier (..).
 	 */
 	i = 0;
 	digit_num = 0;
