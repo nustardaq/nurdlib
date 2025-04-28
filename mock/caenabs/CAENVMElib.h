@@ -62,7 +62,8 @@ typedef enum {
 } CVBoardTypes;
 
 typedef enum {
-	cvSuccess
+	cvSuccess,
+	cvBusError
 } CVErrorCodes;
 
 typedef enum {
