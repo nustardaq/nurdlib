@@ -77,6 +77,13 @@ caen_v1725_check_empty(struct Module *a_module)
 	struct CaenV1725Module *v1725;
 	uint32_t events;
 
+	/* This function cannot really be used with DPP-PSD:
+	 *
+	 * DPP-PSD has no regsiter telling the number of stored
+	 * events, only the size of the next event.  But that
+	 * sometimes report a non-zero event size even through no data
+	 * is present.
+	 */
 	LOGF(spam)(LOGL, NAME" check_empty {");
 	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
 	/* events = MAP_READ(v1725->sicy_map, event_stored); */
