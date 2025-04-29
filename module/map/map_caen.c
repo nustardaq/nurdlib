@@ -33,10 +33,13 @@
 #	include <util/string.h>
 #	include <util/time.h>
 
-#	define CALL_(func, args, label, is_init) do { \
+/* Default value of accept_code2 is cvSuccess.
+ * By giving e.g. cvBusError, also that condition is accepted.
+ */
+#	define CALL_(func, args, label, is_init, accept_code2) do { \
 		CVErrorCodes code_; \
 		code_ = func args; \
-		if (cvSuccess != code_ && cvBusError != code_) { \
+		if (cvSuccess != code_ && accept_code2 != code_) { \
 			log_error(LOGL, "%d=%s.", code_, \
 			    CAENVME_DecodeError(code_)); \
 			if (is_init) { \
@@ -47,7 +50,7 @@
 			goto label; \
 		} \
 	} while (0)
-#	define CALL(func, args, label) CALL_(func, args, label, 0)
+#	define CALL(func, args, label) CALL_(func, args, label, 0, cvSuccess)
 
 #define TYPE(name) { cv##name, #name }
 struct BoardType {
@@ -170,7 +173,7 @@ caen_init()
 	    "CAENVME_Init board_type=%d, link_number=%u, conet_node=%u.",
 	    board_type, link_number, conet_node);
 	CALL_(CAENVME_Init, (board_type, link_number, conet_node, &g_handle),
-	    fail, 1);
+	    fail, 1, cvSuccess);
 #else
 	{
 		void *arg1;
@@ -189,7 +192,7 @@ caen_init()
 		    "conet_node=%u.",
 		    board_type, link_ip, conet_node);
 		CALL_(CAENVME_Init2, (board_type, arg1, conet_node,
-		    &g_handle), fail, 1);
+		    &g_handle), fail, 1, cvSuccess);
 	}
 #endif
 	/* TODO: Make config! */
@@ -353,6 +356,7 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int
 	CVAddressModifier am;
 	CVDataWidth dw;
 	int ret;
+	CVErrorCodes accept_code2;
 
 	ret = -1;
 	LOGF(spam)(LOGL, "blt_read(address=0x%08x, offset=0x%"PRIzx", "
@@ -372,9 +376,13 @@ blt_read(struct Map *a_map, size_t a_ofs, void *a_target, size_t a_bytes, int
 		log_die(LOGL, "BLT type %s not supported.",
 		    keyword_get_string(mode));
 	}
+	/* Redundant default in CALL_, only accept cvSuccess. */
+	accept_code2 = cvSuccess;
+	if (a_berr_ok)
+		accept_code2 = cvBusError; /* Also accept bus error. */
 	bytes_out = 0;
-	CALL(CAENVME_BLTReadCycle, (g_handle, a_map->address + a_ofs,
-	    a_target, a_bytes, am, dw, &bytes_out), fail);
+	CALL_(CAENVME_BLTReadCycle, (g_handle, a_map->address + a_ofs,
+	    a_target, a_bytes, am, dw, &bytes_out), fail, 0, accept_code2);
 	ret = bytes_out;
 fail:
 	LOGF(spam)(LOGL, "blt_read }");
