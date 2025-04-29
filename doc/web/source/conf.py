@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Nurdlib'
-copyright = u'2017, Bastian Löher, Hans Toshihide Törnqvist'
+copyright = u'2017, 2021-2022, 2025, Bastian Löher, Hans Toshihide Törnqvist'
 author = u'Bastian Löher, Hans Toshihide Törnqvist'
 
 # The version info for the project you're documenting, acts as replacement for
