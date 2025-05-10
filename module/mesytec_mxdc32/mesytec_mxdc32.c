@@ -488,7 +488,8 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
 	}
 	if (!MEMORY_CHECK(*a_event_buffer, &outp[data_size/4 - 1])) {
 		log_error(LOGL, "Not enough space for event data, "
-		    "module=0x%08xB, event-buffer=0x%"PRIzx"B.",
+		    "module=0x%x*%dB=0x%08xB, event-buffer=0x%"PRIzx"B.",
+		    a_mxdc32->buffer_data_length, unit_size,
 		    data_size, a_event_buffer->bytes);
 		result |= CRATE_READOUT_FAIL_DATA_TOO_MUCH;
 		goto mesytec_mxdc32_readout_done;
