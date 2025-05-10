@@ -159,6 +159,7 @@ sicy_w32(struct Map *a_map, size_t a_ofs, uint32_t a_u32)
 	CMVLC_CALL(cmvlc_single_vme_write,
 	    (g_cmvlc, a_map->address + a_ofs, a_u32,
 	     vme_user_A32, vme_D32), fail);
+	return;
 fail:
 	log_die(LOGL, "No recovery.");
 }
@@ -169,6 +170,7 @@ sicy_w16(struct Map *a_map, size_t a_ofs, uint16_t a_u16)
 	CMVLC_CALL(cmvlc_single_vme_write,
 	    (g_cmvlc, a_map->address + a_ofs, a_u16,
 	     vme_user_A32, vme_D16), fail);
+	return;
 fail:
 	log_die(LOGL, "No recovery.");
 }
