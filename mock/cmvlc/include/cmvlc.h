@@ -55,5 +55,7 @@ int			cmvlc_single_vme_read(struct cmvlc_client *, uint32_t,
     uint32_t *, enum cmvlc_vme_addr_width, enum cmvlc_vme_data_width);
 int			cmvlc_single_vme_write(struct cmvlc_client *,
     uint32_t, uint32_t, enum cmvlc_vme_addr_width, enum cmvlc_vme_data_width);
+int			cmvlc_set_daq_mode(struct cmvlc_client *a_a, int a_b,
+    int a_c, uint8_t (*a_d)[2], int a_e, uint8_t a_f);
 
 #endif
