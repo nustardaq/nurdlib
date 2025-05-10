@@ -71,3 +71,16 @@ cmvlc_single_vme_write(struct cmvlc_client *a_a, uint32_t a_b, uint32_t a_c,
 	(void)a_e;
 	return 0;
 }
+
+int
+cmvlc_set_daq_mode(struct cmvlc_client *a_a, int a_b, int a_c,
+    uint8_t (*a_d)[2], int a_e, uint8_t a_f)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	(void)a_f;
+	return 0;
+}
