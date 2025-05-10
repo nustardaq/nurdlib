@@ -89,9 +89,18 @@ cmvlc_init(void)
 			log_die(LOGL, "cmvlc_connect failure for "
 				"url='%s': '%s'.", str, error_str);
 		}
+		/* It is mighty confusing when daq mode (= sequencer)
+		 * already is enabled - it may empty data behind our
+		 * backs before we are set up.
+		 */
+		CMVLC_CALL(cmvlc_set_daq_mode,
+			   (g_cmvlc, 0, 0, NULL, 0, 0), fail);
 	}
 
 	LOGF(verbose)(LOGL, "cmvlc_init }");
+	return;
+fail:
+	log_die(LOGL, "No recovery.");
 }
 
 void
