@@ -110,6 +110,7 @@ struct Module;
 struct Packer;
 struct PackerList;
 struct Pedestal;
+struct cmvlc_stackcmdbuf;
 
 struct ModuleSignature {
 	uint32_t	id_mask;
@@ -238,6 +239,29 @@ struct ModuleProps {
 	 * and turn it on for physics.
 	 */
 	void	(*zero_suppress)(struct Module *, int);
+	/*
+	 * 'cmvlc_init' adds the VME command for MVLC sequencer
+	 * readout.  Either commands that must happen while deadtime
+	 * is set 'a_dt=1' or that can happen after deadtime release
+	 * 'a_dt=0'.
+	 */
+	void    (*cmvlc_init)(struct Module *, struct cmvlc_stackcmdbuf *,
+	    int);
+	/*
+	 * 'cmvlc_fetch_dt' gets the module data from the MVLC sequencer
+	 * output that was read during dead-time.
+	 *  return = crate readout fail bits.
+	 */
+	uint32_t	(*cmvlc_fetch_dt)(struct Module *,
+	    const uint32_t *, uint32_t, uint32_t *) FUNC_RETURNS;
+	/*
+	 * 'cmvlc_fetch' gets the module data from the MVLC sequencer
+	 * output into the given buffer which is advanced accordingly.
+	 *  return = crate readout fail bits.
+	 */
+	uint32_t	(*cmvlc_fetch)(struct Crate *, struct Module *,
+	    struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *)
+	    FUNC_RETURNS;
 
 	/* Bitmask of "MODULE_BIT_*". */
 	unsigned	flags;
