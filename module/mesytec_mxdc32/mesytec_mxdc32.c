@@ -37,6 +37,7 @@
 #include <util/fmtmod.h>
 #include <util/sigbus.h>
 #include <util/time.h>
+#include <module/map/map_cmvlc.h>
 
 #define NAME "Mesytec Mxdc32"
 
@@ -501,6 +502,128 @@ mesytec_mxdc32_post_init(struct MesytecMxdc32Module *a_mxdc32)
 	LOGF(spam)(LOGL, NAME" post_init(ctr=0x%08x) }",
 	    a_mxdc32->module.event_counter.value);
 	return 1;
+}
+
+void
+mesytec_mxdc32_cmvlc_init(struct MesytecMxdc32Module *a_mxdc32,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	LOGF(verbose)(LOGL, NAME" cmvlc_init {");
+
+#if NCONF_mMAP_bCMVLC
+	if (a_dt) {
+		/* Read event counter, low then high word. */
+		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6092, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6094, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+	} else {
+		/* Block transfer of data. */
+		/* Note: 0x8000 MBLT (64-bit) words,is 0x10000 32-bit words. */
+		cmvlc_stackcmd_vme_block(a_stack, a_mxdc32->address,
+					 vme_rw_read, vme_user_MBLT_A32,
+					 0x8000);
+
+		/* Reset something. */
+		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6034, 1,
+				      vme_rw_write, vme_user_A32, vme_D16);
+	}
+#else
+	(void) a_mxdc32;
+	(void) a_stack;
+	(void) a_dt;
+#endif
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init }");
+}
+
+uint32_t
+mesytec_mxdc32_cmvlc_fetch_dt(struct MesytecMxdc32Module *a_mxdc32,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+#if NCONF_mMAP_bCMVLC
+	uint32_t result;
+
+	result = 0;
+
+	if (a_in_remain < 2) {
+		log_error(LOGL, "Mesytec Mxdc32: Too few words for event "
+		    "counter in cmvlc data.");
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	a_mxdc32->module.event_counter.value =
+	    a_in_buffer[0] | (a_in_buffer[1] << 16);
+
+	*a_in_used = 2;
+
+	/*
+	if (a_mxdc32->module.event_counter.value % 100000 == 0) {
+		LOGF(info)(LOGL, "rm: %d  us: %d  cnt: %d\n",
+		    a_in_remain, *a_in_used,
+		    a_mxdc32->module.event_counter.value);
+	}
+	*/
+
+done:
+	return result;
+#else
+	(void) a_mxdc32;
+	(void) a_in_buffer;
+	(void) a_in_remain;
+	(void) a_in_used;
+	return 0; /* Should not be used, better return some error code? */
+#endif
+}
+
+uint32_t
+mesytec_mxdc32_cmvlc_fetch(struct Crate *a_crate,
+    struct MesytecMxdc32Module *a_mxdc32, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+#if NCONF_mMAP_bCMVLC
+	uint32_t *outp;
+	uint32_t result;
+
+	size_t used;
+	size_t block_len;
+
+	int ret;
+
+	(void) a_crate;
+	(void) a_mxdc32;
+
+	outp = a_event_buffer->ptr;
+        result = 0;
+
+	ret = cmvlc_block_get(g_cmvlc, a_in_buffer, a_in_remain, &used,
+	    outp, 0x10000 /* 0x8000 MBLT words*/, &block_len);
+
+	if (ret < 0) {
+		log_error(LOGL, "Mesytec Mxdc32: Failed to get cmvlc block: "
+		    "%d.", ret);
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	*a_in_used = (uint32_t) used;
+	outp += block_len;
+
+done:
+	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
+	return result;
+#else
+	(void) a_crate;
+	(void) a_mxdc32;
+	(void) a_event_buffer;
+	(void) a_in_buffer;
+	(void) a_in_remain;
+	(void) a_in_used;
+	return 0; /* Should not be used, better return some error code? */
+#endif
 }
 
 uint32_t
