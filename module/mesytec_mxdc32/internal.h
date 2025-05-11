@@ -119,5 +119,13 @@ double		mesytec_mxdc32_sleep_get(struct MesytecMxdc32Module *)
 	FUNC_RETURNS;
 void		mesytec_mxdc32_zero_suppress(struct MesytecMxdc32Module *,
     int);
+struct cmvlc_stackcmdbuf;
+void		mesytec_mxdc32_cmvlc_init(struct MesytecMxdc32Module *,
+    struct cmvlc_stackcmdbuf *, int);
+uint32_t	mesytec_mxdc32_cmvlc_fetch_dt(struct MesytecMxdc32Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+uint32_t	mesytec_mxdc32_cmvlc_fetch(struct Crate *, struct
+    MesytecMxdc32Module *, struct EventBuffer *, const uint32_t *, uint32_t,
+    uint32_t *);
 
 #endif
