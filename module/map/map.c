@@ -211,6 +211,7 @@ map_map(uint32_t a_address, size_t a_bytes, enum Keyword a_blt_mode, int
 		sum = 0;
 		(void)sum;
 		for (trial = 0; trial < 5; ++trial) {
+#define SAMPLE_N 10
 #define TSAMPLE(id) do {\
 		double dt = t1 - t0;\
 		if (dt < td[id]) {\
@@ -228,13 +229,13 @@ map_map(uint32_t a_address, size_t a_bytes, enum Keyword a_blt_mode, int
 			t0 = time_getd();
 			switch (a_poke_r_bits) {
 			case 32:
-				for (i = 0; i < 1000; ++i) {
+				for (i = 0; i < SAMPLE_N; ++i) {
 					sum += map_sicy_read(mapper,
 					    MAP_MOD_R, 32, a_poke_r_ofs);
 				}
 				break;
 			case 16:
-				for (i = 0; i < 1000; ++i) {
+				for (i = 0; i < SAMPLE_N; ++i) {
 					sum += map_sicy_read(mapper,
 					    MAP_MOD_R, 16, a_poke_r_ofs);
 				}
@@ -250,13 +251,13 @@ map_map(uint32_t a_address, size_t a_bytes, enum Keyword a_blt_mode, int
 			t0 = time_getd();
 			switch (a_poke_w_bits) {
 			case 32:
-				for (i = 0; i < 1000; ++i) {
+				for (i = 0; i < SAMPLE_N; ++i) {
 					map_sicy_write(mapper, MAP_MOD_W, 32,
 					    a_poke_w_ofs, a_poke_w_value);
 				}
 				break;
 			case 16:
-				for (i = 0; i < 1000; ++i) {
+				for (i = 0; i < SAMPLE_N; ++i) {
 					map_sicy_write(mapper, MAP_MOD_W, 16,
 					    a_poke_w_ofs, a_poke_w_value);
 				}
@@ -273,13 +274,13 @@ map_map(uint32_t a_address, size_t a_bytes, enum Keyword a_blt_mode, int
 			strlcpy_(str_r, "skipped", sizeof str_r);
 		} else {
 			snprintf_(str_r, sizeof str_r, "%dns",
-			    (int)(1e6 * (td[1] - td[0])));
+			    (int)(1e9 * (td[1] - td[0]) / SAMPLE_N));
 		}
 		if (0 == a_poke_w_bits) {
 			strlcpy_(str_w, "skipped", sizeof str_w);
 		} else {
 			snprintf_(str_w, sizeof str_w, "%dns",
-			    (int)(1e6 * (td[2] - td[0])));
+			    (int)(1e9 * (td[2] - td[0]) / SAMPLE_N));
 		}
 		if (0 < a_poke_r_bits &&
 		    0 < a_poke_w_bits) {
