@@ -38,6 +38,16 @@
 #include <util/sigbus.h>
 #include <util/time.h>
 
+#if HAS_CMVLC || 1
+#include "cmvlc.h"
+/*#include "../src/mvlc_const.h"*/
+#include "cmvlc_stackcmd.h"
+#include "cmvlc_supercmd.h"
+
+extern struct cmvlc_client *g_cmvlc;
+#define cmvlc g_cmvlc
+#endif
+
 #define NAME "Mesytec Mxdc32"
 
 #define COUNTER_VALUE(data) (0x3fffffff & (data))
@@ -447,6 +457,71 @@ mesytec_mxdc32_post_init(struct MesytecMxdc32Module *a_mxdc32)
 	MAP_WRITE(a_mxdc32->sicy_map, start_acq, 1);
 	LOGF(spam)(LOGL, NAME" post_init(ctr=0x%08x) }",
 	    a_mxdc32->module.event_counter.value);
+
+	if (1)
+	{
+	  struct cmvlc_stackcmdbuf stack_object;
+	  struct cmvlc_stackcmdbuf *stack;
+
+	  uint32_t vme_base = 0x21000000;
+
+	  /* We'd get it as pointer, so do that. */
+	  stack = &stack_object;
+
+	  /* Clear library state of stacks. */
+	  cmvlc_reset_stacks(cmvlc);
+
+	  cmvlc_stackcmd_init(stack);
+	  cmvlc_stackcmd_start(stack, stack_out_pipe_data);
+
+	  cmvlc_stackcmd_marker(stack, 0x12345678);
+
+	  cmvlc_stackcmd_vme_rw(stack, vme_base + 0x6092, 0, vme_rw_read,
+				vme_user_A32, vme_D16);
+	  cmvlc_stackcmd_vme_rw(stack, vme_base + 0x6094, 0, vme_rw_read,
+				vme_user_A32, vme_D16);
+
+	  cmvlc_stackcmd_marker(stack, 0x23456789);
+
+	  cmvlc_stackcmd_vme_block(stack, vme_base,
+				   vme_rw_read, vme_user_MBLT_A32, 0xffff);
+	  cmvlc_stackcmd_vme_rw(stack, vme_base + 0x6034, 1, vme_rw_write,
+				vme_user_A32, vme_D16);
+
+	  cmvlc_stackcmd_marker(stack, 0x3456789a);
+
+	  cmvlc_stackcmd_end(stack);
+
+	  /* The readout stack is for free-running.
+	   * Cheat by triggering it by a periodic timer.
+	   * 1 kHz - most the MVLC internal timers can do.
+	   */
+	  cmvlc_setup_stack(cmvlc, stack, 4, 0x0040 | 20); /* trig by timer */
+
+	  /* Timer 0 period. */
+	  cmvlc_mvlc_write(cmvlc, 0x1180, 1);
+
+	  /* Tell MVLC where to send readout data. */
+	  if (cmvlc_readout_attach(cmvlc) < 0)
+	    log_die(LOGL, "Failed to attach MVLC data output.");
+
+	  {
+	    /* Setup pointers to stacks, their triggers. */
+	    if (cmvlc_set_daq_mode(cmvlc, 0, 1,
+				   NULL, 0, 0) < 0)
+	      log_die(LOGL, "Failed to setup MVLC stacks and IRQ stack map.");
+	  }
+
+
+	  {
+	    /* Enable DAQ mode. */
+	    if (cmvlc_set_daq_mode(cmvlc, 1, 0, NULL, 0, 0) < 0)
+	      log_die(LOGL, "Failed to set MVLC DAQ mode.");
+	  }
+
+
+	}
+
 	return 1;
 }
 
@@ -455,6 +530,105 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
     *a_mxdc32, struct EventBuffer *a_event_buffer, int a_is_eob_old, int
     a_skip_event_counter_check)
 {
+	uint32_t *outp;
+	uint32_t result;
+
+	int ret;
+	uint32_t dest[0x10000];
+	size_t   event_len = 0;
+	struct cmvlc_event_info info;
+
+	uint32_t remain;
+	size_t used;
+	size_t block_len;
+
+	LOGF(spam)(LOGL, NAME" readout {");
+
+	outp = a_event_buffer->ptr;
+        result = 0;
+
+	(void) a_crate;
+	(void) a_mxdc32;
+	(void) a_event_buffer;
+	(void) a_is_eob_old;
+	(void) a_skip_event_counter_check;
+
+	ret = cmvlc_readout_get_event(cmvlc, dest,
+				      sizeof (dest) / sizeof (dest[0]),
+				      &event_len, &info);
+
+	if (ret < 0)
+	  {
+	    log_error(LOGL, "Mesytec Mxdc32: Failed to get cmvlc event: "
+		      "%d.", ret);
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	if (event_len < 6 ||
+	    info._errors ||
+	    info._stacknum != 4 ||
+	    info._ctrlid != 0)
+	  {
+	    log_error(LOGL, "Mesytec Mxdc32: Bad cmvlc event: "
+		      "len: %d flags: %d stack: %d ctrlid: %d.",
+		      (int) event_len,
+		      info._errors,
+		      info._stacknum,
+		      info._ctrlid);
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	/* Check that the markers in the data are as expected. */
+	/* dest[1] and dest[2] hold the low and high words of the
+	 * event counter.  (Not useful for free-running.)
+	 */
+	if (dest[0]                != 0x12345678 ||
+	    dest[3]                != 0x23456789 ||
+	    dest[event_len-1]      != 0x3456789a ||
+	    (dest[4] & 0xff5f0000) != 0xf5000000) /* 8 or 2 */
+	  {
+	    log_error(LOGL, "Mesytec Mxdc32: Malformed cmvlc event.");
+	    /* Since we are *not* writing the buffer we got from
+	     * cmvlc to the output buffer, we dump it.
+	     */
+	    log_dump(LOGL, dest, event_len * sizeof (uint32_t));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	remain = event_len - 5;
+
+	ret =
+	  cmvlc_block_get(cmvlc,
+			  dest+4, remain, &used,
+			  outp, 0x10000, &block_len);
+
+	if (ret < 0)
+	  {
+	    log_error(LOGL, "Mesytec Mxdc32: Failed to get cmvlc block: "
+		      "%d.", ret);
+	    log_dump(LOGL, dest, event_len * sizeof (uint32_t));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+	if (used != remain)
+	  {
+	    log_error(LOGL, "Mesytec Mxdc32: cmvlc block "
+		      "did not exhaust buffer.");
+	    log_dump(LOGL, dest, event_len * sizeof (uint32_t));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	outp += block_len;
+
+ done:
+	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
+	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
+	return result;
+#if 0
 	uint32_t *outp;
 	uint32_t counter_eob, data_size, expected, i, result;
 	unsigned unit_size;
@@ -575,15 +749,18 @@ mesytec_mxdc32_readout_done:
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
 	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", result);
 	return result;
+#endif
 }
 
 uint32_t
 mesytec_mxdc32_readout_dt(struct MesytecMxdc32Module *a_mxdc32)
 {
 	LOGF(spam)(LOGL, NAME" readout_dt {");
+#if 0
 	a_mxdc32->module.event_counter.value = get_event_counter(a_mxdc32);
 	a_mxdc32->buffer_data_length =
 	    MAP_READ(a_mxdc32->sicy_map, buffer_data_length);
+#endif
 	LOGF(spam)(LOGL, NAME" readout_dt(ctr=0x%08x) }",
 	    a_mxdc32->module.event_counter.value);
 	return 0;
