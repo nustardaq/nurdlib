@@ -45,6 +45,7 @@ struct CrateTag;
 struct GsiPex;
 struct Module;
 struct ModuleCounter;
+struct cmvlc_stackcmdbuf;
 
 typedef void		(*CvtSetCallback)(struct Module *, unsigned);
 typedef uint32_t	(*ScalerGetCallback)(struct Module *, void *, struct
@@ -160,5 +161,10 @@ void			crate_tag_pedestal_prepare(struct CrateTag *)
 	FUNC_NONNULL(());
 void			crate_tag_pedestal_update(struct CrateTag *)
 	FUNC_NONNULL(());
+
+void			crate_cmvlc_init(struct Crate *,
+    struct cmvlc_stackcmdbuf *, int);
+uint32_t		crate_cmvlc_fetch(struct Crate *, struct EventBuffer *,
+    uint32_t *, uint32_t *);
 
 #endif
