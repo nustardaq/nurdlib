@@ -193,6 +193,7 @@ static char const g_keyword_array[][52] = {
 	"extra_word",
 	"false",
 	"fastest",
+	"fatal",
 	"ff",
 	"fifo_length",
 	"filter_trace",

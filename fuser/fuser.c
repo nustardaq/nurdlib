@@ -863,6 +863,7 @@ log_callback(char const *a_file, int a_line_no, unsigned a_level, char const
 	LOG_LEVEL(DEBUG, DEBUG);
 	LOG_LEVEL(SPAM, SPAM);
 	LOG_LEVEL(ERROR, ERROR);
+	LOG_LEVEL(FATAL, FATAL);
 	default:
 		lwroc_log_lvl = LWROC_MSGLVL_BUG;
 		break;
