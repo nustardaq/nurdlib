@@ -43,6 +43,8 @@ typedef void (*LogCallback)(char const *, int, unsigned, char const *);
 extern struct LogLevel const *const g_log_level_##name##_;\
 void	log_##name##_printf_(LOGL_ARGS, char const *, ...) FUNC_PRINTF(3, 4)
 
+/* For immediate stop. */
+LOG_LEVEL_DECLARE_(fatal);
 /* For quiet production running. */
 LOG_LEVEL_DECLARE_(info);
 /* For talkative running if you're paranoid. */
