@@ -78,5 +78,12 @@ uint32_t	mesytec_mdpp_readout_shadow(struct MesytecMdppModule *, struct
     EventBuffer *) FUNC_RETURNS;
 void		mesytec_mdpp_use_pedestals(struct MesytecMdppModule *);
 void		mesytec_mdpp_zero_suppress(struct MesytecMdppModule *, int);
+void		mesytec_mdpp_cmvlc_init(struct MesytecMdppModule *,
+    struct cmvlc_stackcmdbuf *, int);
+uint32_t	mesytec_mdpp_cmvlc_fetch_dt(struct MesytecMdppModule *,
+    const uint32_t *, uint32_t, uint32_t *);
+uint32_t	mesytec_mdpp_cmvlc_fetch(struct Crate *, struct
+    MesytecMdppModule *, struct EventBuffer *, const uint32_t *, uint32_t,
+    uint32_t *);
 
 #endif
