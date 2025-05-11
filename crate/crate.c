@@ -2422,3 +2422,155 @@ tag_get(struct Crate *a_crate, char const *a_name)
 	TAILQ_INSERT_TAIL(&a_crate->tag_list, tag, next);
 	return tag;
 }
+
+void
+crate_cmvlc_init(struct Crate *a_crate, struct cmvlc_stackcmdbuf *a_stack,
+    int a_dt)
+{
+	struct Module *module;
+
+	LOGF(info)(LOGL, "crate_cmvlc_init(%s,%d) {", a_crate->name, a_dt);
+
+	TAILQ_FOREACH(module, &a_crate->module_list, next) {
+
+		if (NULL == module->props ||
+		    NULL == module->props->cmvlc_init) {
+			continue;
+		}
+		push_log_level(module);
+		module->props->cmvlc_init(module, a_stack, a_dt);
+		pop_log_level(module);
+	}
+
+	LOGF(info)(LOGL, "crate_cmvlc_init }");
+}
+
+/* TODO: also send along pointer and size of *full* MVLC sequence
+ * buffer such that dump can show everything, also stuff that may have
+ * been consumed before we got called.
+ */
+uint32_t
+crate_cmvlc_fetch_dt(struct Crate *a_crate,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct Module *module;
+	uint32_t result;
+	const uint32_t *in_buffer;
+	uint32_t in_remain;
+	uint32_t used;
+
+	LOGF(spam)(LOGL, "crate_cmvlc_fetch_dt(%s) {", a_crate->name);
+	result = 0;
+	/* Remember full buffer. */
+	in_buffer = a_in_buffer;
+	in_remain = a_in_remain;
+
+	*a_in_used = 0;
+
+	TAILQ_FOREACH(module, &a_crate->module_list, next) {
+
+		if (NULL == module->props ||
+		    NULL == module->props->cmvlc_fetch_dt) {
+			continue;
+		}
+		push_log_level(module);
+		result |= module->props->cmvlc_fetch_dt(module,
+		    a_in_buffer, a_in_remain, &used);
+		pop_log_level(module);
+
+		/* An error means that the packaging is out of sync.
+		 * Do not try to decode further modules.
+		 */
+		if (0 != result) {
+			log_error(LOGL, "%s[%u]=%s cmvlc fetch_dt"
+			    " error=0x%08x,"
+			    " dumping data:", a_crate->name, module->id,
+			    keyword_get_string(module->type), result);
+			log_dump(LOGL, in_buffer,
+			    in_remain * sizeof (uint32_t));
+			a_crate->state = STATE_REINIT;
+			goto done;
+		}
+
+		a_in_buffer += used;
+		a_in_remain -= used;
+		*a_in_used += used;
+	}
+
+done:
+	LOGF(spam)(LOGL, "crate_cmvlc_fetch_dt }");
+	return result;
+}
+
+/* TODO: also send along pointer and size of *full* MVLC sequence
+ * buffer such that dump can show everything, also stuff that may have
+ * been consumed before we got called.
+ */
+uint32_t
+crate_cmvlc_fetch(struct Crate *a_crate, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct Module *module;
+	struct EventBuffer eb_orig;
+	struct EventConstBuffer ceb;
+	uint32_t result;
+	const uint32_t *in_buffer;
+	uint32_t in_remain;
+	uint32_t used;
+
+	LOGF(spam)(LOGL, "crate_cmvlc_fetch(%s) {", a_crate->name);
+	result = 0;
+	/* Remember full buffer. */
+	in_buffer = a_in_buffer;
+	in_remain = a_in_remain;
+
+	*a_in_used = 0;
+
+	TAILQ_FOREACH(module, &a_crate->module_list, next) {
+
+		if (NULL == module->props ||
+		    NULL == module->props->cmvlc_fetch) {
+			continue;
+		}
+		push_log_level(module);
+		COPY(eb_orig, *a_event_buffer);
+		result |= module->props->cmvlc_fetch(a_crate, module,
+		    a_event_buffer, a_in_buffer, a_in_remain, &used);
+		EVENT_BUFFER_INVARIANT(*a_event_buffer, eb_orig);
+		ceb.ptr = eb_orig.ptr;
+		ceb.bytes = eb_orig.bytes - a_event_buffer->bytes;
+		COPY(module->eb_final, ceb);
+		pop_log_level(module);
+
+		/* An error means that the packaging is out of sync.
+		 * Do not try to decode further modules.
+		 */
+		if (0 != result) {
+			log_error(LOGL, "%s[%u]=%s cmvlc fetch error=0x%08x,"
+			    " dumping data:", a_crate->name, module->id,
+			    keyword_get_string(module->type), result);
+			log_dump(LOGL, in_buffer,
+			    in_remain * sizeof (uint32_t));
+			a_crate->state = STATE_REINIT;
+			goto done;
+		}
+
+		result = module->props->parse_data(a_crate, module, &ceb,
+		    0);
+		if (0 != result) {
+			log_error(LOGL, "%s[%u]=%s parse error=0x%08x,"
+			    " dumping data:", a_crate->name, module->id,
+			    keyword_get_string(module->type), result);
+		}
+
+		module->crate_counter_prev = module->crate_counter->value;
+
+		a_in_buffer += used;
+		a_in_remain -= used;
+		*a_in_used += used;
+	}
+
+done:
+	LOGF(spam)(LOGL, "crate_cmvlc_fetch }");
+	return result;
+}
