@@ -515,6 +515,23 @@ mesytec_mdpp_post_init(struct MesytecMdppModule *a_mdpp)
 	return mesytec_mxdc32_post_init(&a_mdpp->mxdc32);
 }
 
+void
+mesytec_mdpp_cmvlc_init(struct MesytecMdppModule *a_mdpp,
+			struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	mesytec_mxdc32_cmvlc_init(&a_mdpp->mxdc32, a_stack, a_dt);
+}
+
+uint32_t
+mesytec_mdpp_cmvlc_fetch(struct Crate *a_crate,
+			 struct MesytecMdppModule *a_mdpp,
+			 struct EventBuffer *a_event_buffer,
+			 uint32_t *a_in_buffer, uint32_t *a_in_remain)
+{
+	return mesytec_mxdc32_cmvlc_fetch(a_crate, &a_mdpp->mxdc32,
+	    a_event_buffer, a_in_buffer, a_in_remain);
+}
+
 uint32_t
 mesytec_mdpp_readout(struct Crate *a_crate, struct MesytecMdppModule *a_mdpp,
     struct EventBuffer *a_event_buffer, int a_is_eob_old)
