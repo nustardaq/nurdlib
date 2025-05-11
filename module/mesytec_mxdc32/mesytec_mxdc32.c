@@ -652,9 +652,11 @@ uint32_t
 mesytec_mxdc32_readout_dt(struct MesytecMxdc32Module *a_mxdc32)
 {
 	LOGF(spam)(LOGL, NAME" readout_dt {");
+#if 0
 	a_mxdc32->module.event_counter.value = get_event_counter(a_mxdc32);
 	a_mxdc32->buffer_data_length =
 	    MAP_READ(a_mxdc32->sicy_map, buffer_data_length);
+#endif
 	LOGF(spam)(LOGL, NAME" readout_dt(ctr=0x%08x) }",
 	    a_mxdc32->module.event_counter.value);
 	return 0;
