@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2015-2024
+ * Copyright (C) 2015-2025
  * Bastian Löher
  * Michael Munch
  * Hans Toshihide Törnqvist
@@ -310,7 +310,6 @@ ctrl_client_config(struct CtrlClient *a_client, int a_crate_i, int a_module_j,
 		udp_client_send(a_client->client, &first->dgram);
 	}
 fail:
-	log_error(LOGL, "Packing failed.");
 	packer_list_free(&packer_list);
 }
 

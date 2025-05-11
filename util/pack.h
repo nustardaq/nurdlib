@@ -42,6 +42,7 @@
 #define PACK(packer, bits, value, label) \
 	do { \
 		if (!pack##bits(&packer, value)) { \
+			log_error(LOGL, "Packing " #value " failed."); \
 			goto label; \
 		} \
 	} while (0)
@@ -49,6 +50,7 @@
 	do { \
 		if (!pack_str(&packer, __FILE__) || \
 		    !pack16(&packer, __LINE__)) { \
+			log_error(LOGL, "Packing location failed."); \
 			goto label; \
 		} \
 	} while (0)

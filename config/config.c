@@ -2152,16 +2152,19 @@ int
 unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
     a_do_write)
 {
+	uint32_t mask[(KW_THIS_IS_ALWAYS_LAST + 31) / 32];
 	struct ScalarList scalar_list;
 	struct ItemList *item_list;
-	uint8_t item_num, item_i;
+	uint16_t item_num, item_i;
 
 	item_list = parent_get(a_block);
-	if (!unpack8(a_packer, &item_num)) {
+	if (!unpack16(a_packer, &item_num)) {
 		log_error(LOGL, "Could not unpack item_num.");
-		return 0;
+		goto unpack_snippet_fail;
 	}
-	LOGF(debug)(LOGL, "item_num=%d", item_num);
+	LOGF(debug)(LOGL, "item_num=%u.", item_num);
+
+	ZERO(mask);
 
 	TAILQ_INIT(&scalar_list);
 	for (item_i = 0; item_i < item_num; ++item_i) {
@@ -2169,7 +2172,7 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 		struct Scalar *scalar;
 		uint16_t name;
 		uint8_t item_type;
-		uint8_t scalar_num, scalar_i;
+		uint16_t scalar_num, scalar_i;
 
 		if (!unpack8(a_packer, &item_type) ||
 		    (CONFIG_BLOCK != item_type &&
@@ -2178,21 +2181,26 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 			log_error(LOGL, "item_type=%s.",
 			    (item_type == CONFIG_CONFIG)
 			    ? "config" : "block");
-			return 0;
+			goto unpack_snippet_fail;
 		}
 		LOGF(debug)(LOGL, "item_type=%s.",
 		    (item_type == CONFIG_CONFIG) ? "config" : "block");
 		if (!unpack16(a_packer, &name) ||
 		    (KW_NONE >= name || KW_THIS_IS_ALWAYS_LAST <= name)) {
-			log_error(LOGL, "Could not unpack name.");
-			log_error(LOGL, "name=%s.",
-			    keyword_get_string(name));
-			return 0;
+			log_error(LOGL, "Could not unpack name (id=%d).",
+			    name);
+			goto unpack_snippet_fail;
 		}
 		LOGF(debug)(LOGL, "name=%s.", keyword_get_string(name));
-		if (!unpack8(a_packer, &scalar_num)) {
+		if (mask[name / 32] & (1 << (31 & name))) {
+			log_error(LOGL, "Name=%s already configured, "
+			    "copy-paste error?", keyword_get_string(name));
+			goto unpack_snippet_fail;
+		}
+		mask[name / 32] |= 1 << (31 & name);
+		if (!unpack16(a_packer, &scalar_num)) {
 			log_error(LOGL, "Could not unpack scalar_num.");
-			return 0;
+			goto unpack_snippet_fail;
 		}
 		LOGF(debug)(LOGL, "scalar_num=%d.", scalar_num);
 
@@ -2215,7 +2223,7 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 					    keyword_get_string(item->name));
 				}
 				log_error(LOGL, "}");
-				return 0;
+				goto unpack_snippet_fail;
 			}
 			scalar = TAILQ_FIRST(&item->scalar_list);
 		}
@@ -2334,10 +2342,10 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 			if (TAILQ_EMPTY(&scalar_list)) {
 				parser_scalar_list_clear(&item->scalar_list);
 			} else {
-				dst = TAILQ_FIRST(&item->scalar_list);
 				while (!TAILQ_EMPTY(&scalar_list)) {
 					struct Scalar *src;
 
+					dst = TAILQ_FIRST(&item->scalar_list);
 					src = TAILQ_FIRST(&scalar_list);
 					for (;; dst = TAILQ_NEXT(dst, next)) {
 						if (TAILQ_END(

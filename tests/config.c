@@ -637,6 +637,7 @@ NTEST(MergeConfig)
 
 	/* TODO: Test RLE more. */
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* Empty packer should be ok. */
 	PACKER_CREATE_STATIC(packer, buf);
 	packer.bytes = 0;
@@ -645,14 +646,17 @@ NTEST(MergeConfig)
 	    0, 2));
 	NTRY_I(1, ==, config_get_int32(gate, KW_WIDTH, CONFIG_UNIT_NONE, 0,
 	    2));
+	NTRY_I(2, ==, config_get_bitmask(gate, KW_WIDTH, 0, 31));
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* Setting a non-existing config (adding) is not ok! */
 	PACKER_CREATE_STATIC(packer, buf);
 	/* The packed format is implemented in config/config.c. */
-	NTRY_BOOL(pack8(&packer, 1));                     /* Num configs. */
+	NTRY_BOOL(pack16(&packer, 1));                    /* Num configs. */
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));         /* Type = config. */
 	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));       /* Name. */
-	NTRY_BOOL(pack8(&packer, 1));                     /* Num scalars. */
+	NTRY_BOOL(pack16(&packer, 1));                    /* Num scalars. */
+	NTRY_BOOL(pack8(&packer, 0));                     /* Raw RLE. */
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER)); /* Scalar type. */
 	NTRY_BOOL(pack16(&packer, 0));                    /* Vector index. */
 	NTRY_BOOL(pack32(&packer, 2));                    /* Value. */
@@ -667,12 +671,14 @@ NTEST(MergeConfig)
 	    4));
 	NTRY_I(2, ==, config_get_bitmask(gate, KW_WIDTH, 0, 31));
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* Corrupt packer data is also not ok! */
 	PACKER_CREATE_STATIC(packer, buf);
-	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack16(&packer, 1));
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
 	NTRY_BOOL(pack16(&packer, KW_WIDTH));
-	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 2));
@@ -687,26 +693,29 @@ NTEST(MergeConfig)
 	    4));
 	NTRY_I(2, ==, config_get_bitmask(gate, KW_WIDTH, 0, 31));
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* The torture continues, double config (copy-paste?) also not ok! */
 	PACKER_CREATE_STATIC(packer, buf);
-	NTRY_BOOL(pack8(&packer, 2));
+	NTRY_BOOL(pack16(&packer, 2));
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
 	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
-	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 2));
 	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
 	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
-	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 3));
 	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	packer.bytes = packer.ofs;
 	packer.ofs = 0;
-	NTRY_BOOL(!config_merge(gate, &packer));
+	NTRY_BOOL(!config_merge(NULL, &packer));
 	/* Merging should be atomic, a bad merge should leave no traces. */
 	NTRY_I(1, ==, config_get_int32(NULL, KW_CLOCK_INPUT, CONFIG_UNIT_NONE,
 	    0, 4));
@@ -714,13 +723,14 @@ NTEST(MergeConfig)
 	    4));
 	NTRY_I(2, ==, config_get_bitmask(gate, KW_WIDTH, 0, 31));
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* Finally, one nice-guy merge. */
 	PACKER_CREATE_STATIC(packer, buf);
-	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack16(&packer, 1));
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
 	NTRY_BOOL(pack16(&packer, KW_WIDTH));
-	NTRY_BOOL(pack8(&packer, 1));
-	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 2));
@@ -735,13 +745,14 @@ NTEST(MergeConfig)
 	    4));
 	NTRY_I(4, ==, config_get_bitmask(gate, KW_WIDTH, 0, 31));
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* And another one, global. */
 	PACKER_CREATE_STATIC(packer, buf);
-	NTRY_BOOL(pack8(&packer, 1));
+	NTRY_BOOL(pack16(&packer, 1));
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG));
 	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
-	NTRY_BOOL(pack8(&packer, 1));
-	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 2));
@@ -755,25 +766,26 @@ NTEST(MergeConfig)
 	    4));
 	NTRY_I(4, ==, config_get_bitmask(gate, KW_WIDTH, 0, 31));
 
+LOGF(info)(LOGL, "%d", __LINE__);
 	/* And one with a block. */
 	PACKER_CREATE_STATIC(packer, buf);
-	NTRY_BOOL(pack8(&packer, 2)); /* clock_input + GATE = 2 items. */
+	NTRY_BOOL(pack16(&packer, 2)); /* clock_input + GATE = 2 items. */
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG)); /* 0 = clock_input. */
 	NTRY_BOOL(pack16(&packer, KW_CLOCK_INPUT));
-	NTRY_BOOL(pack8(&packer, 1));
-	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 3));
 	NTRY_BOOL(pack8(&packer, CONFIG_UNIT_NONE->idx));
 	NTRY_BOOL(pack8(&packer, CONFIG_BLOCK)); /* 1 = GATE. */
 	NTRY_BOOL(pack16(&packer, KW_GATE));
-	NTRY_BOOL(pack8(&packer, 0));
-	NTRY_BOOL(pack8(&packer, 1)); /* width = 1 item. */
+	NTRY_BOOL(pack16(&packer, 0));
+	NTRY_BOOL(pack16(&packer, 1)); /* width = 1 item. */
 	NTRY_BOOL(pack8(&packer, CONFIG_CONFIG)); /* 0 = width. */
 	NTRY_BOOL(pack16(&packer, KW_WIDTH));
-	NTRY_BOOL(pack8(&packer, 1));
-	NTRY_BOOL(pack8(&packer, 0)); /* Raw RLE. */
+	NTRY_BOOL(pack16(&packer, 1));
+	NTRY_BOOL(pack8(&packer, 0));
 	NTRY_BOOL(pack8(&packer, CONFIG_SCALAR_INTEGER));
 	NTRY_BOOL(pack16(&packer, 0));
 	NTRY_BOOL(pack32(&packer, 3));
