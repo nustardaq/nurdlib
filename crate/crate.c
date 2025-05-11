@@ -2074,7 +2074,7 @@ module_counter_latch(struct Module *a_module)
 void
 module_init_id_clear(struct Crate *a_crate)
 {
-	LOGF(debug)(LOGL, "module_init_id_clear {");
+	LOGF(spam)(LOGL, "module_init_id_clear {");
 	while (!TAILQ_EMPTY(&a_crate->module_init_id_list)) {
 		struct ModuleID *p;
 
@@ -2082,7 +2082,7 @@ module_init_id_clear(struct Crate *a_crate)
 		TAILQ_REMOVE(&a_crate->module_init_id_list, p, next);
 		FREE(p);
 	}
-	LOGF(debug)(LOGL, "module_init_id_clear }");
+	LOGF(spam)(LOGL, "module_init_id_clear }");
 }
 
 void
