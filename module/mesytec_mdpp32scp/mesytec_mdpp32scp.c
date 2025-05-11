@@ -136,19 +136,19 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	/* Pairwise settings */
 	CONFIG_GET_INT_ARRAY(mdpp32scp->config.tf,
 	    mdpp32scp->mdpp.mxdc32.module.config,
-	    KW_DIFFERENTIATION, CONFIG_UNIT_NS, 25, 1587);
+	    KW_DIFFERENTIATION, CONFIG_UNIT_NS, 1*12.5, 125*12.5);
 	CONFIG_GET_INT_ARRAY(mdpp32scp->config.gain,
 	    mdpp32scp->mdpp.mxdc32.module.config,
 	    KW_GAIN, CONFIG_UNIT_NONE, 100, 20000);
 	CONFIG_GET_INT_ARRAY(mdpp32scp->config.shaping,
 	    mdpp32scp->mdpp.mxdc32.module.config,
-	    KW_SHAPING_TIME, CONFIG_UNIT_NS, 100, 25000);
+	    KW_SHAPING_TIME, CONFIG_UNIT_NS, 4*12.5, 1999*12.5);
 	CONFIG_GET_INT_ARRAY(mdpp32scp->config.blr,
 	    mdpp32scp->mdpp.mxdc32.module.config,
 	    KW_BLR, CONFIG_UNIT_NONE, 0, 2);
 	CONFIG_GET_INT_ARRAY(mdpp32scp->config.rise_time,
 	    mdpp32scp->mdpp.mxdc32.module.config,
-	    KW_SIGNAL_RISETIME, CONFIG_UNIT_NS, 0, 1580);
+	    KW_SIGNAL_RISETIME, CONFIG_UNIT_NS, 0, 127*12.5);
 	for (i = 0; i < MDPP32SCP_PR_N; ++i) {
 		LOGF(verbose)(LOGL, "Input gain[%d]=%.2f (=%d/100).", i,
 		    mdpp32scp->config.gain[i] / 100.,
