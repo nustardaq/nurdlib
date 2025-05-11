@@ -50,10 +50,11 @@ static void	print(struct LogFile const *, int, enum Keyword, char const *,
 #define LOG_LEVEL_DEFINE(name, index)\
     static struct LogLevel const g_##name##_ = {index};\
     struct LogLevel const *const g_log_level_##name##_ = &g_##name##_
-LOG_LEVEL_DEFINE(info, 0);
-LOG_LEVEL_DEFINE(verbose, 1);
-LOG_LEVEL_DEFINE(debug, 2);
-LOG_LEVEL_DEFINE(spam, 3);
+LOG_LEVEL_DEFINE(fatal, 0);
+LOG_LEVEL_DEFINE(info, 1);
+LOG_LEVEL_DEFINE(verbose, 2);
+LOG_LEVEL_DEFINE(debug, 3);
+LOG_LEVEL_DEFINE(spam, 4);
 static struct LogLevel const *g_log_stack[10] = {&g_info_};
 static unsigned g_stack_i;
 static unsigned g_indent;
@@ -101,6 +102,8 @@ log_die(struct LogFile const *a_file, int a_line_no, char const *a_fmt, ...)
 	va_start(args, a_fmt);
 	log_errorv(a_file, a_line_no, a_fmt, args);
 	va_end(args);
+	/* Even better would be if log_errorv above is fatal error level. */
+	LOGF(fatal)(LOGL, "Fatal error.");
 	log_error(a_file, a_line_no, "Calling abort()...");
 	abort();
 }
@@ -297,6 +300,7 @@ log_##name##_printf_(struct LogFile const *a_file, int a_line_no, char const \
 	va_end(args);\
 }\
 void log_##name##_printf_(struct LogFile const *, int, char const *, ...)
+LOG_PRINTF_DEFINE(fatal, KW_FATAL);
 LOG_PRINTF_DEFINE(info, KW_INFO);
 LOG_PRINTF_DEFINE(verbose, KW_VERBOSE);
 LOG_PRINTF_DEFINE(debug, KW_DEBUG);
@@ -345,6 +349,7 @@ print(struct LogFile const *a_file, int a_line_no, enum Keyword a_level, char
 	size_t ofs;
 
 	assert(
+	    KW_FATAL == a_level ||
 	    KW_INFO == a_level ||
 	    KW_VERBOSE == a_level ||
 	    KW_DEBUG == a_level ||
