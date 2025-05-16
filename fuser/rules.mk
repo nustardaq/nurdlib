@@ -23,7 +23,7 @@ DIR_$(NAME):=fuser
 C_$(NAME):=$(DIR_$(NAME))/fuser.c
 
 ifeq (fuser_drasi,$(MAKECMDGOALS))
-DRASI_PATH=../drasi
+DRASI_PATH=../drasi.cmvlc
 OBJ_$(NAME):=$(BUILD_DIR)/$(DIR_$(NAME))/fuser_drasi.o
 DRASI_CONFIG=$(DRASI_PATH)/bin/drasi-config.sh
 FUSER_CPPFLAGS:=$(CPPFLAGS_) -DFUSER_DRASI=1 $(shell $(DRASI_CONFIG) --f-user-header --mbscompat --cflags)
