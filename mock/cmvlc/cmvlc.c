@@ -22,6 +22,8 @@
  */
 
 #include <cmvlc.h>
+#include <cmvlc_stackcmd.h>
+#include <cmvlc_supercmd.h>
 
 int
 cmvlc_close(struct cmvlc_client *a)
@@ -96,5 +98,112 @@ int cmvlc_block_get(struct cmvlc_client *a_a, const uint32_t *a_b,
 	(void)a_e;
 	(void)a_f;
 	(void)a_g;
+	return 0;
+}
+
+/* cmvlc_stackcmd_...() */
+
+void cmvlc_stackcmd_init(struct cmvlc_stackcmdbuf *a_a)
+{
+	(void)a_a;
+	return 0;
+}
+
+void cmvlc_stackcmd_start(struct cmvlc_stackcmdbuf *a_a,
+			  enum cmvlc_stack_out_pipe a_b)
+{
+	(void)a_a;
+	(void)a_b;
+	return 0;
+}
+
+void cmvlc_stackcmd_end(struct cmvlc_stackcmdbuf *a_a)
+{
+	(void)a_a;
+	return 0;
+}
+
+void cmvlc_stackcmd_vme_rw(struct cmvlc_stackcmdbuf *a_a,
+			   uint32_t a_b, uint32_t a_c,
+			   enum cmvlc_vme_rw_op a_d,
+			   enum cmvlc_vme_addr_mode a_e,
+			   enum cmvlc_vme_data_width a_f)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	(void)a_f;
+	return 0;
+}
+
+void cmvlc_stackcmd_vme_block(struct cmvlc_stackcmdbuf *a_a,
+			      uint32_t a_b,
+			      enum cmvlc_vme_rw_op a_c,
+			      enum cmvlc_vme_addr_mode a_d,
+			      uint16_t a_e)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	return 0;
+}
+
+void cmvlc_stackcmd_write_special(struct cmvlc_stackcmdbuf *a_a,
+				  enum cmvlc_write_special a_b)
+{
+	(void)a_a;
+	(void)a_b;
+	return 0;
+}
+
+void cmvlc_stackcmd_marker(struct cmvlc_stackcmdbuf *a_a,
+			   uint32_t a_b)
+{
+	(void)a_a;
+	(void)a_b;
+	return 0;
+}
+
+void cmvlc_stackcmd_wait(struct cmvlc_stackcmdbuf *a_a,
+			 uint32_t a_b)
+{
+	(void)a_a;
+	(void)a_b;
+	return 0;
+}
+
+void cmvlc_stackcmd_wait_ns(struct cmvlc_stackcmdbuf *a_a,
+			    uint32_t a_b)
+{
+	(void)a_a;
+	(void)a_b;
+	return 0;
+}
+
+void cmvlc_stackcmd_mask_rotate_accu(struct cmvlc_stackcmdbuf *a_a,
+				     uint32_t a_b,
+				     uint8_t a_c)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	return 0;
+}
+
+void cmvlc_stackcmd_signal_accu(struct cmvlc_stackcmdbuf *a_a)
+{
+	(void)a_a;
+	return 0;
+}
+
+void cmvlc_stackcmd_set_accu(struct cmvlc_stackcmdbuf *a_a,
+			     uint32_t a_b)
+{
+	(void)a_a;
+	(void)a_b;
 	return 0;
 }
