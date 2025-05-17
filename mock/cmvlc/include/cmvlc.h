@@ -28,7 +28,7 @@
 
 #define CMVLC_CONNECT_FLAGS_DATA 1
 
-enum cmvlc_vme_addr_width {
+enum cmvlc_vme_addr_mode {
 	vme_user_A16,
 	vme_user_A24,
 	vme_user_A32,
@@ -52,9 +52,9 @@ struct cmvlc_client	*cmvlc_connect(const char *, int, const char **, FILE
 const char		*cmvlc_last_error(struct cmvlc_client *);
 
 int			cmvlc_single_vme_read(struct cmvlc_client *, uint32_t,
-    uint32_t *, enum cmvlc_vme_addr_width, enum cmvlc_vme_data_width);
+    uint32_t *, enum cmvlc_vme_addr_mode, enum cmvlc_vme_data_width);
 int			cmvlc_single_vme_write(struct cmvlc_client *,
-    uint32_t, uint32_t, enum cmvlc_vme_addr_width, enum cmvlc_vme_data_width);
+    uint32_t, uint32_t, enum cmvlc_vme_addr_mode, enum cmvlc_vme_data_width);
 int			cmvlc_set_daq_mode(struct cmvlc_client *, int, int,
     uint8_t (*)[2], int, uint8_t);
 int			cmvlc_block_get(struct cmvlc_client *,
