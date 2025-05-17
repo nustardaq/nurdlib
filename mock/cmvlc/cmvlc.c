@@ -50,7 +50,7 @@ cmvlc_last_error(struct cmvlc_client *a)
 
 int
 cmvlc_single_vme_read(struct cmvlc_client *a_a, uint32_t a_b, uint32_t *a_c,
-    enum cmvlc_vme_addr_width a_d, enum cmvlc_vme_data_width a_e)
+    enum cmvlc_vme_addr_mode a_d, enum cmvlc_vme_data_width a_e)
 {
 	(void)a_a;
 	(void)a_b;
@@ -62,7 +62,7 @@ cmvlc_single_vme_read(struct cmvlc_client *a_a, uint32_t a_b, uint32_t *a_c,
 
 int
 cmvlc_single_vme_write(struct cmvlc_client *a_a, uint32_t a_b, uint32_t a_c,
-    enum cmvlc_vme_addr_width a_d, enum cmvlc_vme_data_width a_e)
+    enum cmvlc_vme_addr_mode a_d, enum cmvlc_vme_data_width a_e)
 {
 	(void)a_a;
 	(void)a_b;
