@@ -85,3 +85,16 @@ cmvlc_set_daq_mode(struct cmvlc_client *a_a, int a_b, int a_c,
 	(void)a_f;
 	return 0;
 }
+
+int cmvlc_block_get(struct cmvlc_client *a_a, const uint32_t *a_b,
+    size_t a_c,  size_t *a_d, uint32_t *a_e, size_t a_f, size_t *a_g)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	(void)a_f;
+	(void)a_g;
+	return 0;
+}
