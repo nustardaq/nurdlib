@@ -48,7 +48,7 @@
 
 static void	cmvlc_init(void);
 
-static struct cmvlc_client *g_cmvlc;
+struct cmvlc_client *g_cmvlc;
 static struct {
 	char	ip[32];
 } g_override = {""};
