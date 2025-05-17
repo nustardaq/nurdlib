@@ -43,6 +43,15 @@ enum cmvlc_vme_data_width {
 	vme_D32
 };
 
+enum cmvlc_vme_rw_op {
+	vme_rw_read,
+	vme_rw_read_swap,
+	vme_rw_read_mem,
+	vme_rw_read_swap_mem,
+	vme_rw_read_to_accu,
+	vme_rw_write
+};
+
 struct cmvlc_client {
 	int	dummy;
 };
