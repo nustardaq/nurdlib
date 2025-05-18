@@ -35,7 +35,8 @@ static struct CtrlServer *g_server = NULL;
 static int g_is_setup;
 
 struct Crate *
-nurdlib_setup(LogCallback a_log_callback, char const *a_config_path)
+nurdlib_setup(LogCallback a_log_callback, char const *a_config_path,
+    InitCallback init_callback, InitCallback deinit_callback)
 {
 	struct Crate *crate;
 
@@ -50,6 +51,7 @@ nurdlib_setup(LogCallback a_log_callback, char const *a_config_path)
 	map_setup();
 	config_load(a_config_path);
 	crate = crate_create();
+	crate_set_init_callback(crate, init_callback, deinit_callback);
 	crate_init(crate);
 	g_server = ctrl_server_create();
 	g_is_setup = 1;
