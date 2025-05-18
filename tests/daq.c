@@ -39,7 +39,7 @@ NTEST(Run)
 
 	map_user_add(0x01000000, mem, sizeof mem);
 
-	crate = nurdlib_setup(NULL, "tests/crate_dummy.cfg");
+	crate = nurdlib_setup(NULL, "tests/crate_dummy.cfg", NULL, NULL);
 
 	tag = crate_get_tag_by_name(crate, NULL);
 
