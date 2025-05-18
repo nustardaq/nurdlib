@@ -66,8 +66,7 @@ thread_callback(void *a_data)
 	/* Make sure to start with 1. */
 	no = ++g_thread_no;
 	thread_mutex_unlock(&g_thread_no_mutex);
-	/* TODO: Can we give a good purpose? */
-	lwroc_thread_user_init(no, NULL);
+	lwroc_thread_user_init(no, "fuser-mutex");
 }
 
 static void untriggered_loop(int *);
