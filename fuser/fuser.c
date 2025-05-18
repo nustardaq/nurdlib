@@ -278,7 +278,7 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 #endif
 
 	/* Provide DAQ backend logging (again) and load config file. */
-	g_crate = nurdlib_setup(log_callback, g_cfg_path);
+	g_crate = nurdlib_setup(log_callback, g_cfg_path, NULL, NULL);
 
 	/*
 	 * Get the "Default" tag and tags "1", "2" etc, one for each TRIVA
