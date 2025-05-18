@@ -24,8 +24,10 @@
 #define NURDLIB_H
 
 #include <nurdlib/log.h>
+#include <nurdlib/crate.h>
 
-struct Crate	*nurdlib_setup(LogCallback, char const *) FUNC_RETURNS;
+struct Crate	*nurdlib_setup(LogCallback, char const *, InitCallback,
+    InitCallback) FUNC_RETURNS;
 void		nurdlib_shutdown(struct Crate **);
 
 #endif
