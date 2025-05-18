@@ -50,6 +50,7 @@ struct cmvlc_stackcmdbuf;
 typedef void		(*CvtSetCallback)(struct Module *, unsigned);
 typedef uint32_t	(*ScalerGetCallback)(struct Module *, void *, struct
     Counter *) FUNC_RETURNS;
+typedef void            (*InitCallback)(struct Crate *);
 
 unsigned		crate_acvt_get_ns(struct Crate const *)
 	FUNC_NONNULL(()) FUNC_RETURNS;
@@ -60,6 +61,8 @@ void			crate_acvt_set(struct Crate *, struct Module *,
     CvtSetCallback) FUNC_NONNULL(());
 
 struct Crate		*crate_create(void) FUNC_RETURNS;
+void			crate_set_init_callback(struct Crate *, InitCallback,
+    InitCallback);
 void			crate_deinit(struct Crate *) FUNC_NONNULL(());
 void			crate_free(struct Crate **) FUNC_NONNULL(());
 
