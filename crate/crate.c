@@ -230,6 +230,8 @@ struct Crate {
 		size_t	num;
 		int	array[10];
 	} sync;
+	InitCallback	init_callback;
+	InitCallback	deinit_callback;
 	TAILQ_ENTRY(Crate)	next;
 };
 
@@ -736,11 +738,24 @@ crate_create(void)
 }
 
 void
+crate_set_init_callback(struct Crate *a_crate, InitCallback init_callback,
+  InitCallback deinit_callback)
+{
+	a_crate->init_callback = init_callback;
+	a_crate->deinit_callback = deinit_callback;
+}
+
+void
 crate_deinit(struct Crate *a_crate)
 {
 	struct Module *module;
 
 	LOGF(info)(LOGL, "crate_deinit(%s) {", a_crate->name);
+
+	/* This is used to e.g. stop the MVLC sequencer - should be early. */
+	if (a_crate->deinit_callback) {
+		a_crate->deinit_callback(a_crate);
+	}
 
 	if (a_crate->shadow.is_running) {
 		LOGF(info)(LOGL, "Stopping shadow thread.");
@@ -1216,6 +1231,11 @@ crate_init_there_is_no_try:
 		    a_crate)) {
 			log_die(LOGL, "Could not start shadow thread.");
 		}
+	}
+
+	/* This is used to e.g. start the MVLC sequencer - should be late. */
+	if (a_crate->init_callback) {
+		a_crate->init_callback(a_crate);
 	}
 
 	a_crate->state = STATE_PREPARED;
