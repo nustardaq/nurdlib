@@ -92,7 +92,8 @@ main(void)
 			*p32 = 0x0008010b;
 		}
 
-		crate = nurdlib_setup(NULL, "tests/test_ctrl/server.cfg");
+		crate = nurdlib_setup(NULL, "tests/test_ctrl/server.cfg",
+		    NULL, NULL);
 
 		/* Let client know we're ready. */
 		u8 = 0;
