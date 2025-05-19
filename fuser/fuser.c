@@ -105,6 +105,11 @@ void		f_user_cmvlc_init(struct Crate *);
 void		f_user_cmvlc_deinit(struct Crate *);
 uint32_t	f_user_cmvlc_fetch(struct Crate *, struct EventBuffer *);
 
+int		f_user_prepare_cmvlc(unsigned char,
+    struct cmvlc_stackcmdbuf *);
+int		f_user_format_event(unsigned char, unsigned char,
+    const long *, long, long *, long *, void *, long *);
+
 void		f_user_local_init(struct Crate *);
 void		f_user_local_deinit(struct Crate *);
 
@@ -166,6 +171,137 @@ uint32_t f_user_cmvlc_fetch(struct Crate *a_crate,
 {
 	return crate_cmvlc_free_running_fetch(a_crate, a_event_buffer);
 }
+
+/* Prepare MVLC for triggered readout. */
+int f_user_prepare_cmvlc(unsigned char readout_no,
+			 struct cmvlc_stackcmdbuf *stack)
+{
+	int _early_dt_release = 0;
+
+	LOGF(info)(LOGL, "Prepare MVLC sequencer readout #%d.\n", readout_no);
+
+	/* Read all event counters before reading the data. */
+	crate_cmvlc_init(g_crate, stack, 1);
+
+	/* Early deadtime release - before actual readout. */
+	if (_early_dt_release &&
+	    readout_no != 15)
+		fud_setup_cmvlc_readout_release_dt(readout_no, stack);
+
+	/* Marker to separate the before/after DT release readout. */
+	cmvlc_stackcmd_marker(stack, 0x87654321);
+
+	/* Data readout. */
+	crate_cmvlc_init(g_crate, stack, 0);
+
+	/* Late deadtime release - after actual readout. */
+	if (!_early_dt_release &&
+	    readout_no != 15)
+		fud_setup_cmvlc_readout_release_dt(readout_no, stack);
+
+	return 0;
+}
+
+/* This replaces f_user_readout() for triggered readout with MVLC. */
+int f_user_format_event(unsigned char trig, unsigned char crate_number,
+			const long *input, long input_len, long *input_used,
+			long *buf,
+			void *subevent, long *bytes_read)
+{
+	struct EventBuffer event_buffer_orig;
+	struct EventBuffer event_buffer;
+
+	const uint32_t *input_u32 = (const uint32_t *) input;
+	uint32_t remain, used;
+
+	static int _master_starts = 0;
+
+	uint32_t result;
+
+	(void)crate_number;
+	(void)subevent;
+
+	/* Count master starts. */
+	if (trig == 1)
+		_master_starts++;
+
+	/* Setup event-buffer struct for nurdlib's memory handling. */
+	event_buffer.bytes = g_ev_bytes[trig];
+	event_buffer.ptr = buf;
+
+	/* For later checking. */
+	COPY(event_buffer_orig, event_buffer);
+
+	remain = input_len / sizeof (uint32_t);
+
+	result = 0;
+
+	used = 0;
+
+	/* Let the modules fetch what they have prepared (dt = 1). */
+	result |= crate_cmvlc_fetch_dt(g_crate,
+				       input_u32, remain, &used);
+
+	if (0 != result) {
+		log_error(LOGL, "Cmvlc crate_cmvlc_fetch_dt failed.");
+		goto done;
+	}
+
+	/* Move ahead for the amount of sequencer output handled. */
+	input_u32 += used;
+	input_len -= used * sizeof (uint32_t);
+	*input_used += used * sizeof (uint32_t);
+
+	/* Check before/after dt release marker. */
+	if ((long) sizeof(uint32_t) > input_len) {
+		log_error(LOGL, "Missing separator in cmvlc event: len=%ld.",
+		    input_len);
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	if (0x87654321 != input_u32[0]) {
+		log_error(LOGL, "Malformed separator in cmvlc event "
+		    "(0x%08x != 0x%08x).", input_u32[0], 0x87654321);
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	/* Move ahead for the checked marker. */
+	input_u32 += 1;
+	input_len -= sizeof (uint32_t);
+	*input_used += sizeof (uint32_t);
+
+	/* Let the modules fetch what they have prepared (dt = 0). */
+	result |= crate_cmvlc_fetch(g_crate, &event_buffer,
+				    input_u32, remain, &used);
+
+	if (0 != result) {
+		log_error(LOGL, "Cmvlc crate_cmvlc_fetch failed.");
+		goto done;
+	}
+
+	/* Move ahead for the amount of sequencer output handled. */
+	input_u32 += used;
+	input_len -= used * sizeof (uint32_t);
+	*input_used += used * sizeof (uint32_t);
+
+	if (input_len != 0) {
+		log_error(LOGL, "Cmvlc block did not exhaust buffer.");
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	/* Make sure event-buffer is consistent. */
+	EVENT_BUFFER_INVARIANT(event_buffer, event_buffer_orig);
+
+	*bytes_read = (uintptr_t)event_buffer.ptr - (uintptr_t)buf;
+
+	goto done;
+done:
+	return result;
+}
 #endif
 
 void f_user_local_init(struct Crate *a_crate)
@@ -203,6 +339,18 @@ f_user_get_virt_ptr(long *pl_loc_hwacc, long *pl_rem_cam)
 	 * set for drasi (--triva/trimi).
 	 */
 	_lwroc_readout_functions.untriggered_loop = untriggered_loop;
+#if NCONF_mMAP_bCMVLC
+	{
+	/* See comments in f_user_cmvlc_mdpp.c. */
+	unsigned char readout_for_trig[16] =
+	/*     0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15 */
+	    {  0,  8,  0,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 };
+
+	fud_setup_cmvlc_readout(readout_for_trig,
+				f_user_prepare_cmvlc,
+				f_user_format_event);
+	}
+#endif
 #endif
 	return 0;
 }
@@ -255,6 +403,12 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 	(void)pl_stat;
 
 	if (is_setup) {
+#if NCONF_mMAP_bCMVLC
+		LOGF(info)(LOGL, "Re-initializing crate for MVLC.");
+		crate_deinit(g_crate);
+		/* time_sleep(g_crate->reinit_sleep_s); */
+		crate_init(g_crate);
+#endif
 		return 0;
 	}
 	is_setup = 1;
