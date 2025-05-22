@@ -3931,19 +3931,19 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	    a_module->config.use_cfd_trigger ? "yes" : "no");
 
 	/* Thresholds */
-	CONFIG_GET_INT_ARRAY(a_module->config.threshold_mV, a_block,
-	    KW_THRESHOLD, CONFIG_UNIT_MV, 0, 5000);
-	for (i = 0; i < LENGTH(a_module->config.threshold_mV); ++i) {
-		LOGF(verbose)(LOGL, "threshold_mV[%d] = %d / 100.",
-		    (int)i, a_module->config.threshold_mV[i]);
+	CONFIG_GET_DOUBLE_ARRAY(a_module->config.threshold_V, a_block,
+	    KW_THRESHOLD, CONFIG_UNIT_V, 0, 5);
+	for (i = 0; i < LENGTH(a_module->config.threshold_V); ++i) {
+		LOGF(verbose)(LOGL, "threshold_V[%d] = %f",
+		    (int)i, a_module->config.threshold_V[i]);
 	}
 
 	/* High energy threshold (upper threshold) */
-	CONFIG_GET_INT_ARRAY(a_module->config.threshold_high_e_mV, a_block,
-	    KW_THRESHOLD_HIGH_E, CONFIG_UNIT_MV, 0, 200000);
-	for (i = 0; i < LENGTH(a_module->config.threshold_high_e_mV); ++i) {
-		LOGF(verbose)(LOGL, "threshold_high_e_mV[%d] = %d / 100.",
-		    (int)i, a_module->config.threshold_high_e_mV[i]);
+	CONFIG_GET_DOUBLE_ARRAY(a_module->config.threshold_high_e_V, a_block,
+	    KW_THRESHOLD_HIGH_E, CONFIG_UNIT_V, 0, 5);
+	for (i = 0; i < LENGTH(a_module->config.threshold_high_e_V); ++i) {
+		LOGF(verbose)(LOGL, "threshold_high_e_V[%d] = %f",
+		    (int)i, a_module->config.threshold_high_e_V[i]);
 	}
 
 	/* Peak time for trigger filter */
@@ -4367,30 +4367,21 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	}
 
 	/*
-	 * threshold from mV
+	 * calculate threshold values from input in V
 	 * takes into account the peaking time
 	 */
 	for (i = 0; i < N_CHANNELS; ++i) {
 		unsigned adc_i;
-		int counts_per_V;
-
+		double counts_per_V;
 		adc_i = i / N_CH_PER_ADC;
-		counts_per_V = (1 << 16) / a_module->config.range[adc_i];
-                LOGF(verbose)(LOGL, "%u: range = %d -> counts_per_V = %d.",
-                        adc_i, a_module->config.range[adc_i], counts_per_V);
-		a_module->config.threshold[i] = 0x08000000 +
-		    (counts_per_V
-		        * a_module->config.threshold_mV[i]
-		        * a_module->config.peak[i])
-		    / 100000;
-		a_module->config.threshold_high_e[i] = 0x08000000 +
-		    (counts_per_V
-		        * a_module->config.threshold_high_e_mV[i]
-		        * a_module->config.peak[i])
-		    / 100000;
-		LOGF(info)(LOGL, "threshold[%d] = %d mV -> 0x%08x.",
-		    i, a_module->config.threshold_mV[i],
-		    a_module->config.threshold[i]);
+		if ((i % N_CH_PER_ADC) == 0) {
+			counts_per_V = (double)(1 << 16) / (double)a_module->config.range[adc_i];
+        	LOGF(verbose)(LOGL, "ADC %u: range = %d -> counts_per_V = %f", adc_i, a_module->config.range[adc_i], counts_per_V);
+		}
+		a_module->config.threshold[i] = 0x08000000 + (uint32_t)(counts_per_V * a_module->config.threshold_V[i] * (double)a_module->config.peak[i]);
+		a_module->config.threshold_high_e[i] = 0x08000000 + (uint32_t)(counts_per_V * a_module->config.threshold_high_e_V[i] * (double)a_module->config.peak[i]);
+		LOGF(verbose)(LOGL, "threshold_low[%d] = %f V -> 0x%08x, threshold_high[%d] = %f V -> 0x%08x",
+		    i, a_module->config.threshold_V[i], a_module->config.threshold[i], i, a_module->config.threshold_high_e_V[i], a_module->config.threshold_high_e[i]);
 	}
 
 	LOGF(verbose)(LOGL, NAME" calculate_settings }");

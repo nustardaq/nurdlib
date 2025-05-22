@@ -521,9 +521,9 @@ config_get_double_array(double *a_dst, size_t a_bytes, struct ConfigBlock
 					    item->src_col_no);
 				}
 				i_prev = scalar->vector_index;
-				if (CONFIG_SCALAR_DOUBLE != scalar->type) {
+				if ((CONFIG_SCALAR_DOUBLE != scalar->type) && (CONFIG_SCALAR_INTEGER != scalar->type)) {
 					log_die(LOGL, "List item %"PRIz" of "
-					    "'%s' (%s:%d:%d) not double!",
+					    "'%s' (%s:%d:%d) is not double nor integer!",
 					    length,
 					    keyword_get_string(item->name),
 					    item->src_path, item->src_line_no,
@@ -549,12 +549,17 @@ config_get_double_array(double *a_dst, size_t a_bytes, struct ConfigBlock
 				    item->src_path, item->src_line_no,
 				    item->src_col_no, length, dst_len);
 			}
-
+			
 			p = a_dst;
 			TAILQ_FOREACH(scalar, &item->scalar_list, next) {
 				double value;
 
-				value = scalar->value.d;
+				if (CONFIG_SCALAR_DOUBLE == scalar->type) {
+					value = scalar->value.d;
+				}
+				if (CONFIG_SCALAR_INTEGER == scalar->type) {
+					value = (double)scalar->value.i;
+				}
 				if (CONFIG_UNIT_NONE != a_unit ||
 				    CONFIG_UNIT_NONE != scalar->unit) {
 					value *= unit_get_mult(a_name,
