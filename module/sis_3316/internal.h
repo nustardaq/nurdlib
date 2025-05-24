@@ -129,8 +129,8 @@ struct Sis3316Config {
 	uint16_t	pileup_length[N_ADCS];		/* 0,2..65534 */
 	uint16_t	re_pileup_length[N_ADCS];	/* 0,2..65534 */
 	uint8_t		invert_signal[N_CHANNELS];
-	uint32_t	threshold_mV[N_CHANNELS];
-	uint32_t	threshold_high_e_mV[N_CHANNELS];
+	double		threshold_V[N_CHANNELS];
+	double		threshold_high_e_V[N_CHANNELS];
 	uint16_t	internal_trigger_delay[N_CHANNELS]; /* 0,2,..2044 */
 	uint16_t	peak[N_CHANNELS];		/* 2,4..510 */
 	uint16_t	gap[N_CHANNELS];		/* 2,4..510 */
