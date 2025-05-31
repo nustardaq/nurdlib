@@ -462,7 +462,7 @@ gsi_ctdc_proto_readout(struct Crate *a_crate, struct GsiCTDCProtoModule
 	struct EventBuffer eb;
 	struct GsiPex *pex;
 	struct GsiCTDCCrate *crate;
-	uintptr_t dst_bursted, phys_minus_virt, burst_mask;
+	uintptr_t dst_bursted, phys_minus_virt, burst_mask, dest_phys;
 	uint32_t bytes, bytes_bursted;
 	unsigned burst, trial;
 	int ret;
@@ -511,6 +511,7 @@ gsi_ctdc_proto_readout(struct Crate *a_crate, struct GsiCTDCProtoModule
 	COPY(eb, *a_event_buffer);
 	gsi_pex_buf_get(pex, &eb, &phys_minus_virt);
 	dst_bursted = ((uintptr_t)eb.ptr + burst_mask) & ~burst_mask;
+	dest_phys = phys_minus_virt + dst_bursted;
 	bytes_bursted = (bytes + burst_mask) & ~burst_mask;
 	if (dst_bursted + bytes_bursted > (uintptr_t)eb.ptr + eb.bytes) {
 		log_error(LOGL, NAME":SFP=%"PRIz": Wanted to read %u B, "
@@ -529,7 +530,10 @@ gsi_ctdc_proto_readout(struct Crate *a_crate, struct GsiCTDCProtoModule
 		    bytes_bursted,
 		    burst);
 		if (0 < bytes_bursted) {
-			pex->dma->dst = phys_minus_virt + dst_bursted;
+			pex->dma->dst = dest_phys;
+#ifdef __LP64__
+			pex->dma->dst_high = (uint32_t)(dest_phys >> 32);
+#endif
 			pex->dma->transport_size = bytes_bursted;
 			pex->dma->burst_size = burst;
 			/* The next line will start the DMA with v5 FW. */
@@ -545,7 +549,10 @@ gsi_ctdc_proto_readout(struct Crate *a_crate, struct GsiCTDCProtoModule
 		    (void *)dst_bursted,
 		    burst);
 		pex->dma->stat = 1 << (1 + a_ctdcp->sfp_i);
-		pex->dma->dst = phys_minus_virt + dst_bursted;
+		pex->dma->dst = dest_phys;
+#ifdef __LP64__
+                pex->dma->dst_high = (uint32_t)(dest_phys >> 32);
+#endif
 		gsi_pex_token_issue_single(pex, a_ctdcp->sfp_i);
 		if (!gsi_pex_token_receive(pex, a_ctdcp->sfp_i,
 		    /*crate->sfp[a_ctdcp->sfp_i]->card_num*/0)) {
