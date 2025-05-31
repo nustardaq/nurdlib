@@ -742,6 +742,7 @@ gsi_tamex_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 /* TODO: Check Sicy vs DMA. */
 if (1) {
+	uintptr_t dest_phys;
 
 	assert(IS_POW2(burst));
 	LOGF(spam)(LOGL, "bytes=0x%08x burst=0x%08x.", bytes, burst);
@@ -750,6 +751,7 @@ if (1) {
 	COPY(eb, *a_event_buffer);
 	gsi_pex_buf_get(pex, &eb, &phys_minus_virt);
 	dst_bursted = ((uintptr_t)eb.ptr + burst_mask) & ~burst_mask;
+	dest_phys = phys_minus_virt + dst_bursted;
 	bytes_bursted = (bytes + burst_mask) & ~burst_mask;
 	if (dst_bursted + bytes_bursted > (uintptr_t)eb.ptr + eb.bytes) {
 		log_error(LOGL, NAME":SFP=%"PRIz": Wanted to read %u B, "
@@ -770,7 +772,10 @@ if (1) {
 		    bytes_bursted,
 		    burst);
 		if (0 < bytes_bursted) {
-			pex->dma->dst = phys_minus_virt + dst_bursted;
+			pex->dma->dst = (uint32_t)dest_phys;
+#ifdef __LP64__
+			pex->dma->dst_high = (uint32_t)(dest_phys >> 32);
+#endif
 			pex->dma->transport_size = bytes_bursted;
 			pex->dma->burst_size = burst;
 			/* The next line will start the DMA with v5 FW. */
@@ -786,7 +791,10 @@ if (1) {
 		    (void *)dst_bursted,
 		    burst);
 		pex->dma->stat = 1 << (1 + tam->sfp_i);
-		pex->dma->dst = phys_minus_virt + dst_bursted;
+		pex->dma->dst = (uint32_t)dest_phys;
+#ifdef __LP64__
+		pex->dma->dst_high = (uint32_t)(dest_phys >> 32);
+#endif
 		/*
 		 * Now we request data on a single SFP to go all the way to
 		 * the DMA target.
