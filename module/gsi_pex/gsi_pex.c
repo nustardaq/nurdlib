@@ -115,6 +115,12 @@ gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 	    0, UINT32_MAX);
 	buf_ofs_hi = config_get_uint32(a_block, KW_BUF_OFS_HI,
 	    CONFIG_UNIT_NONE, 0, UINT32_MAX);
+#ifndef __LP64__
+	if (0 != buf_ofs_hi) {
+		log_die(LOGL, "Upgrade to amd64 to use buf_ofs_hi!");
+	}
+#endif
+
 	buf_bytes = config_get_uint32(a_block, KW_BUF_BYTES, CONFIG_UNIT_NONE,
 	    0, UINT32_MAX);
 
