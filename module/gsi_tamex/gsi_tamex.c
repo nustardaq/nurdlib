@@ -630,21 +630,20 @@ gsi_tamex_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 			num = bytes / 4 - 3;
 			for (i = 0; i < num; ++i, ++p32) {
 				uint32_t fine;
+				int ch;
 
 				w = *p32;
 				if (0x4 != (w >> 29)) {
 					continue;
 				}
+				ch = (0x1fc00000 & w) >> 22;
 				fine = (0x003ff000 & w) >> 12;
 				if (0x3ff == fine) {
-					log_error(LOGL, "card[%u] TDC data "
+					log_error(LOGL, "card[%u]:%u TDC data "
 					    "(0x%08x) has fine time=0x3ff!",
-					    card_i, w);
+					    card_i, ch, w);
 					++err_count;
 				} else if (card->sync_ch >= 0) {
-					int ch;
-
-					ch = (0x1fc00000 & w) >> 22;
 		/*
 		 * tamex can not measure long signals because of AC coupling.
 		 * need to take leading from first input (thr=0x0), then
