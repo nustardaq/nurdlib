@@ -2360,8 +2360,8 @@ unpack_snippet(struct ConfigBlock *a_block, struct Packer *a_packer, int
 			    "dst->vector_index=%d",
 			    (void *)TAILQ_END(&item->scalar_list),
 			    (void *)dst,
-			    src->vector_index,
-			    dst->vector_index);
+			    NULL != src ? (int)src->vector_index : -1,
+			    NULL != dst ? (int)dst->vector_index : -1);
 							goto unpack_snippet_fail;
 						}
 						if (src->vector_index ==
