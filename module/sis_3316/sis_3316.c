@@ -1470,6 +1470,7 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	m->last_dumped = 0;
 	m->last_read = 0;
+	m->temp_warning_cnt = 0; /* start module with zero temperature warnings */
 
 	m->sicy_map = map_map(m->config.address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(trigger_coinc_lut_control),
@@ -2304,6 +2305,8 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 	MODULE_CAST(KW_SIS_3316, m, a_module);
 
+	m->temp_warning_cnt2 = 0; /* start readout with no temperature warnings */
+
 	if (m->config.do_readout == 0) {
 		goto sis_3316_readout_done;
 	}
@@ -2809,12 +2812,18 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		float temp_celsius = ((float)((signed short)temp)) / 4.0;
 		*(outp++) = (0x77 << 24) | (temp & 0xffffff);
 
-		LOGF(spam)(LOGL, "Temperature: %.2f C.", temp_celsius);
+		LOGF(spam)(LOGL, "Temperature: %.2f C", temp_celsius);
 
-		if (temp_celsius > MAX_TEMP_SAFE) {
-			log_error(LOGL, "sis3316 temperature is higher than "
-			    "safe limit (%.2f > %.2f).", temp_celsius,
-			    MAX_TEMP_SAFE);
+		if ((temp_celsius > MAX_TEMP_SAFE) && (a_sis3316->temp_warning_cnt2 == 0)) {
+			if (a_sis3316->temp_warning_cnt == 0) {
+				LOGF(info)(LOGL, "SIS3316 (VME module no. %d) temperature is higher than safe limit (%.2f > %.2f)", a_sis3316->module.id, temp_celsius, MAX_TEMP_SAFE);
+			}
+			a_sis3316->temp_warning_cnt = ((a_sis3316->temp_warning_cnt + 1) % 100); /* warn every 100th time the temperature is above limit*/  
+			a_sis3316->temp_warning_cnt2 = 1;
+		}
+		if ((temp_celsius < MAX_TEMP_SAFE) && (a_sis3316->temp_warning_cnt2 == 1) && (a_sis3316->temp_warning_cnt > 1)) {
+			--a_sis3316->temp_warning_cnt; /* if in same readout cycle the temperature is first above then below threshold, just do nothing*/
+			a_sis3316->temp_warning_cnt2 = 0;
 		}
 	}
 
@@ -3475,7 +3484,7 @@ sis_3316_check_hit(struct Sis3316Module *a_sis3316, int a_ch, int a_hit,
 	else {
 		header_word = *(p + header_words - 1);
 		total_event_length = header_words + extract_bit_range(header_word, 0, 14); /* if discarded event, some samples might be attached just for padding */
-		printf("discarded event: a_ch, a_hit, adc %u %u %u , header word: 0x%08x \n", a_ch, a_hit, adc, header_word);
+		/* printf("discarded event: a_ch, a_hit, adc %u %u %u , header word: 0x%08x \n", a_ch, a_hit, adc, header_word); */
 	}
 
 	if (a_sis3316->config.check_level >= CL_PARANOID) {
