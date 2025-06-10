@@ -300,10 +300,12 @@ gsi_##nlib_name##_readout_dt(struct Crate *a_crate, struct Module *a_module) \
 	LOGF(spam)(LOGL, NAME" readout_dt {"); \
 	ret = 0; \
 	MODULE_CAST(KW_GSI_##NLIB_NAME, trloii, a_module); \
+	opaque = trloii->hwmap; \
+	\
+	T2_NAME##_WRITE(opaque, pulse.pulse, T2_NAME##_PULSE_MUX_SRC_SCALER_LATCH); \
 	if (!trloii->has_timestamp) { \
 		goto nlib_name##_readout_dt_done; \
 	} \
-	opaque = trloii->hwmap; \
 	status = T2_NAME##_READ(opaque, out.serial_timestamp_status); \
 	LOGF(spam)(LOGL, "Status=0x%08x.", status); \
 \
@@ -346,8 +348,6 @@ gsi_##nlib_name##_readout_dt(struct Crate *a_crate, struct Module *a_module) \
 		goto nlib_name##_readout_dt_done; \
 	} \
 	trloii->ts_status = status; \
-\
-	T2_NAME##_WRITE(opaque, pulse.pulse, T2_NAME##_PULSE_MUX_SRC_SCALER_LATCH); \
 \
 nlib_name##_readout_dt_done: \
 	LOGF(spam)(LOGL, NAME" readout_dt(ret=0x%08x,ctr=0x%08x) }", ret, \
