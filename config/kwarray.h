@@ -146,6 +146,7 @@ static char const g_keyword_array[][52] = {
 	"channel_invert",
 	"channels_to_read",
 	"check_level",
+	"clear_scalers",
 	"clk_freq",
 	"clock_input",
 	"coincidence",

@@ -364,6 +364,7 @@ trloii_create(struct Crate *a_crate, struct TRLOIIModule *a_trloii, struct
 	LOGF(info)(LOGL, "Address=%08x.", a_trloii->address);
 
 	a_trloii->has_timestamp = config_get_boolean(a_block, KW_TIMESTAMP);
+	a_trloii->clear_scalers = config_get_boolean(a_block, KW_CLEAR_SCALERS);
 	if (a_trloii->has_timestamp) {
 		LOGF(info)(LOGL, "Has timestamps.");
 		/*

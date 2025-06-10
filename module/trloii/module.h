@@ -193,6 +193,10 @@ gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 	    T2_NAME##_PULSE_SERIAL_TSTAMP_BUF_CLEAR);\
 	T2_NAME##_WRITE(opaque, pulse.pulse, \
 	    T2_NAME##_PULSE_SERIAL_TSTAMP_FAIL_CLEAR);\
+	if (trloii->clear_scalers) { \
+		T2_NAME##_WRITE(opaque, pulse.pulse, \
+			T2_NAME##_PULSE_MUX_SRC_SCALER_RESET);\
+	} \
 	SERIALIZE_IO;\
 	LOGF(info)(LOGL, NAME" init_slow }"); \
 	return 1; \
@@ -275,6 +279,10 @@ nlib_name##_readout_done: \
 		} \
 	} \
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32); \
+	if (trloii->clear_scalers) { \
+		T2_NAME##_WRITE(opaque, pulse.pulse, \
+			T2_NAME##_PULSE_MUX_SRC_SCALER_RESET);\
+	} \
 	LOGF(spam)(LOGL, NAME" readout(0x%08x) }", ret); \
 	return ret; \
 } \

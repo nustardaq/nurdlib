@@ -37,6 +37,7 @@ struct TRLOIIModule {
 	struct	Module module;
 	uint32_t	address;
 	int	has_timestamp;
+	int	clear_scalers;	
 	char	const *multi_event_tag_name;
 	int	acvt_has;
 	/*
