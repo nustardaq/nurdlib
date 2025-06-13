@@ -1473,7 +1473,8 @@ crate_readout_dt(struct Crate *a_crate)
 			t = time_getd();
 			if (t > t0 + DT_TIMEOUT) {
 				log_error(LOGL, "%s[%u]=%s: readout_dt "
-				    "timeout.", a_crate->name, module->id,
+				    "adaptive CVT timeout.", a_crate->name,
+				    module->id,
 				    keyword_get_string(module->type));
 				module->result |=
 				    CRATE_READOUT_FAIL_EVENT_COUNTER_MISMATCH;
