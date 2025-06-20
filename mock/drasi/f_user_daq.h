@@ -25,4 +25,15 @@
 
 uint32_t fud_get_max_event_length(void);
 
+typedef void  (*lwroc_cmdline_usage)(void);
+typedef int   (*lwroc_parse_cmdline_arg)(const char *);
+
+struct lwroc_cmdline_functions
+{
+	lwroc_cmdline_usage             usage;
+	lwroc_parse_cmdline_arg         parse_arg;
+};
+
+extern struct lwroc_cmdline_functions  _lwroc_fud_cmdline_fcns;
+
 #endif
