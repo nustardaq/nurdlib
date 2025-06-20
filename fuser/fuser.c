@@ -95,6 +95,9 @@ int		f_user_trig_clear(unsigned char);
 static void	dt_release(void *);
 static void	log_callback(char const *, int, unsigned, char const *);
 
+/* Path to config file. */
+static char g_cfg_path[256] = CONFIG_NAME_PRIMARY;
+
 /* Nurdlib crate context. */
 static struct Crate *g_crate;
 
@@ -159,7 +162,6 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
     long *pl_stat)
 {
 	static int is_setup = 0;
-	char cfg_path[256] = CONFIG_NAME_PRIMARY;
 	unsigned i;
 
 	(void)bh_crate_nr;
@@ -200,7 +202,7 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 		 * way to identify nodes between each other in MBS.
 		 */
 		if (0 != stat(CONFIG_NAME_PRIMARY, &st)) {
-			snprintf_(cfg_path, sizeof cfg_path, "../%u_%u/%s",
+			snprintf_(g_cfg_path, sizeof g_cfg_path, "../%u_%u/%s",
 			    setup->i_se_procid[0], setup->h_se_control,
 			    CONFIG_NAME_PRIMARY);
 		}
@@ -240,7 +242,7 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 #endif
 
 	/* Provide DAQ backend logging (again) and load config file. */
-	g_crate = nurdlib_setup(log_callback, cfg_path);
+	g_crate = nurdlib_setup(log_callback, g_cfg_path);
 
 	/*
 	 * Get the "Default" tag and tags "1", "2" etc, one for each TRIVA
