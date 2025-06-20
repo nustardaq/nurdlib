@@ -80,6 +80,8 @@ static void untriggered_loop(int *);
 #	include <f_ut_printm.h>
 #endif
 
+#include <module/map/map_cmvlc.h>
+
 #include <s_veshe.h>
 #include <sbs_def.h>
 #include <nurdlib.h>
@@ -98,6 +100,13 @@ void		f_user_pre_parse_setup(void);
 
 static void	dt_release(void *);
 static void	log_callback(char const *, int, unsigned, char const *);
+
+void		f_user_cmvlc_init(struct Crate *);
+void		f_user_cmvlc_deinit(struct Crate *);
+uint32_t	f_user_cmvlc_fetch(struct Crate *, struct EventBuffer *);
+
+void		f_user_local_init(struct Crate *);
+void		f_user_local_deinit(struct Crate *);
 
 /* Path to config file. */
 static char g_cfg_path[256] = CONFIG_NAME_PRIMARY;
@@ -137,6 +146,46 @@ dt_release(void *a_data)
 	dt = a_data;
 	f_user_trig_clear(dt->trig_typ);
 	*dt->read_stat = TRIG__CLEARED;
+}
+
+#if NCONF_mMAP_bCMVLC
+/* Prepate MVLC for free-running (untriggered) readout. */
+void f_user_cmvlc_init(struct Crate *a_crate)
+{
+	crate_cmvlc_free_running_init(a_crate);
+}
+
+void f_user_cmvlc_deinit(struct Crate *a_crate)
+{
+	crate_cmvlc_free_running_deinit(a_crate);
+}
+
+/* Fetch data from MVLC stream for free-running (untriggered) readout. */
+uint32_t f_user_cmvlc_fetch(struct Crate *a_crate,
+    struct EventBuffer *a_event_buffer)
+{
+	return crate_cmvlc_free_running_fetch(a_crate, a_event_buffer);
+}
+#endif
+
+void f_user_local_init(struct Crate *a_crate)
+{
+#if NCONF_mMAP_bCMVLC
+	if (crate_free_running_get(a_crate))
+		f_user_cmvlc_init(a_crate);
+#else
+	(void) a_crate;
+#endif
+}
+
+void f_user_local_deinit(struct Crate *a_crate)
+{
+#if NCONF_mMAP_bCMVLC
+	if (crate_free_running_get(a_crate))
+		f_user_cmvlc_deinit(a_crate);
+#else
+	(void) a_crate;
+#endif
 }
 
 /*
@@ -278,7 +327,13 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 #endif
 
 	/* Provide DAQ backend logging (again) and load config file. */
-	g_crate = nurdlib_setup(log_callback, g_cfg_path);
+	/* The local init/deinit callbacks need to be set in
+	 * nurdlib_setup() such that f_user_local_init (and
+	 * f_user_cmvlc_init) init is called also for the first
+	 * crate_init() call inside nurdlib_setup().
+	 */
+	g_crate = nurdlib_setup(log_callback, g_cfg_path,
+	    f_user_local_init, f_user_local_deinit);
 
 	/*
 	 * Get the "Default" tag and tags "1", "2" etc, one for each TRIVA
@@ -357,6 +412,20 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 	/* This help keep the event-buffer consistent while building it. */
 	EVENT_BUFFER_ADVANCE(event_buffer, p32);
 
+#if NCONF_mMAP_bCMVLC
+	/*
+	 * Fetch data from MVLC sequencer output.
+	 *
+	 * Note: this is only used in free-running mode, since
+	 * f_user_readout() is replaced by f_user_format_event() in
+	 * triggered mode.
+	 */
+	*header |= f_user_cmvlc_fetch(g_crate, &event_buffer);
+	if (0 != *header) {
+		log_error(LOGL, "cmvlc_fetch failed.");
+		goto f_user_readout_crate_done;
+	}
+#else
 	/*
 	 * Readout that must happen during deadtime, eg data-sizes and event
 	 * counters.
@@ -373,6 +442,7 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 		log_error(LOGL, "readout failed.");
 		goto f_user_readout_crate_done;
 	}
+#endif
 
 f_user_readout_crate_done:
 
