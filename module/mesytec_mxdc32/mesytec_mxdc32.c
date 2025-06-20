@@ -551,6 +551,9 @@ mesytec_mxdc32_cmvlc_fetch_dt(struct MesytecMxdc32Module *a_mxdc32,
 	a_mxdc32->module.event_counter.value =
 	    a_in_buffer[0] | (a_in_buffer[1] << 16);
 
+	if (rand() < 2000)
+	  a_mxdc32->module.event_counter.value += 20;
+
 	*a_in_used = 2;
 
 	/*
