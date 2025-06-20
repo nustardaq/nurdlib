@@ -81,6 +81,8 @@ static void untriggered_loop(int *);
 #	include <f_ut_printm.h>
 #endif
 
+#include <module/map/map_cmvlc.h>
+
 #include <s_veshe.h>
 #include <sbs_def.h>
 #include <nurdlib.h>
@@ -99,6 +101,13 @@ void		f_user_pre_parse_setup(void);
 
 static void	dt_release(void *);
 static void	log_callback(char const *, int, unsigned, char const *);
+
+void		f_user_cmvlc_init(struct Crate *);
+void		f_user_cmvlc_deinit(struct Crate *);
+uint32_t	f_user_cmvlc_fetch(struct Crate *, struct EventBuffer *);
+
+void		f_user_local_init(struct Crate *);
+void		f_user_local_deinit(struct Crate *);
 
 /* Path to config file. */
 static char g_cfg_path[256] = CONFIG_NAME_PRIMARY;
@@ -138,6 +147,197 @@ dt_release(void *a_data)
 	dt = a_data;
 	f_user_trig_clear(dt->trig_typ);
 	*dt->read_stat = TRIG__CLEARED;
+}
+
+#if NCONF_mMAP_bCMVLC
+/*
+ */
+void f_user_cmvlc_init(struct Crate *a_crate)
+{
+	struct cmvlc_stackcmdbuf stack_object;
+	struct cmvlc_stackcmdbuf *stack;
+
+	/* We'd get it as pointer, so do that. */
+	stack = &stack_object;
+
+	/* Clear library state of stacks. */
+	cmvlc_reset_stacks(g_cmvlc);
+
+	cmvlc_stackcmd_init(stack);
+	cmvlc_stackcmd_start(stack, stack_out_pipe_data);
+
+	cmvlc_stackcmd_marker(stack, 0x12345678);
+
+	crate_cmvlc_init(a_crate, stack, 1);
+	crate_cmvlc_init(a_crate, stack, 0);
+
+	cmvlc_stackcmd_marker(stack, 0x3456789a);
+
+	cmvlc_stackcmd_end(stack);
+
+	/* The readout stack is for free-running.
+	 * Cheat by triggering it by a periodic timer.
+	 * 1 kHz - most the MVLC internal timers can do.
+	 */
+	cmvlc_setup_stack(g_cmvlc, stack, 4, 0x0040 | 20); /* trig by timer */
+
+	/* Timer 0 period. */
+	cmvlc_mvlc_write(g_cmvlc, 0x1180, 1);
+
+	/* Tell MVLC where to send readout data. */
+	if (cmvlc_readout_attach(g_cmvlc) < 0)
+	  log_die(LOGL, "Failed to attach MVLC data output.");
+
+	{
+	  /* Setup pointers to stacks, their triggers. */
+	  if (cmvlc_set_daq_mode(g_cmvlc, 0, 1, NULL, 0, 0) < 0)
+	    log_die(LOGL, "Failed to setup MVLC stacks and IRQ stack map.");
+	}
+
+	/* Enable DAQ mode. */
+	if (cmvlc_set_daq_mode(g_cmvlc, 1, 0, NULL, 0, 0) < 0)
+		log_die(LOGL, "Failed to set MVLC DAQ mode.");
+}
+
+void f_user_cmvlc_deinit(struct Crate *a_crate)
+{
+	(void) a_crate;
+
+	/* Disable DAQ mode. */
+	if (cmvlc_set_daq_mode(g_cmvlc, 0, 0, NULL, 0, 0) < 0)
+		log_die(LOGL, "Failed to disable MVLC DAQ mode.");
+}
+
+/*
+ */
+uint32_t f_user_cmvlc_fetch(struct Crate *a_crate,
+    struct EventBuffer *a_event_buffer)
+{
+	uint32_t result;
+
+	int ret;
+	uint32_t dest[0x10000];
+	size_t   event_len = 0;
+	struct cmvlc_event_info info;
+
+	const uint32_t *input_u32 = (const uint32_t *) dest;
+
+	uint32_t remain;
+	uint32_t used;
+
+	LOGF(spam)(LOGL, " f_user_cmvlc_fetch {");
+
+        result = 0;
+
+	ret = cmvlc_readout_get_event(g_cmvlc, dest,
+				      sizeof (dest) / sizeof (dest[0]),
+				      &event_len, &info);
+
+	if (ret < 0)
+	  {
+	    log_error(LOGL, "Failed to get cmvlc event: "
+		      "%d - %s", ret, cmvlc_last_error(g_cmvlc));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	if (event_len < 5 ||
+	    info._errors ||
+	    info._stacknum != 4 ||
+	    info._ctrlid != 0)
+	  {
+	    log_error(LOGL, "Bad cmvlc event: "
+		      "len: %d flags: %d stack: %d ctrlid: %d.",
+		      (int) event_len,
+		      info._errors,
+		      info._stacknum,
+		      info._ctrlid);
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	/* Check that the markers in the data are as expected. */
+	/* dest[1] and dest[2] hold the low and high words of the
+	 * event counter.  (Not useful for free-running.)
+	 */
+	if (dest[0]                != 0x12345678 ||
+	    dest[event_len-1]      != 0x3456789a) /* 8 or 2 */
+	  {
+	    log_error(LOGL, "Malformed cmvlc event.");
+	    /* Since we are *not* writing the buffer we got from
+	     * cmvlc to the output buffer, we dump it.
+	     */
+	    log_dump(LOGL, dest, event_len * sizeof (uint32_t));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	input_u32 = dest + 1; /* Start marker. */
+	remain = event_len - 1;
+
+	result |= crate_cmvlc_fetch_dt(a_crate,
+				       input_u32, remain, &used);
+
+	if (result != 0)
+	  {
+	    log_error(LOGL, "Cmvlc crate_cmvlc_fetch_dt failed.");
+	    goto done;
+	  }
+
+	input_u32 += used;
+	remain -= used;
+
+	result |= crate_cmvlc_fetch(a_crate,
+				    a_event_buffer,
+				    input_u32, remain, &used);
+
+	if (result != 0)
+	  {
+	    log_error(LOGL, "Cmvlc crate_cmvlc_fetch failed.");
+	    goto done;
+	  }
+
+	input_u32 += used;
+	remain -= used;
+
+	/*
+	if (used > 0x8000)
+	  printf ("crate_cmvlc_fetch: used = %d\n", used);
+	*/
+
+	if (remain != 1)
+	  {
+	    log_error(LOGL, "Cmvlc block "
+		      "did not exhaust buffer except end marker.");
+	    /* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+done:
+	LOGF(spam)(LOGL, " f_user_cmvlc_fetch(0x%08x) }", result);
+	return result;
+}
+#endif
+
+void f_user_local_init(struct Crate *a_crate)
+{
+#if NCONF_mMAP_bCMVLC
+	if (crate_free_running_get(a_crate))
+		f_user_cmvlc_init(a_crate);
+#else
+	(void) a_crate;
+#endif
+}
+
+void f_user_local_deinit(struct Crate *a_crate)
+{
+#if NCONF_mMAP_bCMVLC
+	if (crate_free_running_get(a_crate))
+		f_user_cmvlc_deinit(a_crate);
+#else
+	(void) a_crate;
+#endif
 }
 
 /*
@@ -279,7 +479,13 @@ f_user_init(unsigned char bh_crate_nr, long *pl_loc_hwacc, long *pl_rem_cam,
 #endif
 
 	/* Provide DAQ backend logging (again) and load config file. */
-	g_crate = nurdlib_setup(log_callback, g_cfg_path);
+	/* The local init/deinit callbacks need to be set in
+	 * nurdlib_setup() such that f_user_local_init (and
+	 * f_user_cmvlc_init) init is called also for the first
+	 * crate_init() call inside nurdlib_setup().
+	 */
+	g_crate = nurdlib_setup(log_callback, g_cfg_path,
+	    f_user_local_init, f_user_local_deinit);
 
 	/*
 	 * Get the "Default" tag and tags "1", "2" etc, one for each TRIVA
@@ -358,6 +564,16 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 	/* This help keep the event-buffer consistent while building it. */
 	EVENT_BUFFER_ADVANCE(event_buffer, p32);
 
+#if NCONF_mMAP_bCMVLC
+	/*
+	 * Fetch data from MVLC sequencer output.
+	 */
+	*header |= f_user_cmvlc_fetch(g_crate, &event_buffer);
+	if (0 != *header) {
+		log_error(LOGL, "cmvlc_fetch failed.");
+		goto f_user_readout_crate_done;
+	}
+#else
 	/*
 	 * Readout that must happen during deadtime, eg data-sizes and event
 	 * counters.
@@ -374,6 +590,7 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 		log_error(LOGL, "readout failed.");
 		goto f_user_readout_crate_done;
 	}
+#endif
 
 f_user_readout_crate_done:
 
