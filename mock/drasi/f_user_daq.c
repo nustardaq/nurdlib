@@ -22,8 +22,10 @@
 
 #include <stdint.h>
 #include <lwroc_readout.h>
+#include <f_user_daq.h>
 
 struct lwroc_readout_functions _lwroc_readout_functions;
+struct lwroc_cmdline_functions  _lwroc_fud_cmdline_fcns;
 
 int f_user_trig_clear(unsigned char a_a) { return 0; }
 uint32_t fud_get_max_event_length(void) { return 0; }
