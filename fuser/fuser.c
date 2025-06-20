@@ -42,6 +42,7 @@
 #	include <lmd/lwroc_lmd_ev_sev.h>
 #	include <f_user_daq.h>
 #	include <util/thread.h>
+#	include "lwroc_parse_util.h"
 
 #	define LAND_VME_ADCTDC_COUNTER 0x10000000
 #	define LAND_VME_MULTIEVENT 0x40000000
@@ -91,6 +92,10 @@ int		f_user_init(unsigned char, long *, long *, long *);
 int		f_user_readout(unsigned char, unsigned char, register long *,
     register long *, long *, s_veshe *, long *, long *);
 int		f_user_trig_clear(unsigned char);
+
+void		local_cmdline_usage(void);
+int		local_parse_cmdline_arg(const char *);
+void		f_user_pre_parse_setup(void);
 
 static void	dt_release(void *);
 static void	log_callback(char const *, int, unsigned, char const *);
@@ -153,6 +158,38 @@ f_user_get_virt_ptr(long *pl_loc_hwacc, long *pl_rem_cam)
 #endif
 	return 0;
 }
+
+#if FUSER_DRASI
+/*
+ * Handle command line arguments.
+ */
+void local_cmdline_usage(void)
+{
+	printf ("  --cfg=FILENAME           Nurdlib configuration "
+	    "(default %s).\n", CONFIG_NAME_PRIMARY);
+	printf ("\n");
+}
+
+int local_parse_cmdline_arg(const char *request)
+{
+	const char *post;
+
+	if (LWROC_MATCH_C_PREFIX("--cfg=", post)) {
+		strncpy(g_cfg_path, post, sizeof g_cfg_path);
+		g_cfg_path[sizeof g_cfg_path - 1] = 0;
+		return 1;
+	}
+
+	return 0;
+}
+
+/* Overrides default (attribute weak) do-nothing function. */
+void f_user_pre_parse_setup(void)
+{
+	_lwroc_fud_cmdline_fcns.usage = local_cmdline_usage;
+	_lwroc_fud_cmdline_fcns.parse_arg = local_parse_cmdline_arg;
+}
+#endif
 
 /*
  * Let's initialize!
