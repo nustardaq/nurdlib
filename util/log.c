@@ -130,6 +130,14 @@ log_dump(struct LogFile const *a_file, int a_line_no, void const *a_start,
 				log_info_printf_(a_file, a_line_no, "%s",
 				    line);
 			}
+			if (a_bytes > 4096 && i == 2048) {
+				/* When more than 4 kiB, print 2 kiB,
+				 * and then last 1 kiB.
+				 */
+				log_info_printf_(a_file, a_line_no,
+				    "%5"PRIzx": ...", i);
+				i = (a_bytes - 1024) & ~31;
+			}
 			ret = snprintf_(line, sizeof line, "%5"PRIzx":", i);
 			if (ret < 0) {
 				log_die(LOGL, "snprintf failed.");
