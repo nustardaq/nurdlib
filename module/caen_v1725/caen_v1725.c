@@ -35,6 +35,7 @@
 #include <util/fmtmod.h>
 #include <util/string.h>
 #include <util/time.h>
+#include <module/map/map_cmvlc.h>
 
 #define NAME "Caen v1725"
 
@@ -71,6 +72,13 @@
 MODULE_PROTOTYPES(caen_v1725);
 static void	set_thresholds(struct CaenV1725Module *, uint32_t const *,
     size_t);
+static void	caen_v1725_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t	caen_v1725_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t	caen_v1725_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+
 
 uint32_t
 caen_v1725_check_empty(struct Module *a_module)
@@ -989,6 +997,152 @@ caen_v1725_parse_data(struct Crate *a_crate, struct Module *a_module, struct
 	return 0;
 }
 
+void
+caen_v1725_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack,
+    int a_dt)
+{
+	struct CaenV1725Module *v1725;
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init {");
+	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
+
+#if NCONF_mMAP_bCMVLC
+	if (a_dt) {
+		/* Read event size. */
+		cmvlc_stackcmd_vme_rw(a_stack, v1725->address + 0x814C, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+		/* Twice, just to fill two words.  Fix fuser.c */
+		cmvlc_stackcmd_vme_rw(a_stack, v1725->address + 0x814C, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+	} else {
+		/* Block transfer of data. */
+		/* Note: 0x8000 MBLT (64-bit) words,is 0x10000 32-bit words. */
+		cmvlc_stackcmd_vme_block(a_stack, v1725->address,
+					 vme_rw_read_swap, vme_user_MBLT_A32,
+					 0x8000);
+	}
+#else
+	(void) a_module;
+	(void) a_stack;
+	(void) a_dt;
+	(void) v1725;
+#endif
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init }");
+}
+
+uint32_t
+caen_v1725_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+#if NCONF_mMAP_bCMVLC
+	struct CaenV1725Module *v1725;
+	uint32_t result;
+
+	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
+	result = 0;
+
+	if (a_in_remain < 2) {
+		log_error(LOGL, "CAEN V1725: Too few words for event "
+		    "counter in cmvlc data.");
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	v1725->module.event_counter.value =
+	    a_in_buffer[0] | (a_in_buffer[1] << 16);
+
+	if (rand() < 2000)
+	  v1725->module.event_counter.value += 20;
+
+	*a_in_used = 2;
+
+	/*
+	if (v1725->module.event_counter.value % 100000 == 0) {
+		LOGF(info)(LOGL, "rm: %d  us: %d  cnt: %d\n",
+		    a_in_remain, *a_in_used,
+		    v1725->module.event_counter.value);
+	}
+	*/
+
+done:
+	return result;
+#else
+	(void) a_module;
+	(void) a_in_buffer;
+	(void) a_in_remain;
+	(void) a_in_used;
+	return 0; /* Should not be used, better return some error code? */
+#endif
+}
+
+uint32_t
+caen_v1725_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+#if NCONF_mMAP_bCMVLC
+	struct CaenV1725Module *v1725;
+	uint32_t *outp;
+	uint32_t result;
+
+	size_t used;
+	size_t block_len;
+
+	/* uint32_t agg_header_len; */
+
+	int ret;
+
+	(void) a_crate;
+	(void) v1725;
+
+	MODULE_CAST(KW_CAEN_V1725, v1725, a_module);
+
+	outp = a_event_buffer->ptr;
+        result = 0;
+
+	ret = cmvlc_block_get(g_cmvlc, a_in_buffer, a_in_remain, &used,
+	    outp, 0x10000 /* 0x8000 MBLT words*/, &block_len);
+
+	if (ret < 0) {
+		log_error(LOGL, "CAEN V1725: Failed to get cmvlc block: "
+		    "%d.", ret);
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	if (block_len > 0)
+	  {
+	    /* Discard filler word at the end om MBLT transfer. */
+	    /* TODO: is this safe, or do we need to traverse the
+	     * aggregates.  It is not enough to check for an initial
+	     * aggregate header, there may be several in one block
+	     * transfer.
+	     */
+	    if (outp[block_len-1] == 0xffffffff)
+	      block_len--;
+	  }
+
+	*a_in_used = (uint32_t) used;
+	outp += block_len;
+
+done:
+	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
+	return result;
+#else
+	(void) a_crate;
+	(void) a_module;
+	(void) a_event_buffer;
+	(void) a_in_buffer;
+	(void) a_in_remain;
+	(void) a_in_used;
+	return 0; /* Should not be used, better return some error code? */
+#endif
+}
+
 uint32_t
 caen_v1725_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
@@ -1075,6 +1229,9 @@ void
 caen_v1725_setup_(void)
 {
 	MODULE_SETUP(caen_v1725, 0);
+	MODULE_CALLBACK_BIND(caen_v1725, cmvlc_init);
+	MODULE_CALLBACK_BIND(caen_v1725, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(caen_v1725, cmvlc_fetch);
 }
 
 void
