@@ -224,7 +224,11 @@ uint32_t f_user_cmvlc_fetch(struct Crate *a_crate,
 	uint32_t result;
 
 	int ret;
-	uint32_t dest[0x10000];
+	/* Additional space for block transfer continuation frames,
+	 * approximately one word per 370 words, so less than one word
+	 * for 256 words.
+	 */
+	uint32_t dest[0x20000 + 0x200 /* block cont */ + 0x10 /* start+end*/];
 	size_t   event_len = 0;
 	struct cmvlc_event_info info;
 
