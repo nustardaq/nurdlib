@@ -201,6 +201,10 @@ void f_user_cmvlc_init(struct Crate *a_crate)
 	/* Enable DAQ mode. */
 	if (cmvlc_set_daq_mode(g_cmvlc, 1, 0, NULL, 0, 0) < 0)
 		log_die(LOGL, "Failed to set MVLC DAQ mode.");
+
+	/* Reset the internal data buffer handling (UDP packet reader). */
+	/* Is this a good location? */
+	cmvlc_readout_reset(g_cmvlc);
 }
 
 void f_user_cmvlc_deinit(struct Crate *a_crate)
