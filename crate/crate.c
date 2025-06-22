@@ -2436,6 +2436,10 @@ crate_cmvlc_init(struct Crate *a_crate, struct cmvlc_stackcmdbuf *a_stack,
 
 		if (NULL == module->props ||
 		    NULL == module->props->cmvlc_init) {
+			log_error(LOGL, "%s[%u]=%s no cmvlc_init.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type));
+			/* This really should return an error! */
 			continue;
 		}
 		push_log_level(module);
@@ -2472,6 +2476,9 @@ crate_cmvlc_fetch_dt(struct Crate *a_crate,
 
 		if (NULL == module->props ||
 		    NULL == module->props->cmvlc_fetch_dt) {
+			log_error(LOGL, "%s[%u]=%s no cmvlc_fetch_dt.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type));
 			continue;
 		}
 		push_log_level(module);
@@ -2531,6 +2538,9 @@ crate_cmvlc_fetch(struct Crate *a_crate, struct EventBuffer *a_event_buffer,
 
 		if (NULL == module->props ||
 		    NULL == module->props->cmvlc_fetch) {
+			log_error(LOGL, "%s[%u]=%s no cmvlc_fetch.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type));
 			continue;
 		}
 		push_log_level(module);
