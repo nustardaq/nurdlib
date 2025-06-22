@@ -313,6 +313,7 @@ f_user_readout(unsigned char bh_trig_typ, unsigned char bh_crate_nr, register
 	struct EventBuffer event_buffer_orig;
 	struct EventBuffer event_buffer;
 	uint32_t *p32, *header;
+	int result = 0;
 
 	(void)bh_crate_nr;
 	(void)pl_loc_hwacc;
@@ -388,11 +389,16 @@ f_user_readout_crate_done:
 	if (0 != *header) {
 		log_error(LOGL, "Had readout error: ret=0x%x, trg=%u",
 		    *header, bh_trig_typ);
+		result = -1; /* For untriggered_loop. */
 	}
 
 	*l_se_read_len = (uintptr_t)event_buffer.ptr - (uintptr_t)pl_dat;
 
-	return 0;
+	/*
+	 * The return value is ignored by normal (triggered) readout.
+	 * It is only used by untriggered_loop() below.
+	 */
+	return result;
 }
 
 #if FUSER_DRASI
@@ -417,6 +423,7 @@ untriggered_loop(int *start_no_stop)
 		void *end;
 		size_t event_size;
 		long bytes_read = 0;
+		int retval = 0;
 
 		event_size = sizeof (lmd_subevent_10_1_host) + g_ev_bytes[0];
 		lwroc_reserve_event_buffer(g_lmd_stream, (uint32_t)cycle,
@@ -435,10 +442,13 @@ untriggered_loop(int *start_no_stop)
 
 			bytes_read = 0;
 			read_status = 0;
-			f_user_readout(1, 0, NULL, NULL, buf, (void *)&sev,
-			    &bytes_read, &read_status);
+			retval = f_user_readout(1, 0, NULL, NULL, buf,
+			    (void *)&sev, &bytes_read, &read_status);
 			if (sizeof(uint32_t) < (size_t)bytes_read) {
 				/* More than just custom header written. */
+				break;
+			}
+			if (retval) {
 				break;
 			}
 			/*
@@ -456,6 +466,13 @@ untriggered_loop(int *start_no_stop)
 		lwroc_finalise_subevent(g_lmd_stream, LWROC_LMD_SEV_NORMAL,
 		    end);
 		lwroc_finalise_event_buffer(g_lmd_stream);
+
+#if NCONF_mMAP_bCMVLC
+		if (0 > retval) {
+			/* Had error - re-init. */
+			f_user_init(0, NULL, NULL, NULL);
+		}
+#endif
 
 		LWROC_MON_CHECK_COPY_BLOCK(_lwroc_mon_main_handle,
 		    &_lwroc_mon_main, 0);
