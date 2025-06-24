@@ -41,6 +41,12 @@ static uint32_t	mesytec_mdpp16scp_readout_shadow(struct Crate *, struct Module
     *, struct EventBuffer *) FUNC_RETURNS;
 static void	mesytec_mdpp16scp_use_pedestals(struct Module *);
 static void	mesytec_mdpp16scp_zero_suppress(struct Module *, int);
+static void	mesytec_mdpp16scp_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t mesytec_mdpp16scp_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t mesytec_mdpp16scp_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
 
 uint32_t
 mesytec_mdpp16scp_check_empty(struct Module *a_module)
@@ -306,6 +312,39 @@ mesytec_mdpp16scp_readout_shadow(struct Crate *a_crate, struct Module
 }
 
 void
+mesytec_mdpp16scp_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	struct MesytecMdpp16scpModule *mdpp16scp;
+
+	MODULE_CAST(KW_MESYTEC_MDPP16SCP, mdpp16scp, a_module);
+	mesytec_mdpp_cmvlc_init(&mdpp16scp->mdpp, a_stack, a_dt);
+}
+
+uint32_t
+mesytec_mdpp16scp_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct MesytecMdpp16scpModule *mdpp16scp;
+
+	MODULE_CAST(KW_MESYTEC_MDPP16SCP, mdpp16scp, a_module);
+	return mesytec_mdpp_cmvlc_fetch_dt(&mdpp16scp->mdpp,
+	    a_in_buffer, a_in_remain, a_in_used);
+}
+
+uint32_t
+mesytec_mdpp16scp_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct MesytecMdpp16scpModule *mdpp16scp;
+
+	MODULE_CAST(KW_MESYTEC_MDPP16SCP, mdpp16scp, a_module);
+	return mesytec_mdpp_cmvlc_fetch(a_crate, &mdpp16scp->mdpp,
+	    a_event_buffer, a_in_buffer, a_in_remain, a_in_used);
+}
+
+void
 mesytec_mdpp16scp_setup_(void)
 {
 	MODULE_SETUP(mesytec_mdpp16scp, MODULE_FLAG_EARLY_DT);
@@ -313,6 +352,9 @@ mesytec_mdpp16scp_setup_(void)
 	MODULE_CALLBACK_BIND(mesytec_mdpp16scp, readout_shadow);
 	MODULE_CALLBACK_BIND(mesytec_mdpp16scp, use_pedestals);
 	MODULE_CALLBACK_BIND(mesytec_mdpp16scp, zero_suppress);
+	MODULE_CALLBACK_BIND(mesytec_mdpp16scp, cmvlc_init);
+	MODULE_CALLBACK_BIND(mesytec_mdpp16scp, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(mesytec_mdpp16scp, cmvlc_fetch);
 }
 
 void
