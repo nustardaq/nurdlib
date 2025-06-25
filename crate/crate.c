@@ -2419,6 +2419,7 @@ tag_get(struct Crate *a_crate, char const *a_name)
 	return tag;
 }
 
+#if NCONF_mMAP_bCMVLC
 void
 crate_cmvlc_init(struct Crate *a_crate,
 		 struct cmvlc_stackcmdbuf *a_stack,
@@ -2572,3 +2573,4 @@ done:
 	LOGF(spam)(LOGL, "crate_cmvlc_fetch }");
 	return result;
 }
+#endif
