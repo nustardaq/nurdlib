@@ -62,6 +62,7 @@
 #include <util/thread.h>
 #include <util/time.h>
 #include <util/vector.h>
+#include <module/map/map_cmvlc.h>
 
 #define BARRIER_WORD 0xbabababa
 #define DT_TIMEOUT 1.0
@@ -2445,6 +2446,8 @@ crate_cmvlc_init(struct Crate *a_crate, struct cmvlc_stackcmdbuf *a_stack,
 		push_log_level(module);
 		module->props->cmvlc_init(module, a_stack, a_dt);
 		pop_log_level(module);
+		cmvlc_stackcmd_marker(a_stack,
+		    (a_dt ? 0xfeed0000 : 0xabba0000) ^ (module->id + 1));
 	}
 
 	LOGF(info)(LOGL, "crate_cmvlc_init }");
@@ -2463,6 +2466,7 @@ crate_cmvlc_fetch_dt(struct Crate *a_crate,
 	const uint32_t *in_buffer;
 	uint32_t in_remain;
 	uint32_t used;
+	uint32_t expect;
 
 	LOGF(spam)(LOGL, "crate_cmvlc_fetch_dt(%s) {", a_crate->name);
 	result = 0;
@@ -2503,6 +2507,32 @@ crate_cmvlc_fetch_dt(struct Crate *a_crate,
 		a_in_buffer += used;
 		a_in_remain -= used;
 		*a_in_used += used;
+
+		if (0 == a_in_remain) {
+			log_error(LOGL, "%s[%u]=%s too few words for "
+			    "post-module marker in cmvlc dt data.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type));
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto done;
+		}
+
+		expect = 0xfeed0000 ^ (module->id + 1);
+
+		if (expect != *a_in_buffer) {
+			log_error(LOGL, "%s[%u]=%s bad "
+			    "post-module marker in cmvlc dt data, "
+			    "expect 0x%08x != got 0x%08x.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type),
+			    expect, *a_in_buffer);
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto done;
+		}
+
+		a_in_buffer++;
+		a_in_remain--;
+		(*a_in_used)++;
 	}
 
 done:
@@ -2525,6 +2555,7 @@ crate_cmvlc_fetch(struct Crate *a_crate, struct EventBuffer *a_event_buffer,
 	const uint32_t *in_buffer;
 	uint32_t in_remain;
 	uint32_t used;
+	uint32_t expect;
 
 	LOGF(spam)(LOGL, "crate_cmvlc_fetch(%s) {", a_crate->name);
 	result = 0;
@@ -2579,6 +2610,32 @@ crate_cmvlc_fetch(struct Crate *a_crate, struct EventBuffer *a_event_buffer,
 		a_in_buffer += used;
 		a_in_remain -= used;
 		*a_in_used += used;
+
+		if (0 == a_in_remain) {
+			log_error(LOGL, "%s[%u]=%s too few words for "
+			    "post-module marker in cmvlc data.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type));
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto done;
+		}
+
+		expect = 0xabba0000 ^ (module->id + 1);
+
+		if (expect != *a_in_buffer) {
+			log_error(LOGL, "%s[%u]=%s bad "
+			    "post-module marker in cmvlc data, "
+			    "expect 0x%08x != got 0x%08x.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type),
+			    expect, *a_in_buffer);
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto done;
+		}
+
+		a_in_buffer++;
+		a_in_remain--;
+		(*a_in_used)++;
 	}
 
 done:
