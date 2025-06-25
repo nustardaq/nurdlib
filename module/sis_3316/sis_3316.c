@@ -2207,7 +2207,7 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 		a_module->event_counter.value++;
 	}
 sis_3316_readout_done:
-	LOGF(debug)(LOGL, NAME" readout_dt(ctr=0x%08x) }",
+	LOGF(spam)(LOGL, NAME" readout_dt(ctr=0x%08x) }",
 	    a_module->event_counter.value);
 	return result;
 }
