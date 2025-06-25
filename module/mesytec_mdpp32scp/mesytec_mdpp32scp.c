@@ -38,12 +38,14 @@ static uint32_t	mesytec_mdpp32scp_readout_shadow(struct Crate *, struct Module
     *, struct EventBuffer *) FUNC_RETURNS;
 static void	mesytec_mdpp32scp_use_pedestals(struct Module *);
 static void	mesytec_mdpp32scp_zero_suppress(struct Module *, int);
+#if NCONF_mMAP_bCMVLC
 static void	mesytec_mdpp32scp_cmvlc_init(struct Module *,
 					     struct cmvlc_stackcmdbuf *, int);
 static uint32_t mesytec_mdpp32scp_cmvlc_fetch_dt(struct Module *,
     const uint32_t *, uint32_t, uint32_t *);
 static uint32_t mesytec_mdpp32scp_cmvlc_fetch(struct Crate *, struct
     Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+#endif
 
 uint32_t
 mesytec_mdpp32scp_check_empty(struct Module *a_module)
@@ -313,6 +315,7 @@ mesytec_mdpp32scp_readout_shadow(struct Crate *a_crate, struct Module
 	return mesytec_mdpp_readout_shadow(&mdpp32scp->mdpp, a_event_buffer);
 }
 
+#if NCONF_mMAP_bCMVLC
 void
 mesytec_mdpp32scp_cmvlc_init(struct Module *a_module,
 			     struct cmvlc_stackcmdbuf *a_stack,
@@ -346,6 +349,7 @@ mesytec_mdpp32scp_cmvlc_fetch(struct Crate *a_crate,
 	return mesytec_mdpp_cmvlc_fetch(a_crate, &mdpp32scp->mdpp,
 	    a_event_buffer, a_in_buffer, a_in_remain, a_in_used);
 }
+#endif
 
 void
 mesytec_mdpp32scp_setup_(void)
@@ -355,9 +359,11 @@ mesytec_mdpp32scp_setup_(void)
 	MODULE_CALLBACK_BIND(mesytec_mdpp32scp, readout_shadow);
 	MODULE_CALLBACK_BIND(mesytec_mdpp32scp, use_pedestals);
 	MODULE_CALLBACK_BIND(mesytec_mdpp32scp, zero_suppress);
+#if NCONF_mMAP_bCMVLC
 	MODULE_CALLBACK_BIND(mesytec_mdpp32scp, cmvlc_init);
 	MODULE_CALLBACK_BIND(mesytec_mdpp32scp, cmvlc_fetch_dt);
 	MODULE_CALLBACK_BIND(mesytec_mdpp32scp, cmvlc_fetch);
+#endif
 }
 
 void
