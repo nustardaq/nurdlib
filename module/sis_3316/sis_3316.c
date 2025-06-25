@@ -137,7 +137,7 @@ uint32_t sis_3316_test_channel(struct Sis3316Module*, int, uint32_t, uint32_t
     *, size_t, uint32_t) FUNC_RETURNS;
 uint32_t sis_3316_read_channel(struct Sis3316Module*, int, uint32_t, struct
     EventBuffer *) FUNC_RETURNS;
-uint32_t sis_3316_read_channel_dma(struct Sis3316Module*, int, uint32_t,
+uint32_t sis_3316_read_channel_dma(struct Crate *, struct Sis3316Module*, int, uint32_t,
     struct EventBuffer *) FUNC_RETURNS;
 void sis_3316_read_stat_counters(struct Sis3316Module *);
 int sis_3316_check_channel_data(struct Sis3316Module*, int, struct
@@ -970,6 +970,7 @@ sis_3316_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}
 		MAP_WRITE(m->sicy_map, channel_trigger_threshold(i),
 		      (1 << 31) /* Trigger enable */
+			| (((m->config.high_e_rejection >> i) & 1) << 30) /* rejection above high en thresh yes/no */
 		    | (cfd_bits << 28)
 		    | m->config.threshold[i]);
 		SERIALIZE_IO;
@@ -2076,19 +2077,17 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 		goto sis_3316_readout_done;
 	}
 
-#define DO_EXPECT_ONLY_TRIGGER_ONE
-#ifdef DO_EXPECT_ONLY_TRIGGER_ONE
-	/* BL: Only expect real data on trigger 1 */
+	/* Only expect real data on trigger type 13 and lower */
 	{
 		unsigned gsi_mbs_trigger;
 		gsi_mbs_trigger = crate_gsi_mbs_trigger_get(a_crate);
-		if (gsi_mbs_trigger != 1) {
+		printf("trigger type -> %u \n", gsi_mbs_trigger);
+		if (gsi_mbs_trigger > 13) {
 			LOGF(spam)(LOGL, NAME"skipping trigger = %d",
 			    gsi_mbs_trigger);
 			goto sis_3316_readout_done;
 		}
 	}
-#endif
 
 	/*
 	 * Only in synchronous mode must the addr threshold be crossed
@@ -2296,8 +2295,6 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 	uint32_t event_num;
 	double now = 0;
 
-	(void)a_crate;
-
 	LOGF(spam)(LOGL, NAME" readout {");
 	result = 0;
 
@@ -2462,7 +2459,7 @@ sis_3316_readout(struct Crate *a_crate, struct Module *a_module, struct
 				result |= sis_3316_read_channel(m, ch,
 				    words_in_channel, a_event_buffer);
 			} else {
-				result |= sis_3316_read_channel_dma(m, ch,
+				result |= sis_3316_read_channel_dma(a_crate, m, ch,
 				    words_in_channel, a_event_buffer);
 			}
 			if (0 != result) {
@@ -2785,7 +2782,7 @@ sis_3316_read_channel(struct Sis3316Module *a_sis3316, int a_ch, uint32_t
 }
 
 uint32_t
-sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
+sis_3316_read_channel_dma(struct Crate *a_crate, struct Sis3316Module* a_sis3316, int a_ch, uint32_t
     a_words_to_read, struct EventBuffer *a_event_buffer)
 {
 	uint32_t* outp;
@@ -2795,6 +2792,8 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 	uint32_t offset;
 	uint32_t bytes_to_read;
 	int adc;
+	unsigned gsi_mbs_trigger;
+	gsi_mbs_trigger = crate_gsi_mbs_trigger_get(a_crate);
 
 	LOGF(spam)(LOGL, NAME" read_channel %d with DMA {", a_ch);
 
@@ -2873,7 +2872,7 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 	*header = filler;
 
 	/* Skip this part, if this should not be discarded */
-	if (((a_sis3316->config.discard_data >> a_ch) & 1) == 1)
+	if ((((a_sis3316->config.discard_data >> a_ch) & 1) == 1) && (extract_bit_range(a_sis3316->config.readout_on_trigger, gsi_mbs_trigger, gsi_mbs_trigger) == 0))
 	{
 		uint32_t baseline;
 		uint32_t energy;
@@ -2986,22 +2985,11 @@ sis_3316_read_channel_dma(struct Sis3316Module* a_sis3316, int a_ch, uint32_t
 		status_flag = (header_end >> 26) & 0x1;
 
 		if (a_sis3316->config.discard_threshold == 0) {
-			if (status_flag == 1) {
-				LOGF(spam)(LOGL, "Status flag is set!");
-			} else {
-				LOGF(spam)(LOGL,
-				    "Status flag is not set! SKIP!");
-
+			if ((status_flag == 0) | (extract_bit_range(a_sis3316->config.discard_on_trigger, gsi_mbs_trigger, gsi_mbs_trigger) == 1)) {
 				/*
-				 * rewrite *header_end_ptr and *avg_samples_ptr to not confuse
-				 * the unpacker.
+				! event is skipped !
+				rewrite *header_end_ptr and *avg_samples_ptr to not confuse the unpacker.
 				 */
-				LOGF(spam)(LOGL,
-				    "Rewriting header_end_ptr:  %08x.",
-				    *header_end_ptr);
-				LOGF(spam)(LOGL,
-				    "Rewriting avg_samples_ptr: %08x.",
-				    *avg_samples_ptr);
 
 				*header_end_ptr =  0xa2000000; /* status flag always 0 here */
 				if (a_sis3316->config.use_accumulator6 == 0) {
@@ -3598,6 +3586,18 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	LOGF(verbose)(LOGL, "discard_threshold = %d.",
 	    a_module->config.discard_threshold);
 
+	/* use discard on trigger */
+	a_module->config.discard_on_trigger = config_get_bitmask(a_block,
+	    KW_DISCARD_ON_TRIGGER, 0, 15);
+	LOGF(verbose)(LOGL, "discard_on_trigger = mask 0x%08x.",
+	    a_module->config.discard_data);
+
+	/* use readout on trigger */
+	a_module->config.readout_on_trigger = config_get_bitmask(a_block,
+	    KW_READOUT_ON_TRIGGER, 0, 15);
+	LOGF(verbose)(LOGL, "readout_on_trigger = mask 0x%08x.",
+	    a_module->config.discard_data);
+
 	/* DAC offset */
 	CONFIG_GET_INT_ARRAY(a_module->config.dac_offset, a_block,
 	    KW_OFFSET, CONFIG_UNIT_NONE, -0x8000, 0x8000);
@@ -3954,6 +3954,12 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 		LOGF(verbose)(LOGL, "threshold_high_e_V[%d] = %f",
 		    (int)i, a_module->config.threshold_high_e_V[i]);
 	}
+
+	/* reject triggers from signals above high energy threshold */
+	a_module->config.high_e_rejection = config_get_bitmask(a_block,
+	    KW_HIGH_E_REJECTION, 0, 15);
+	LOGF(verbose)(LOGL, "high_e_rejection = mask 0x%08x.",
+	    a_module->config.high_e_rejection);
 
 	/* Peak time for trigger filter */
 	CONFIG_GET_INT_ARRAY(a_module->config.peak, a_block,

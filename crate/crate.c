@@ -1411,8 +1411,6 @@ crate_readout_dt(struct Crate *a_crate)
 		    COUNTER_DIFF_RAW(counter->cur, counter->prev));
 	}
 
-	t0 = time_getd();
-
 	/* All module event counters. */
 	a_crate->dt_release.for_it = 0;
 	for_it = 0;
@@ -1433,6 +1431,8 @@ crate_readout_dt(struct Crate *a_crate)
 		 * Busy wait until we have event counter, and shadow data
 		 * counters if applicable.
 		 */
+
+		t0 = time_getd();
 		for (;;) {
 			struct Counter shadow_counter;
 			double t;
