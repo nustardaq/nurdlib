@@ -231,6 +231,7 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 	uint32_t const *p32;
 	uint32_t count_exp;
 	uint32_t header_len_mask, data_sig, data_sig_msk, ch_msk, value_msk;
+	uint32_t ext_tstamp_sig;
 	uint32_t result;
 
 	LOGF(spam)(LOGL, NAME" parse_data(ptr=%p,bytes=%"PRIz") {",
@@ -284,6 +285,8 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 		goto mesytec_mxdc32_parse_data_done;
 	}
 
+	ext_tstamp_sig = 0;
+
 	/* Prepare some bitmasks. */
 	/* TODO: Check bits 12..15? Depends on subtype. */
 	if ((KW_MESYTEC_MDPP16SCP == a_mxdc32->module.type) ||
@@ -291,12 +294,14 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 		header_len_mask = 0x3ff;
 		data_sig = 0x10000000;
 		data_sig_msk = 0xf0000000;
+		ext_tstamp_sig = 0x20000000;
 		ch_msk = 0x003f0000;
 		value_msk = 0x0000ffff;
 	} else if (KW_MESYTEC_MDPP32SCP == a_mxdc32->module.type) {
 		header_len_mask = 0x3ff;
 		data_sig = 0x10000000;
 		data_sig_msk = 0xf0000000;
+		ext_tstamp_sig = 0x20000000;
 		ch_msk = 0x007f0000;
 		value_msk = 0x0000ffff;
 	} else if (KW_MESYTEC_VMMR8 == a_mxdc32->module.type){
@@ -401,6 +406,11 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 			word = *p32;
 			/* Gobble DMA (MBLT) filler at end of readout. */
 			if (0x00000000 == word && len - 1 == words) {
+				continue;
+			}
+			if (ext_tstamp_sig &&
+			    ext_tstamp_sig == (data_sig_msk & word)) {
+				/* Extended time-stamp. */
 				continue;
 			}
 			if (data_sig != (data_sig_msk & word)) {
