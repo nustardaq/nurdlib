@@ -226,7 +226,8 @@ mesytec_mdpp16scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	/* Streaming mode? */
 	if (crate_free_running_get(a_crate)) {
-		MAP_WRITE(mdpp16scp->mdpp.mxdc32.sicy_map, output_format, 4);
+		MAP_WRITE(mdpp16scp->mdpp.mxdc32.sicy_map, output_format, 8);
+		MAP_WRITE(mdpp16scp->mdpp.mxdc32.sicy_map, marking_type, 3);
 	}
 
 	LOGF(info)(LOGL, NAME" init_fast }");

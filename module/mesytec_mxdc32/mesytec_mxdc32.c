@@ -244,7 +244,8 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 	p32 = a_event_buffer->ptr;
 	end = p32 + a_event_buffer->bytes / sizeof(uint32_t);
 
-	if (crate_free_running_get(a_crate)) {
+	/* Compact streaming format (output_format = 4). */
+	if (0 && crate_free_running_get(a_crate)) {
 		for (; p32 < end;) {
 			uint32_t u32, msb, id;
 
