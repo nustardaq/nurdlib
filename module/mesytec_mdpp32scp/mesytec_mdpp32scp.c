@@ -189,6 +189,16 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, pz3,
 		    mdpp32scp->config.pz[i * 4 + 3]);
 		time_sleep(init_sleep);
+
+		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, pre_samples,
+		    4);
+		time_sleep(init_sleep);
+		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, tot_samples,
+		    10);
+		time_sleep(init_sleep);
+		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, sample_config,
+		    0x0);
+		time_sleep(init_sleep);
 	}
 
 	/* Resolution */
@@ -229,7 +239,8 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	/* Streaming mode? */
 	if (crate_free_running_get(a_crate)) {
-		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, output_format, 8);
+		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, output_format,
+			  8 | 16);
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, marking_type, 3);
 	}
 
