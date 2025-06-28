@@ -413,6 +413,7 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 		count = COUNTER_VALUE(eoe);
 		count_exp = COUNTER_VALUE(count_exp);
 		if (!a_skip_event_counter_check &&
+		    !crate_free_running_get(a_crate) &&
 		    count != count_exp) {
 			module_parse_error(LOGL, a_event_buffer, p32,
 			    "Event counter=0x%08x mismatch, expected 0x%08x",
