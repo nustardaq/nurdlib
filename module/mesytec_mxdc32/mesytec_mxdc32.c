@@ -348,18 +348,42 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 			break;
 		}
 		header = *p32;
-		if (0x40000000 != (0xfe000000 & header)) {
-			module_parse_error(LOGL, a_event_buffer, p32,
-			    "Header corrupt");
-			result = CRATE_READOUT_FAIL_DATA_CORRUPT;
-			goto mesytec_mxdc32_parse_data_done;
+		/* Work around a bug in the new standard streaming
+		 * mode where the module number is placed at the wrong
+		 * place in the header (the place of it in compact
+		 * streaming mode).  Once that is fixed (and flashed)
+		 * in firmware, it would make sense to remove this
+		 * outer if-statement and the else-clause.
+		 */
+		if (!crate_free_running_get(a_crate)) {
+			if (0x40000000 != (0xfe000000 & header)) {
+				module_parse_error(LOGL, a_event_buffer, p32,
+				    "Header corrupt");
+				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
+				goto mesytec_mxdc32_parse_data_done;
+			}
+			id = (0x00ff0000 & header) >> 16;
+			if (a_mxdc32->module.id != id) {
+				module_parse_error(LOGL, a_event_buffer, p32,
+				    "Module header ID corrupt");
+				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
+				goto mesytec_mxdc32_parse_data_done;
+			}
 		}
-		id = (0x00ff0000 & header) >> 16;
-		if (a_mxdc32->module.id != id) {
-			module_parse_error(LOGL, a_event_buffer, p32,
-			    "Module header ID corrupt");
-			result = CRATE_READOUT_FAIL_DATA_CORRUPT;
-			goto mesytec_mxdc32_parse_data_done;
+		else {
+			if (0x40000000 != (0xc0000000 & header)) {
+				module_parse_error(LOGL, a_event_buffer, p32,
+				    "Streaming header corrupt");
+				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
+				goto mesytec_mxdc32_parse_data_done;
+			}
+			id = (0x3f000000 & header) >> 24;
+			if (a_mxdc32->module.id != id) {
+				module_parse_error(LOGL, a_event_buffer, p32,
+				    "Module streaming header ID corrupt");
+				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
+				goto mesytec_mxdc32_parse_data_done;
+			}
 		}
 		len = (header & header_len_mask) - 1;
 		++p32;
