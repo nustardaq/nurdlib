@@ -22,22 +22,18 @@
  */
 
 #include <module/gsi_febex/gsi_febex.h>
+#include <math.h>
 #include <sched.h>
 #include <module/gsi_pex/internal.h>
 #include <module/gsi_febex/internal.h>
+#include <module/gsi_pex/offsets.h>
+#include <nurdlib/config.h>
+#include <nurdlib/crate.h>
 #include <util/bits.h>
 #include <util/fmtmod.h>
 #include <util/memcpy.h>
 
 #define NAME "Gsi Febex"
-
-#if !NCONF_mGSI_PEX_bNO
-#	include <math.h>
-#	include <module/map/map.h>
-#	include <module/gsi_pex/offsets.h>
-#	include <nurdlib/config.h>
-#	include <nurdlib/crate.h>
-#	include <nurdlib/log.h>
 
 #define REG_FEB_CTRL          0x200000
 #define REG_FEB_TRIG_DELAY    0x200004
@@ -757,23 +753,6 @@ gsi_febex_setup_(void)
 {
 	MODULE_SETUP(gsi_febex, MODULE_FLAG_EARLY_DT);
 }
-
-#else
-
-struct Module *
-gsi_febex_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
-{
-	(void)a_crate;
-	(void)a_block;
-	log_die(LOGL, NAME" not supported in this build/platform.");
-}
-
-void
-gsi_febex_setup_(void)
-{
-}
-
-#endif
 
 void
 gsi_febex_crate_add(struct GsiFebexCrate *a_crate, struct Module *a_module)

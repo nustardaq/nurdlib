@@ -31,8 +31,6 @@
 
 #define NAME "Gsi Kilom"
 
-#if !NCONF_mGSI_PEX_bNO
-
 #define REG_KILOM_TEMP 0x20005c
 
 #define KILOM_INIT_RD(a0, a1, label) do {\
@@ -313,23 +311,6 @@ threshold_set_fail:
 	LOGF(verbose)(LOGL, NAME" threshold_set(ret=%d) }", ret);
 	return ret;
 }
-
-#else
-
-struct Module *
-gsi_kilom_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
-{
-	(void)a_crate;
-	(void)a_block;
-	log_die(LOGL, NAME" not supported in this build/platform.");
-}
-
-void
-gsi_kilom_setup_(void)
-{
-}
-
-#endif
 
 void
 gsi_kilom_crate_add(struct GsiKilomCrate *a_crate, struct Module *a_module)

@@ -22,40 +22,36 @@
  */
 
 #include <module/gsi_tamex/gsi_tamex.h>
+#include <math.h>
 #include <sched.h>
 #include <module/gsi_pex/internal.h>
+#include <module/gsi_pex/offsets.h>
 #include <module/gsi_tamex/internal.h>
+#include <nurdlib/config.h>
+#include <nurdlib/crate.h>
 #include <util/bits.h>
 #include <util/fmtmod.h>
 #include <util/time.h>
 
 #define NAME "Gsi Tamex"
 
-#if !NCONF_mGSI_PEX_bNO
-#	include <math.h>
-#	include <module/map/map.h>
-#	include <module/gsi_pex/offsets.h>
-#	include <nurdlib/config.h>
-#	include <nurdlib/crate.h>
-#	include <nurdlib/log.h>
-
-#	define CLK_SRC_EXT_TAM2  0x20
-#	define CLK_SRC_ONB_TAM2  0x24
-#	define CLK_SRC_BPL_TAM3  0x26
-#	define CLK_SRC_ONB_TAM3  0x2a
-#	define CLK_SRC_BPL_TAMP1 0x0
-#	define CLK_SRC_ONB_TAMP1 0x1 /* TODO: 4: 1st card = clk master. */
-#	define CLK_SRC_EXT_TAMP1 0x2 /* TODO: 8: 1st card = clk receiver. */
-#	define REG_TAM_CTRL      0x200000
-#	define REG_TAM_TRG_WIN   0x200004
-#	define REG_TAM_EN_CH     0x200008
-#	define REG_TAM_POLARITY  0x200010 /* TODO: 0x330018 tam3/4 */
-#	define REG_TAM_MISC1     0x330010 /* new for test pulse tamex4 */
-#	define REG_TAM_MISC2     0x330014 /* new for test pulse tamex4 */
-#	define REG_TAM_CLK_SEL   0x311000
-#	define REG_TAM_PADI_CTL  0x311014
-#	define REG_TAM_PADI_DAT  0x311018
-#	define REG_TAM_TRG_EN    0x33001c
+#define CLK_SRC_EXT_TAM2  0x20
+#define CLK_SRC_ONB_TAM2  0x24
+#define CLK_SRC_BPL_TAM3  0x26
+#define CLK_SRC_ONB_TAM3  0x2a
+#define CLK_SRC_BPL_TAMP1 0x0
+#define CLK_SRC_ONB_TAMP1 0x1 /* TODO: 4: 1st card = clk master. */
+#define CLK_SRC_EXT_TAMP1 0x2 /* TODO: 8: 1st card = clk receiver. */
+#define REG_TAM_CTRL      0x200000
+#define REG_TAM_TRG_WIN   0x200004
+#define REG_TAM_EN_CH     0x200008
+#define REG_TAM_POLARITY  0x200010 /* TODO: 0x330018 tam3/4 */
+#define REG_TAM_MISC1     0x330010 /* new for test pulse tamex4 */
+#define REG_TAM_MISC2     0x330014 /* new for test pulse tamex4 */
+#define REG_TAM_CLK_SEL   0x311000
+#define REG_TAM_PADI_CTL  0x311014
+#define REG_TAM_PADI_DAT  0x311018
+#define REG_TAM_TRG_EN    0x33001c
 
 MODULE_PROTOTYPES(gsi_tamex);
 static void			gate_get(struct ModuleGate *, struct
@@ -965,23 +961,6 @@ padi_set_threshold(struct GsiPex *a_pex, unsigned a_sfp_i, unsigned a_card_i,
 padi_set_threshold_done:
 	return 0;
 }
-
-#else
-
-struct Module *
-gsi_tamex_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
-{
-	(void)a_crate;
-	(void)a_block;
-	log_die(LOGL, NAME" not supported in this build/platform.");
-}
-
-void
-gsi_tamex_setup_(void)
-{
-}
-
-#endif
 
 void
 gsi_tamex_crate_add(struct GsiTamexCrate *a_crate, struct Module *a_module)

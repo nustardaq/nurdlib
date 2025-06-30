@@ -22,21 +22,17 @@
  */
 
 #include <module/gsi_ctdc_proto/internal.h>
+#include <math.h>
 #include <sched.h>
 #include <module/gsi_pex/internal.h>
 #include <module/gsi_pex/offsets.h>
+#include <nurdlib/crate.h>
+#include <nurdlib/config.h>
 #include <util/bits.h>
 #include <util/fmtmod.h>
 #include <util/time.h>
 
 #define NAME "Gsi CTDC-proto"
-
-#if !NCONF_mGSI_PEX_bNO
-#	include <math.h>
-#	include <module/map/map.h>
-#	include <nurdlib/config.h>
-#	include <nurdlib/crate.h>
-#	include <nurdlib/log.h>
 
 enum {
 	REG_CTDC_CTRL              = 0x200000,
@@ -628,5 +624,3 @@ fail:
 	LOGF(debug)(LOGL, NAME" sub_module_pack }");
 	return ret;
 }
-
-#endif

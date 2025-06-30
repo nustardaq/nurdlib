@@ -300,8 +300,8 @@ gsi_pex_slave_read_done:
 }
 
 int
-gsi_pex_slave_write(struct GsiPex *a_pex, size_t a_sfp_i, size_t
-    a_slave_i, unsigned a_slave_ofs, uint32_t a_val)
+gsi_pex_slave_write(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_i,
+    unsigned a_slave_ofs, uint32_t a_val)
 {
 	uint32_t addr, comm, data;
 	int ret;
@@ -510,6 +510,22 @@ gsi_pex_deinit(struct GsiPex *a_pex)
 }
 
 void
+gsi_pex_free(struct GsiPex **a_pex)
+{
+	(void)a_pex;
+}
+
+int
+gsi_pex_buf_get(struct GsiPex const *a_pex, struct EventBuffer *a_eb,
+    uintptr_t *a_physical_minus_virtual)
+{
+	(void)a_pex;
+	(void)a_eb;
+	(void)a_physical_minus_virtual;
+	return 0;
+}
+
+void
 gsi_pex_init(struct GsiPex *a_pex, struct ConfigBlock *a_block)
 {
 	(void)a_pex;
@@ -533,6 +549,63 @@ void
 gsi_pex_reset(struct GsiPex *a_pex)
 {
 	(void)a_pex;
+}
+
+void
+gsi_pex_sfp_tag(struct GsiPex *a_pex, unsigned a_sfp_i)
+{
+	(void)a_pex;
+	(void)a_sfp_i;
+}
+
+int
+gsi_pex_slave_init(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_num)
+{
+	(void)a_pex;
+	(void)a_sfp_i;
+	(void)a_slave_num;
+	return 0;
+}
+
+int
+gsi_pex_slave_read(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_i,
+    unsigned a_slave_ofs, uint32_t *a_val)
+{
+	(void)a_pex;
+	(void)a_sfp_i;
+	(void)a_slave_i;
+	(void)a_slave_ofs;
+	(void)a_val;
+	return 0;
+}
+
+int
+gsi_pex_slave_write(struct GsiPex *a_pex, size_t a_sfp_i, size_t a_slave_i,
+    unsigned a_slave_ofs, uint32_t a_val)
+{
+	(void)a_pex;
+	(void)a_sfp_i;
+	(void)a_slave_i;
+	(void)a_slave_ofs;
+	(void)a_val;
+	return 0;
+}
+
+void
+gsi_pex_token_issue_single(struct GsiPex *a_pex, unsigned a_sfp_i)
+{
+	(void)a_pex;
+	(void)a_sfp_i;
+}
+
+int
+gsi_pex_token_receive(struct GsiPex *a_pex, size_t a_sfp_i, uint32_t
+    a_slave_num)
+{
+	(void)a_pex;
+	(void)a_sfp_i;
+	(void)a_slave_num;
+	return 0;
 }
 
 #endif

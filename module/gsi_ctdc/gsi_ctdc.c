@@ -30,8 +30,6 @@
 
 #define NAME "Gsi CTDC"
 
-#if !NCONF_mGSI_PEX_bNO
-
 MODULE_PROTOTYPES(gsi_ctdc);
 static struct ConfigBlock	*gsi_ctdc_get_submodule_config(struct Module
     *, unsigned) FUNC_RETURNS;
@@ -337,23 +335,6 @@ threshold_set_fail:
 	LOGF(verbose)(LOGL, NAME" threshold_set_padi(ret=%d) }", ret);
 	return ret;
 }
-
-#else
-
-struct Module *
-gsi_ctdc_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
-{
-	(void)a_crate;
-	(void)a_block;
-	log_die(LOGL, NAME" not supported in this build/platform.");
-}
-
-void
-gsi_ctdc_setup_(void)
-{
-}
-
-#endif
 
 void
 gsi_ctdc_crate_add(struct GsiCTDCCrate *a_crate, struct Module *a_module)

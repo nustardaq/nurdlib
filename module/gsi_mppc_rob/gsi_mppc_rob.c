@@ -30,8 +30,6 @@
 
 #define NAME "Gsi Mppc-Rob"
 
-#if !NCONF_mGSI_PEX_bNO
-
 #define MPPC_ROB_WR(a0, a1, label) do {\
 	if (!gsi_pex_slave_write(pex, sfp_i, card_i, a0, a1)) {\
 		log_error(LOGL, NAME" SFP=%u:card=%u "\
@@ -294,23 +292,6 @@ threshold_set_fail:
 	LOGF(verbose)(LOGL, NAME" threshold_set(ret=%d) }", ret);
 	return ret;
 }
-
-#else
-
-struct Module *
-gsi_mppc_rob_create_(struct Crate *a_crate, struct ConfigBlock *a_block)
-{
-	(void)a_crate;
-	(void)a_block;
-	log_die(LOGL, NAME" not supported in this build/platform.");
-}
-
-void
-gsi_mppc_rob_setup_(void)
-{
-}
-
-#endif
 
 void
 gsi_mppc_rob_crate_add(struct GsiMppcRobCrate *a_crate, struct Module
