@@ -1,7 +1,7 @@
 /*
  * nurdlib, NUstar ReaDout LIBrary
  *
- * Copyright (C) 2018-2021, 2023-2024
+ * Copyright (C) 2018-2021, 2023-2025
  * Hans Toshihide Törnqvist
  *
  * This library is free software; you can redistribute it and/or
