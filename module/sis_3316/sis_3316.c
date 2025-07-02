@@ -1472,6 +1472,9 @@ sis_3316_init_slow(struct Crate *a_crate, struct Module *a_module)
 	m->last_dumped = 0;
 	m->last_read = 0;
 	m->temp_warning_cnt = 0; /* start module with zero temperature warnings */
+	for (i = 0; i < N_CHANNELS; ++i) { 
+		m->time_last_hit[i] = 0.; /* set time of last hit to zero */
+	} 
 
 	m->sicy_map = map_map(m->config.address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(trigger_coinc_lut_control),
@@ -2081,7 +2084,6 @@ sis_3316_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	{
 		unsigned gsi_mbs_trigger;
 		gsi_mbs_trigger = crate_gsi_mbs_trigger_get(a_crate);
-		printf("trigger type -> %u \n", gsi_mbs_trigger);
 		if (gsi_mbs_trigger > 13) {
 			LOGF(spam)(LOGL, NAME"skipping trigger = %d",
 			    gsi_mbs_trigger);
@@ -2793,6 +2795,9 @@ sis_3316_read_channel_dma(struct Crate *a_crate, struct Sis3316Module* a_sis3316
 	uint32_t bytes_to_read;
 	int adc;
 	unsigned gsi_mbs_trigger;
+
+	int32_t data;
+
 	gsi_mbs_trigger = crate_gsi_mbs_trigger_get(a_crate);
 
 	LOGF(spam)(LOGL, NAME" read_channel %d with DMA {", a_ch);
@@ -2872,15 +2877,19 @@ sis_3316_read_channel_dma(struct Crate *a_crate, struct Sis3316Module* a_sis3316
 	*header = filler;
 
 	/* Skip this part, if this should not be discarded */
-	if ((((a_sis3316->config.discard_data >> a_ch) & 1) == 1) && (extract_bit_range(a_sis3316->config.readout_on_trigger, gsi_mbs_trigger, gsi_mbs_trigger) == 0))
+	if ((((a_sis3316->config.discard_data >> a_ch) & 1) == 1) && (extract_bit_range(a_sis3316->config.readout_on_trigger_type, gsi_mbs_trigger, gsi_mbs_trigger) == 0))
 	{
+		long double timestamp;
 		uint32_t baseline;
 		uint32_t energy;
 		uint32_t *header_end_ptr;
 		uint32_t *avg_samples_ptr;
 		uint32_t header_end;
-		char status_flag;
+		uint8_t trigger_flag;
 		size_t adc_mem_i;
+		double accum_gate_values[8];
+		double time_diff;
+		uint8_t discard_now = 0;
 
 		LOGF(spam)(LOGL, "Peeking into event header [%d] {", a_ch);
 		LOGF(spam)(LOGL, "a_words_to_read = %d.", a_words_to_read);
@@ -2907,13 +2916,19 @@ sis_3316_read_channel_dma(struct Crate *a_crate, struct Sis3316Module* a_sis3316
 		adc_mem_i = 0;
 
 		/* timestamp 1 */
-		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
+		data = MAP_READ_OFS(a_sis3316->sicy_map,
+			adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
+		timestamp = (long double)extract_bit_range(data,16,31) * pow(2.,32.);
+		*outp++ = data;
 		++adc_mem_i;
 		/* timestamp 2 */
-		*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
-		    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
+		data = MAP_READ_OFS(a_sis3316->sicy_map,
+			adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
+		*outp++ = data;
 		++adc_mem_i;
+		timestamp = timestamp + (long double)extract_bit_range(data,16,31) * pow(2.,16.) + (long double)extract_bit_range(data,0,15);
+		timestamp = timestamp / 1000000. / (long double)a_sis3316->config.clk_freq;
+		/* printf("timestamp in sec -> %f \n", timestamp / 1000000. / (double)a_sis3316->config.clk_freq); */
 
 		if (a_sis3316->config.use_accumulator2 == 1 ||
 		    a_sis3316->config.use_accumulator6 == 1) {
@@ -2923,9 +2938,16 @@ sis_3316_read_channel_dma(struct Crate *a_crate, struct Sis3316Module* a_sis3316
 			assert(a_sis3316->config.use_accumulator6 == 1);
 			for (i = 0; i < 9; ++i) {
 				/* peak + gates */
-				*outp++ = MAP_READ_OFS(a_sis3316->sicy_map,
+				data = MAP_READ_OFS(a_sis3316->sicy_map,
 				    adc_fifo_memory_fifo(adc), adc_mem_i*sizeof(uint32_t));
+				*outp++ = data;
 				++adc_mem_i;
+				if (i == 1) {
+					accum_gate_values[i-1] = (double)(extract_bit_range(data, 0, 23)/(a_sis3316->config.gate[0].width+1));
+				}
+				if (i > 1) {
+					accum_gate_values[i-1] = (double)(extract_bit_range(data, 0, 27)/(a_sis3316->config.gate[i-1].width+1));
+				}
 			}
 		}
 
@@ -2981,29 +3003,55 @@ sis_3316_read_channel_dma(struct Crate *a_crate, struct Sis3316Module* a_sis3316
 
 		LOGF(spam)(LOGL, "Peeking into event header }");
 
-		/* check the condition, if should stop reading this channel */
-		status_flag = (header_end >> 26) & 0x1;
+		/* check if the channel had a trigger */
+		trigger_flag = (header_end >> 26) & 0x1;
 
-		if (a_sis3316->config.discard_threshold == 0) {
-			if ((status_flag == 0) | (extract_bit_range(a_sis3316->config.discard_on_trigger, gsi_mbs_trigger, gsi_mbs_trigger) == 1)) {
-				/*
-				! event is skipped !
-				rewrite *header_end_ptr and *avg_samples_ptr to not confuse the unpacker.
-				 */
-
-				*header_end_ptr =  0xa2000000; /* status flag always 0 here */
-				if (a_sis3316->config.use_accumulator6 == 0) {
-					*avg_samples_ptr = 0xe0000002; /* two data words following */
-				} else {
-					*avg_samples_ptr = 0xe0000001; /* only one data word following */
+		if ((trigger_flag == 1) && (a_sis3316->config.discard_on_high_rate > 0)) {
+			time_diff = (double)timestamp - a_sis3316->time_last_hit[a_ch];
+			/* printf("ts_last -> %Lf, ts_now -> %Lf \n", a_sis3316->time_last_hit[a_ch], timestamp); */
+			a_sis3316->time_last_hit[a_ch] = timestamp;
+			/* printf("time_diff*1000 -> %f, limit -> %f \n", time_diff, 1./a_sis3316->config.discard_on_high_rate); */
+			if (time_diff*1000. < 1./a_sis3316->config.discard_on_high_rate) {
+				int i;
+				/* check if accum gates look fine */
+				for (i = 1; i < 8; ++i) {
+					accum_gate_values[i] = abs(accum_gate_values[i] - accum_gate_values[0]);
 				}
-
-				goto end_readout_channel_dma;
+				for (i = 1; i < 6; ++i) {
+					if (accum_gate_values[i] < accum_gate_values[i+2]) {
+						discard_now = 1; /* in case pulse is not monotonic decreasing */
+						/* printf("rejected! ch -> %u, i -> %d, gates -> %f %f \n", a_ch, i, accum_gate_values[i], accum_gate_values[i+2]); */
+					}
+				}
+				/* if (discard_now == 0) {
+						printf("not rejected! ch -> %u, gates -> %f %f %f %f %f %f %f \n", a_ch, accum_gate_values[1], accum_gate_values[2], accum_gate_values[3], accum_gate_values[4], accum_gate_values[5], accum_gate_values[6], accum_gate_values[7]);
+				}	*/				
 			}
-		} else {
+		}
+		if (a_sis3316->config.discard_threshold > 0) {
 			log_error(LOGL, "Decision based on energy threshold not implemented yet!");
 			abort();
 		}
+		if ((((a_sis3316->config.discard_if_no_int_trigger >> a_ch) & 1) == 1) && (trigger_flag == 0)) {
+			discard_now = 1;
+		}		
+		if ((discard_now == 1) | (extract_bit_range(a_sis3316->config.discard_on_trigger_type, gsi_mbs_trigger, gsi_mbs_trigger) == 1)) {
+			/*
+			! event is skipped !
+			rewrite *header_end_ptr and *avg_samples_ptr to not confuse the unpacker.
+			*/
+
+			*header_end_ptr = 0xa2000000 + (trigger_flag << 26);
+			if (a_sis3316->config.use_accumulator6 == 0) {
+				*avg_samples_ptr = 0xe0000002; /* two data words following */
+			} else {
+				*avg_samples_ptr = 0xe0000001; /* only one data word following */
+			}
+
+			goto end_readout_channel_dma;
+		}
+
+
 	} else {
 		LOGF(spam)(LOGL, "[%d] This channel data is never discarded.",
 		    a_ch);
@@ -3586,17 +3634,29 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	LOGF(verbose)(LOGL, "discard_threshold = %d.",
 	    a_module->config.discard_threshold);
 
-	/* use discard on trigger */
-	a_module->config.discard_on_trigger = config_get_bitmask(a_block,
-	    KW_DISCARD_ON_TRIGGER, 0, 15);
-	LOGF(verbose)(LOGL, "discard_on_trigger = mask 0x%08x.",
-	    a_module->config.discard_data);
+	/* discard threshold */
+	a_module->config.discard_on_high_rate = config_get_double(a_block, KW_DISCARD_ON_HIGH_RATE,
+	    CONFIG_UNIT_KHZ, 0, 10);
+	LOGF(verbose)(LOGL, "discard_on_high_rate = %f [kHz].",
+	    a_module->config.discard_on_high_rate);
 
-	/* use readout on trigger */
-	a_module->config.readout_on_trigger = config_get_bitmask(a_block,
-	    KW_READOUT_ON_TRIGGER, 0, 15);
-	LOGF(verbose)(LOGL, "readout_on_trigger = mask 0x%08x.",
-	    a_module->config.discard_data);
+	/* use discard if no internal trigger */
+	a_module->config.discard_if_no_int_trigger = config_get_bitmask(a_block,
+	    KW_DISCARD_IF_NO_INT_TRIGGER, 0, 15);
+	LOGF(verbose)(LOGL, "discard_if_no_int_trigger = mask 0x%08x.",
+	    a_module->config.discard_if_no_int_trigger);
+
+	/* use discard on trigger type */
+	a_module->config.discard_on_trigger_type = config_get_bitmask(a_block,
+	    KW_DISCARD_ON_TRIGGER_TYPE, 0, 15);
+	LOGF(verbose)(LOGL, "discard_on_trigger_type = mask 0x%08x.",
+	    a_module->config.discard_on_trigger_type);
+
+	/* use readout on ext trigger type*/
+	a_module->config.readout_on_trigger_type = config_get_bitmask(a_block,
+	    KW_READOUT_ON_TRIGGER_TYPE, 0, 15);
+	LOGF(verbose)(LOGL, "readout_on_trigger_type = mask 0x%08x.",
+	    a_module->config.readout_on_trigger_type);
 
 	/* DAC offset */
 	CONFIG_GET_INT_ARRAY(a_module->config.dac_offset, a_block,
@@ -3987,7 +4047,7 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 
 	/* Gap time for energy filter */
 	CONFIG_GET_INT_ARRAY(a_module->config.gap_e, a_block,
-	    KW_GAP_E, CONFIG_UNIT_NONE, 0, 2044);
+	    KW_GAP_E, CONFIG_UNIT_NONE, 0, 510);
 	for (i = 0; i < LENGTH(a_module->config.gap_e); ++i) {
 		LOGF(verbose)(LOGL, "gap_e[%d] = %d.",
 		    (int)i, a_module->config.gap_e[i]);
@@ -4104,25 +4164,29 @@ sis_3316_get_config(struct Sis3316Module *a_module, struct ConfigBlock
 	/* Gate blocks */
 	g_block = config_get_block(a_block, KW_GATE);
 	for (i = 0; i < N_GATES; ++i) {
+		uint16_t width_max = (1 << 9); /* accum gate width value has 9 bit */
+		if (i == 0) {
+			width_max = (1 << 8); /* accum gate value 0 has 24 bit, so it makes sense to limit width to 8 bit */
+		}
 		if (NULL == g_block) {
 			log_error(LOGL,
 			    NAME" Missing GATE(%d) block.", (int)i);
 			abort();
 		}
+		/* Gate width */
+		a_module->config.gate[i].width =
+		    config_get_int32(g_block, KW_WIDTH,
+			CONFIG_UNIT_NS, (1000 / a_module->config.clk_freq),
+			width_max * (1000 / a_module->config.clk_freq));
+		LOGF(verbose)(LOGL, "gate[%d].width = %d ns.",
+		    (int)i, a_module->config.gate[i].width);
 		/* Time after trigger */
 		a_module->config.gate[i].delay =
 		    config_get_int32(g_block, KW_TIME_AFTER_TRIGGER,
 			CONFIG_UNIT_NS, 0,
-			(1 << 16) * (1000 / a_module->config.clk_freq));
+			(((1 << 16) - 1) * (1000 / a_module->config.clk_freq) - a_module->config.gate[i].width)); /* gate start plus width <= maximum trigger gate window = 2^16 - 1 */
 		LOGF(verbose)(LOGL, "gate[%d].delay = %d ns.",
 		    (int)i, a_module->config.gate[i].delay);
-		/* Gate width */
-		a_module->config.gate[i].width =
-		    config_get_int32(g_block, KW_WIDTH,
-			CONFIG_UNIT_NS, 0,
-			(1 << 9) * (1000 / a_module->config.clk_freq));
-		LOGF(verbose)(LOGL, "gate[%d].width = %d ns.",
-		    (int)i, a_module->config.gate[i].width);
 
 		g_block = config_get_block_next(g_block, KW_GATE);
 	}
@@ -4209,7 +4273,7 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 	for (i = 0; i < N_GATES; ++i) {
 		a_module->config.gate[i].delay /= samples_per_ns;
 		a_module->config.gate[i].width /= samples_per_ns;
-		a_module->config.gate[i].width -= 1;
+		a_module->config.gate[i].width -= 1; /* gate length N -> width value N-1 (no zero length) */		
 	}
 
 	/* Pileup length is the full signal length */
@@ -4288,6 +4352,9 @@ sis_3316_calculate_settings(struct Sis3316Module *a_module)
 			    a_module->config.sample_length[0]
 			    + a_module->config.sample_length_maw[0]
 			    + 50;
+		}
+		if (a_module->config.trigger_gate_window_length[i] > ((1 << 16) - 1)) {
+			a_module->config.trigger_gate_window_length[i] = ((1 << 16) - 1);
 		}
 
 		LOGF(verbose)(LOGL,

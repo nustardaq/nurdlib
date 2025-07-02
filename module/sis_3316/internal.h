@@ -152,10 +152,12 @@ struct Sis3316Config {
 	uint32_t	channels_to_read;		/* A bitmask */
 	uint32_t	use_external_gate;		/* A bitmask */
 	uint16_t	discard_data;			/* A bitmask */
-	uint16_t	discard_on_trigger;			/* A bitmask */
-	uint16_t	readout_on_trigger;			/* A bitmask */
+	uint16_t	discard_on_trigger_type;			/* A bitmask */
+	uint16_t	discard_if_no_int_trigger;			/* A bitmask */
+	uint16_t	readout_on_trigger_type;			/* A bitmask */
 	uint16_t	high_e_rejection;			/* A bitmask */
 	int		discard_threshold;		/* full range */
+	double discard_on_high_rate; /* maximum inverse time period between two trigger events */
 	struct Gate	gate[N_GATES];
 	enum BitDepth	bit_depth;
 	enum Keyword	blt_mode;
@@ -174,7 +176,7 @@ struct Sis3316Config {
 	uint32_t	average_pretrigger[N_ADCS];	/* 0..4094 samples */
 	uint32_t	average_length[N_ADCS];		/* 0, 2, 4, ... 65534 samples */
 	int		tap_delay_fine_tune;		/* [-32 .. 32] * 40 ps */
-	uint32_t	n_memtest_bursts;	/* number of memtest bursts */
+	uint32_t	n_memtest_bursts;	/* number of memtest bursts */	
 };
 
 struct Sis3316ChannelCounters {
@@ -205,6 +207,7 @@ struct Sis3316Module {
 	double		last_read;
 	int8_t		temp_warning_cnt;
 	int8_t		temp_warning_cnt2;
+	long double	time_last_hit[N_CHANNELS];
 };
 
 void	sis_3316_calculate_settings(struct Sis3316Module *);
