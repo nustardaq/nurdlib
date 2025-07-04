@@ -147,6 +147,10 @@ stages:
   rules:
     - if: $CI_SERVER_HOST == "git.chalmers.se"
 
+.everywhere: &everywhere
+  rules:
+    - if: '$CI'
+
 .freebsd: &freebsd
   before_script:
     - uname -a
@@ -160,6 +164,7 @@ debian etch release:
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
   # retry: 2
 
 debian etch pic:
@@ -167,6 +172,7 @@ debian etch pic:
   <<: *common-no-virt
   <<: *debian-python
   <<: *run-gcc-pic
+  <<: *everywhere
   # retry: 2
 
 debian etch debug:
@@ -174,6 +180,7 @@ debian etch debug:
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
   # retry: 2
 
 gcc 7 release:
@@ -181,54 +188,63 @@ gcc 7 release:
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
 
 gcc 7 pic:
   image: gcc:7
   <<: *common-no-virt
   <<: *debian-python
   <<: *run-gcc-pic
+  <<: *everywhere
 
 gcc 7 debug:
   image: gcc:7
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
 
 gcc 8 release:
   image: gcc:8
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
 
 gcc 8 pic:
   image: gcc:8
   <<: *common-no-virt
   <<: *debian-python
   <<: *run-gcc-pic
+  <<: *everywhere
 
 gcc 8 debug:
   image: gcc:8
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
 
 gcc latest release:
   image: gcc:latest
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
 
 gcc latest pic:
   image: gcc:latest
   <<: *common-no-virt
   <<: *debian-python3
   <<: *run-gcc-pic
+  <<: *everywhere
 
 gcc latest debug:
   image: gcc:latest
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
 
 # rimfaxe _ release:
 #   image: "$DOCKER_REG/sbc-mock/rimfaxe"
@@ -256,120 +272,140 @@ ubuntu trusty coverage:
   <<: *common
   <<: *debian
   <<: *run-gcc-cov
+  <<: *everywhere
 
 ubuntu trusty release:
   image: ubuntu:trusty
   <<: *common
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
 
 ubuntu trusty pic:
   image: ubuntu:trusty
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
+  <<: *everywhere
 
 ubuntu trusty debug:
   image: ubuntu:trusty
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
 
 ubuntu trusty clang release:
   image: ubuntu:trusty
   <<: *common
   <<: *debian
   <<: *run-clang-release
+  <<: *everywhere
 
 ubuntu trusty clang pic:
   image: ubuntu:trusty
   <<: *common
   <<: *debian-python
   <<: *run-clang-pic
+  <<: *everywhere
 
 ubuntu trusty clang debug:
   image: ubuntu:trusty
   <<: *common
   <<: *debian
   <<: *run-clang-debug
+  <<: *everywhere
 
 ubuntu xenial release:
   image: ubuntu:xenial
   <<: *common
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
 
 ubuntu xenial pic:
   image: ubuntu:xenial
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
+  <<: *everywhere
 
 ubuntu xenial debug:
   image: ubuntu:xenial
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
 
 ubuntu xenial clang release:
   image: ubuntu:xenial
   <<: *common
   <<: *debian
   <<: *run-clang-release
+  <<: *everywhere
 
 ubuntu xenial clang pic:
   image: ubuntu:xenial
   <<: *common
   <<: *debian-python
   <<: *run-clang-pic
+  <<: *everywhere
 
 ubuntu xenial clang debug:
   image: ubuntu:xenial
   <<: *common
   <<: *debian
   <<: *run-clang-debug
+  <<: *everywhere
 
 ubuntu bionic release:
   image: ubuntu:bionic
   <<: *common
   <<: *debian
   <<: *run-gcc-release
+  <<: *everywhere
 
 ubuntu bionic pic:
   image: ubuntu:bionic
   <<: *common
   <<: *debian-python
   <<: *run-gcc-pic
+  <<: *everywhere
 
 ubuntu bionic debug:
   image: ubuntu:bionic
   <<: *common
   <<: *debian
   <<: *run-gcc-debug
+  <<: *everywhere
 
 ubuntu bionic clang release:
   image: ubuntu:bionic
   <<: *common
   <<: *debian
   <<: *run-clang-release
+  <<: *everywhere
 
 ubuntu bionic clang pic:
   image: ubuntu:bionic
   <<: *common
   <<: *debian-python
   <<: *run-clang-pic
+  <<: *everywhere
 
 ubuntu bionic clang debug:
   image: ubuntu:bionic
   <<: *common
   <<: *debian
   <<: *run-clang-debug
+  <<: *everywhere
 
 # mvme _ release:
 #   image: "$DOCKER_REG/sbc-mock/mvme"
 #   <<: *common
 #   <<: *debian
 #   <<: *run-gcc-release
+#   <<: *everywhere
 
 mvme _ pic:
   image: "$DOCKER_REG/sbc-mock/mvme"
@@ -513,22 +549,22 @@ rio2 smem debug:
   <<: *only-chalmers
 
 freebsd 10 pic:
-  image: auchida/freebsd:10
   <<: *common-bsd
   <<: *freebsd
   <<: *run-gmake-gcc-pic
+  <<: *everywhere
 
 freebsd 10 debug:
-  image: auchida/freebsd:10
   <<: *common-bsd
   <<: *freebsd
   <<: *run-gmake-gcc-debug
+  <<: *everywhere
 
 freebsd 10 release:
-  image: auchida/freebsd:10
   <<: *common-bsd
   <<: *freebsd
   <<: *run-gmake-gcc-release
+  <<: *everywhere
 
 cppcheck:
   image: ubuntu:xenial
@@ -538,6 +574,7 @@ cppcheck:
     - apt-get install -y cppcheck > /dev/null
   script:
     - cppcheck --force --enable=all -I include $RUNNER_MAKE_J .
+  <<: *everywhere
 
 mock:
   image: ubuntu:xenial
@@ -545,6 +582,7 @@ mock:
   <<: *debian-mbs
   script:
     - cd mock && make -k RUNNER_MAKE_J=$RUNNER_MAKE_J # Forward -jN to mock makefile.
+  <<: *everywhere
 
 ###
 
