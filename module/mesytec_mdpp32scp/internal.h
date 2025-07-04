@@ -38,6 +38,8 @@ struct MesytecMdpp32scpConfig {
 	int	blr[MDPP32SCP_PR_N];
 	int	rise_time[MDPP32SCP_PR_N];
 	int32_t	pz[MDPP32SCP_CH_N];
+	int     samples_pre[MDPP32SCP_PR_N];
+	int     samples_tot[MDPP32SCP_PR_N];
 };
 
 struct MesytecMdpp32scpModule {

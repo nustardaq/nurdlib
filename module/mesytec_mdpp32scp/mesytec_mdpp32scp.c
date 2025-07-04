@@ -107,6 +107,10 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	struct MesytecMdpp32scpModule *mdpp32scp;
 	double init_sleep;
 	unsigned i;
+	unsigned want_samples;
+	int samples_tot;
+
+	want_samples = 0;
 
 	LOGF(info)(LOGL, NAME" init_fast {");
 
@@ -149,6 +153,12 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	CONFIG_GET_INT_ARRAY(mdpp32scp->config.rise_time,
 	    mdpp32scp->mdpp.mxdc32.module.config,
 	    KW_SIGNAL_RISETIME, CONFIG_UNIT_NS, 0, 127*12.5);
+	CONFIG_GET_INT_ARRAY(mdpp32scp->config.samples_pre,
+	    mdpp32scp->mdpp.mxdc32.module.config,
+	    KW_SAMPLES_PRE, CONFIG_UNIT_NONE, 0, 500);
+	CONFIG_GET_INT_ARRAY(mdpp32scp->config.samples_tot,
+	    mdpp32scp->mdpp.mxdc32.module.config,
+	    KW_SAMPLES_TOT, CONFIG_UNIT_NONE, 0, 500);
 	for (i = 0; i < MDPP32SCP_PR_N; ++i) {
 		LOGF(verbose)(LOGL, "Input gain[%d]=%.2f (=%d/100).", i,
 		    mdpp32scp->config.gain[i] / 100.,
@@ -190,11 +200,23 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 		    mdpp32scp->config.pz[i * 4 + 3]);
 		time_sleep(init_sleep);
 
+		if (0 != mdpp32scp->config.samples_tot[i])
+			want_samples = 1;
+
+		samples_tot = mdpp32scp->config.samples_tot[i];
+		/* Round number of samples up to multiple of four
+		 * (plus two).  Plus two is to avoid filler words in
+		 * streaming mode.  Could be relaxed after lmd2ebye
+		 * filter fix.
+		 */
+		if (0 != samples_tot)
+			samples_tot = ((samples_tot - 2 + 3) & ~3) + 2;
+
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, pre_samples,
-		    4);
+		    mdpp32scp->config.samples_pre[i]);
 		time_sleep(init_sleep);
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, tot_samples,
-		    10);
+		    samples_tot);
 		time_sleep(init_sleep);
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, sample_config,
 		    0x0);
@@ -240,7 +262,7 @@ mesytec_mdpp32scp_init_fast(struct Crate *a_crate, struct Module *a_module)
 	/* Streaming mode? */
 	if (crate_free_running_get(a_crate)) {
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, output_format,
-			  8 | 16);
+			  8 | (want_samples ? 16 : 0));
 		MAP_WRITE(mdpp32scp->mdpp.mxdc32.sicy_map, marking_type, 3);
 	}
 
