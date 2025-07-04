@@ -38,6 +38,11 @@ stages:
   tags:
     - docker
 
+.common-bsd: &common-bsd
+  stage: build
+  tags:
+    - bsd
+
 .run-clang-pic: &run-clang-pic
   script:
     - CC=clang NTEST_VERBOSE=1 make BUILD_MODE=pic -k $RUNNER_MAKE_J
@@ -71,6 +76,10 @@ stages:
     - CC=gcc NTEST_VERBOSE=1 gmake BUILD_MODE=pic -k $RUNNER_MAKE_J
 
 .run-gmake-gcc-debug: &run-gmake-gcc-debug
+  script:
+    - CC=gcc NTEST_VERBOSE=1 gmake BUILD_MODE=debug -k $RUNNER_MAKE_J
+
+.run-gmake-gcc-release: &run-gmake-gcc-release
   script:
     - CC=gcc NTEST_VERBOSE=1 gmake BUILD_MODE=release -k $RUNNER_MAKE_J
 
@@ -504,18 +513,22 @@ rio2 smem debug:
   <<: *only-chalmers
 
 freebsd 10 pic:
-  stage: build
-  tags:
-    - bsd
+  image: auchida/freebsd:10
+  <<: *common-bsd
   <<: *freebsd
   <<: *run-gmake-gcc-pic
 
 freebsd 10 debug:
-  stage: build
-  tags:
-    - bsd
+  image: auchida/freebsd:10
+  <<: *common-bsd
   <<: *freebsd
   <<: *run-gmake-gcc-debug
+
+freebsd 10 release:
+  image: auchida/freebsd:10
+  <<: *common-bsd
+  <<: *freebsd
+  <<: *run-gmake-gcc-release
 
 cppcheck:
   image: ubuntu:xenial
