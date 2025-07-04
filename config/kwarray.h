@@ -295,6 +295,8 @@ static char const g_keyword_array[][52] = {
 	"resolution",
 	"rewrite",
 	"sample_length",
+	"samples_pre",
+	"samples_tot",
 	"scaler_name",
 	"shadow_bytes",
 	"shaping_time",
