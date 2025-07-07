@@ -83,8 +83,11 @@ $(call infovar,BUILD_DIR)
 MKDIR=[ -d $(@D) ] || mkdir -p $(@D)
 
 # Don't use eg CPPFLAGS, will be overwritten if given on the cmd-line.
-CPPFLAGS_:=$(CPPFLAGS) -I$(BUILD_DIR)/replacements -I$(BUILD_DIR) \
-	-Iinclude -I.
+CPPFLAGS_:=$(CPPFLAGS) \
+	-DNURDLIB_BUILD_DEF_PATH=\"$(shell pwd)/cfg/default\" \
+	-I$(BUILD_DIR)/replacements -I$(BUILD_DIR) \
+	-Iinclude \
+	-I.
 CFLAGS_:=$(CFLAGS) \
 	-ansi -pedantic-errors \
 	-Wall -Wcast-qual -Werror -Wformat=2 \

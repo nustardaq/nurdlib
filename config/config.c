@@ -208,7 +208,7 @@ config_default_path_get(void)
 
 		env = getenv("NURDLIB_DEF_PATH");
 		if (NULL == env) {
-			env = "../nurdlib/cfg/default";
+			env = NURDLIB_BUILD_DEF_PATH;
 		}
 		LOGF(info)(LOGL, "Will try default cfg path='%s', can be set "
 		    "with NURDLIB_DEF_PATH.", env);
