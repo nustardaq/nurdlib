@@ -253,6 +253,8 @@ struct Module {
 	struct	ModuleProps const *props;
 	unsigned	id;
 	unsigned	event_max;
+	/* Some modules/modes may be ok without checking status under dt. */
+	unsigned	skip_dt;
 	struct	ConfigBlock *config;
 	struct	LogLevel const *log_level;
 	struct {

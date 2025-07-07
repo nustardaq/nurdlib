@@ -210,6 +210,8 @@ module_create(struct Crate *a_crate, enum Keyword a_module_type, struct
 			    KW_LOG_LEVEL, c_log_levels);
 			module->log_level = KW_OFF == log_level ? NULL :
 			    log_level_get_from_keyword(log_level);
+			module->skip_dt = config_get_boolean(a_config_block,
+			    KW_SKIP_DT);
 			return module;
 		}
 	}
@@ -463,7 +465,7 @@ module_setup(void)
 		}
 		e->setup();
 		config_auto_register(e->type, e->auto_cfg);
-		config_auto_register(e->type, "module_log_level.cfg");
+		config_auto_register(e->type, "module_global.cfg");
 	}
 	config_auto_register(KW_GSI_CTDC_CARD, "gsi_ctdc_card.cfg");
 	config_auto_register(KW_GSI_FEBEX_CARD, "gsi_febex_card.cfg");
