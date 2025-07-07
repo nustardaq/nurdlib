@@ -1420,6 +1420,10 @@ crate_readout_dt(struct Crate *a_crate)
 		uint32_t diff_module, diff_shadow;
 		int ok;
 
+		if (module->skip_dt) {
+			LOGF(spam)(LOGL, "module[%d]->skip_dt.", module->id);
+			continue;
+		}
 		if (0 == module->event_max) {
 			LOGF(spam)(LOGL, "module[%d]->event_max == 0. "
 			    "Skipping readout_dt.", module->id);

@@ -305,6 +305,7 @@ static char const g_keyword_array[][52] = {
 	"signal_risetime",
 	"signal_width",
 	"silicon",
+	"skip_dt",
 	"slice_num",
 	"sliding_scale",
 	"slope",

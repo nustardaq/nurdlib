@@ -507,9 +507,8 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
     a_skip_event_counter_check)
 {
 	uint32_t *outp;
-	uint32_t counter_eob, data_size, expected, i, result;
+	uint32_t data_size, i, result;
 	unsigned unit_size;
-	uint16_t data_len_format;
 
 	LOGF(spam)(LOGL, NAME" readout {");
 
@@ -517,22 +516,30 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
 	result = 0;
 
 	/* Figure out how much data to move. */
-	data_len_format = MAP_READ(a_mxdc32->sicy_map, data_len_format);
-	switch (data_len_format & 0x3) {
-	case 0:
-	case 1:
-	case 2:
-	case 3:
-		unit_size = 1 << data_len_format;
-		break;
-	default:
-		log_error(LOGL, "Mesytec Mxdc32: Weird data length format "
-		    "'%04x'.", data_len_format);
-		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
-		goto mesytec_mxdc32_readout_done;
+	if (a_mxdc32->module.skip_dt) {
+		data_size = 1 << 17;
+	} else {
+		uint16_t data_len_format;
+
+		data_len_format =
+		    MAP_READ(a_mxdc32->sicy_map, data_len_format);
+		switch (data_len_format & 0x3) {
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+				unit_size = 1 << data_len_format;
+				break;
+			default:
+				log_error(LOGL,
+				    "Mesytec Mxdc32: Weird data length format"
+				    " '%04x'.", data_len_format);
+				result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+				goto mesytec_mxdc32_readout_done;
+		}
+		data_size = a_mxdc32->buffer_data_length * unit_size;
+		/* TODO: What about (3&data_size)!=0? */
 	}
-	data_size = a_mxdc32->buffer_data_length * unit_size;
-	/* TODO: What about (3&data_size)!=0? */
 	LOGF(spam)(LOGL, "data_size = %u bytes.", data_size);
 	if (0 == data_size) {
 		goto mesytec_mxdc32_readout_done;
@@ -553,7 +560,8 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
 
 		outp_start = outp;
 		/*
-		 * TODO: Looks like buffer_data_len is not for complete events?
+		 * TODO: Looks like buffer_data_len is not for complete
+		 * events?
 		 */
 		sigbus_set_ok(1);
 		data_size /= 4;
@@ -594,14 +602,15 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
 				bytes = 0;
 			}
 			outp = map_align(outp, &byt, a_mxdc32->blt_mode,
-					DMA_FILLER);
-			ret = map_blt_read_berr(a_mxdc32->dma_map, 0, outp, byt);
+			    DMA_FILLER);
+			ret = map_blt_read_berr(a_mxdc32->dma_map, 0, outp,
+			    byt);
 			if (-1 == ret) {
 				log_error(LOGL, "DMA read failed!");
 				result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
 				goto mesytec_mxdc32_readout_done;
 			}
-			outp += byt / sizeof *outp;
+			outp += ret / sizeof *outp;
 			if (0 == outp[-1]) {
 				--outp;
 			}
@@ -609,16 +618,19 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
 	}
 
 	/* Assert EOB event counter. */
-	counter_eob = COUNTER_VALUE(outp[-1]);
-	expected = COUNTER_VALUE(a_mxdc32->module.event_counter.value +
-	    (a_is_eob_old ? -1 : 0));
 	if (!crate_free_running_get(a_crate) &&
-	    !a_skip_event_counter_check &&
-	    counter_eob != expected) {
-		log_error(LOGL, "Event counter mismatch (EOB=0x%08x, "
-		    "expected=0x%08x).", counter_eob, expected);
-		result |= CRATE_READOUT_FAIL_EVENT_COUNTER_MISMATCH;
-		goto mesytec_mxdc32_readout_done;
+	    !a_skip_event_counter_check) {
+		uint32_t counter_eob, expected;
+
+		counter_eob = COUNTER_VALUE(outp[-1]);
+		expected = COUNTER_VALUE(a_mxdc32->module.event_counter.value
+		    + (a_is_eob_old ? -1 : 0));
+		if (counter_eob != expected) {
+			log_error(LOGL, "Event counter mismatch (EOB=0x%08x, "
+			    "expected=0x%08x).", counter_eob, expected);
+			result |= CRATE_READOUT_FAIL_EVENT_COUNTER_MISMATCH;
+			goto mesytec_mxdc32_readout_done;
+		}
 	}
 
 mesytec_mxdc32_readout_done:
