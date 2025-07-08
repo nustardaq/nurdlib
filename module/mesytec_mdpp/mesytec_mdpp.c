@@ -524,9 +524,10 @@ mesytec_mdpp_readout(struct Crate *a_crate, struct MesytecMdppModule *a_mdpp,
 }
 
 uint32_t
-mesytec_mdpp_readout_dt(struct MesytecMdppModule *a_mdpp)
+mesytec_mdpp_readout_dt(struct Crate *a_crate, struct MesytecMdppModule
+    *a_mdpp)
 {
-	return mesytec_mxdc32_readout_dt(&a_mdpp->mxdc32);
+	return mesytec_mxdc32_readout_dt(a_crate, &a_mdpp->mxdc32);
 }
 
 uint32_t

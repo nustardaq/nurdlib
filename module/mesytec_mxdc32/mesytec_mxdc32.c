@@ -641,14 +641,19 @@ mesytec_mxdc32_readout_done:
 }
 
 uint32_t
-mesytec_mxdc32_readout_dt(struct MesytecMxdc32Module *a_mxdc32)
+mesytec_mxdc32_readout_dt(struct Crate *a_crate, struct MesytecMxdc32Module
+    *a_mxdc32)
 {
 	LOGF(spam)(LOGL, NAME" readout_dt {");
-	a_mxdc32->module.event_counter.value = get_event_counter(a_mxdc32);
+	if (!crate_free_running_get(a_crate)) {
+		a_mxdc32->module.event_counter.value =
+		    get_event_counter(a_mxdc32);
+	}
 	a_mxdc32->buffer_data_length =
 	    MAP_READ(a_mxdc32->sicy_map, buffer_data_length);
-	LOGF(spam)(LOGL, NAME" readout_dt(ctr=0x%08x) }",
-	    a_mxdc32->module.event_counter.value);
+	LOGF(spam)(LOGL, NAME" readout_dt(ctr=0x%08x,buf_len=0x%08x) }",
+	    a_mxdc32->module.event_counter.value,
+	    a_mxdc32->buffer_data_length);
 	return 0;
 }
 

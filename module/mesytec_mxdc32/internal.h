@@ -111,8 +111,8 @@ int		mesytec_mxdc32_post_init(struct MesytecMxdc32Module *)
 	FUNC_RETURNS;
 uint32_t	mesytec_mxdc32_readout(struct Crate *, struct
     MesytecMxdc32Module *, struct EventBuffer *, int, int) FUNC_RETURNS;
-uint32_t	mesytec_mxdc32_readout_dt(struct MesytecMxdc32Module *)
-	FUNC_RETURNS;
+uint32_t	mesytec_mxdc32_readout_dt(struct Crate *, struct
+    MesytecMxdc32Module *) FUNC_RETURNS;
 uint32_t	mesytec_mxdc32_readout_shadow(struct MesytecMxdc32Module *,
     struct EventBuffer *, int) FUNC_RETURNS;
 double		mesytec_mxdc32_sleep_get(struct MesytecMxdc32Module *)

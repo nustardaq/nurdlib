@@ -72,8 +72,8 @@ int		mesytec_mdpp_post_init(struct MesytecMdppModule *)
 	FUNC_RETURNS;
 uint32_t	mesytec_mdpp_readout(struct Crate *, struct MesytecMdppModule
     *, struct EventBuffer *, int) FUNC_RETURNS;
-uint32_t	mesytec_mdpp_readout_dt(struct MesytecMdppModule *)
-	FUNC_RETURNS;
+uint32_t	mesytec_mdpp_readout_dt(struct Crate *, struct
+    MesytecMdppModule *) FUNC_RETURNS;
 uint32_t	mesytec_mdpp_readout_shadow(struct MesytecMdppModule *, struct
     EventBuffer *) FUNC_RETURNS;
 void		mesytec_mdpp_use_pedestals(struct MesytecMdppModule *);
