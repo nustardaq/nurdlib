@@ -294,9 +294,8 @@ mesytec_madc32_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	struct MesytecMadc32Module *madc32;
 
-	(void)a_crate;
 	MODULE_CAST(KW_MESYTEC_MADC32, madc32, a_module);
-	return mesytec_mxdc32_readout_dt(&madc32->mxdc32);
+	return mesytec_mxdc32_readout_dt(a_crate, &madc32->mxdc32);
 }
 
 uint32_t

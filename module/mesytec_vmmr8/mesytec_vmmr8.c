@@ -374,9 +374,8 @@ mesytec_vmmr8_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	struct MesytecVmmr8Module *vmmr8;
 
-	(void)a_crate;
 	MODULE_CAST(KW_MESYTEC_VMMR8, vmmr8, a_module);
-	return mesytec_mxdc32_readout_dt(&vmmr8->mxdc32);
+	return mesytec_mxdc32_readout_dt(a_crate, &vmmr8->mxdc32);
 }
 
 uint32_t

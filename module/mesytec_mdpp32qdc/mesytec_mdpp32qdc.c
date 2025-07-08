@@ -248,9 +248,8 @@ mesytec_mdpp32qdc_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	struct MesytecMdpp32qdcModule *mdpp32qdc;
 
-	(void)a_crate;
 	MODULE_CAST(KW_MESYTEC_MDPP32QDC, mdpp32qdc, a_module);
-	return mesytec_mdpp_readout_dt(&mdpp32qdc->mdpp);
+	return mesytec_mdpp_readout_dt(a_crate, &mdpp32qdc->mdpp);
 }
 
 void

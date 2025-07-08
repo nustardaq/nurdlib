@@ -325,9 +325,8 @@ mesytec_mdpp32scp_readout_dt(struct Crate *a_crate, struct Module *a_module)
 {
 	struct MesytecMdpp32scpModule *mdpp32scp;
 
-	(void)a_crate;
 	MODULE_CAST(KW_MESYTEC_MDPP32SCP, mdpp32scp, a_module);
-	return mesytec_mdpp_readout_dt(&mdpp32scp->mdpp);
+	return mesytec_mdpp_readout_dt(a_crate, &mdpp32scp->mdpp);
 }
 
 uint32_t
