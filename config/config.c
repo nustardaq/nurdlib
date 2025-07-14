@@ -522,8 +522,8 @@ config_get_double_array(double *a_dst, size_t a_bytes, struct ConfigBlock
 					    item->src_col_no);
 				}
 				i_prev = scalar->vector_index;
-				if ((CONFIG_SCALAR_DOUBLE != scalar->type) &&
-				    (CONFIG_SCALAR_INTEGER != scalar->type)) {
+				if (CONFIG_SCALAR_DOUBLE != scalar->type &&
+				    CONFIG_SCALAR_INTEGER != scalar->type) {
 					log_die(LOGL, "List item %"PRIz" of "
 					    "'%s' (%s:%d:%d) is not double nor integer!",
 					    length,
@@ -558,9 +558,12 @@ config_get_double_array(double *a_dst, size_t a_bytes, struct ConfigBlock
 
 				if (CONFIG_SCALAR_DOUBLE == scalar->type) {
 					value = scalar->value.d;
-				}
-				if (CONFIG_SCALAR_INTEGER == scalar->type) {
+				} else if (CONFIG_SCALAR_INTEGER ==
+				    scalar->type) {
 					value = (double)scalar->value.i;
+				} else {
+					log_die(LOGL, "Unknown type passed "
+					    "through, internal error!");
 				}
 				if (CONFIG_UNIT_NONE != a_unit ||
 				    CONFIG_UNIT_NONE != scalar->unit) {
@@ -668,7 +671,8 @@ get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size, struct
 					    item->src_col_no);
 				}
 				i_prev = scalar->vector_index;
-				if (CONFIG_SCALAR_INTEGER != scalar->type) {
+				if (CONFIG_SCALAR_INTEGER != scalar->type &&
+				    CONFIG_SCALAR_DOUBLE != scalar->type) {
 					log_die(LOGL, "List item %"PRIz" of "
 					    "'%s' (%s:%d:%d) not integer!",
 					    length,
@@ -705,12 +709,25 @@ get_int_array(void *a_dst, size_t a_dst_size, size_t a_dst_elem_size, struct
 
 				if (CONFIG_UNIT_NONE == a_unit &&
 				    CONFIG_UNIT_NONE == scalar->unit) {
-					i32 = scalar->value.i;
-				} else {
+					i32 = CONFIG_SCALAR_INTEGER ==
+					    scalar->type ?
+					    scalar->value.i : scalar->value.d;
+				} else if (CONFIG_SCALAR_INTEGER ==
+				    scalar->type) {
 					i32 = i32_round_double(
 					    scalar->value.i *
 					    unit_get_mult(a_name,
 					    scalar->unit, a_unit));
+				} else if (CONFIG_SCALAR_DOUBLE ==
+				    scalar->type) {
+					i32 = i32_round_double(
+					    scalar->value.d *
+					    unit_get_mult(a_name,
+					    scalar->unit, a_unit));
+				} else {
+					log_die(LOGL, "Unknown type/unit "
+					    "passed through, "
+					    "internal error!");
 				}
 				if (a_is_signed) {
 					i32 = MIN(MAX(i32, a_min), a_max);

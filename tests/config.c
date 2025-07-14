@@ -538,13 +538,6 @@ NTEST(ArrayTypes)
 	enum Keyword karr[2];
 	struct ScalarList *list;
 
-	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
-	parser_push_int32(list, 0, 2);
-	parser_push_double(list, 1, 0.1);
-
-	NTRY_SIGNAL(CONFIG_GET_INT_ARRAY(iarr, NULL, KW_WIDTH,
-	    CONFIG_UNIT_NONE, 0, 3));
-
 	list = parser_push_config(KW_LEMO, -1, __FILE__, __LINE__, 1);
 	parser_push_int32(list, 0, 2);
 	parser_push_int32(list, 1, 1);
@@ -552,14 +545,32 @@ NTEST(ArrayTypes)
 	CONFIG_GET_INT_ARRAY(iarr, NULL, KW_LEMO, CONFIG_UNIT_NONE, 0, 3);
 	NTRY_I(iarr[0], ==, 2);
 	NTRY_I(iarr[1], ==, 1);
+	CONFIG_GET_DOUBLE_ARRAY(darr, NULL, KW_LEMO, CONFIG_UNIT_NONE, 0, 3);
+	NTRY_DBL(darr[0], ==, 2);
+	NTRY_DBL(darr[1], ==, 1);
 
 	list = parser_push_config(KW_NIM, -1, __FILE__, __LINE__, 1);
 	parser_push_double(list, 0, 0.1);
 	parser_push_double(list, 1, 0.2);
 
+	CONFIG_GET_INT_ARRAY(iarr, NULL, KW_NIM, CONFIG_UNIT_NONE, 0, 3);
+	NTRY_I(iarr[0], ==, 0);
+	NTRY_I(iarr[1], ==, 0);
 	CONFIG_GET_DOUBLE_ARRAY(darr, NULL, KW_NIM, CONFIG_UNIT_NONE, 0, 3);
 	NTRY_DBL(darr[0], ==, 0.1);
 	NTRY_DBL(darr[1], ==, 0.2);
+
+	/* Mixed types in array. */
+	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
+	parser_push_int32(list, 0, 2);
+	parser_push_double(list, 1, 1.1);
+
+	CONFIG_GET_INT_ARRAY(iarr, NULL, KW_WIDTH, CONFIG_UNIT_NONE, 0, 3);
+	NTRY_I(iarr[0], ==, 2);
+	NTRY_I(iarr[1], ==, 1);
+	CONFIG_GET_DOUBLE_ARRAY(darr, NULL, KW_WIDTH, CONFIG_UNIT_NONE, 0, 3);
+	NTRY_DBL(darr[0], ==, 2);
+	NTRY_DBL(darr[1], ==, 1.1);
 
 	/* Keyword array. */
 	list = parser_push_config(KW_TYPE, -1, __FILE__, __LINE__, 1);
