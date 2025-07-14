@@ -365,6 +365,9 @@ void
 mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
     *a_mdpp)
 {
+	uint16_t reset_time[8];
+	double init_sleep;
+	unsigned i;
 	uint16_t trig_out, trig_source, trig_source_2;
 
 	(void)a_crate;
@@ -487,6 +490,15 @@ mesytec_mdpp_init_slow(struct Crate const *a_crate, struct MesytecMdppModule
 		    trig_source_2);
 		MAP_WRITE(a_mdpp->mxdc32.sicy_map, trig_source_2,
 		    trig_source_2);
+	}
+
+	CONFIG_GET_UINT_ARRAY(reset_time, a_mdpp->mxdc32.module.config,
+	    KW_RESET_TIME, CONFIG_UNIT_NS, 200, 65535);
+	init_sleep = mesytec_mxdc32_sleep_get(&a_mdpp->mxdc32);
+	for (i = 0; 8 > i; ++i) {
+		MAP_WRITE(a_mdpp->mxdc32.sicy_map, reset_time,
+		    reset_time[0] / 12.5);
+		time_sleep(init_sleep);
 	}
 
 	LOGF(info)(LOGL, NAME" init_slow }");

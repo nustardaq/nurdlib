@@ -316,6 +316,7 @@ static char const g_keyword_array[][52] = {
 	"ref_ch0",
 	"reinit_sleep",
 	"reset",
+	"reset_time",
 	"resolution",
 	"rewrite",
 	"sample_length",

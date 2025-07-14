@@ -80,6 +80,7 @@ anbm
 0x6122 threshold3 16 RW
 0x6124 shaping_time 11 RW
 0x6126 blr 2 RW
+0x6128 reset_time 16 RW
 0x612A signal_rise_time 7 RW
 0x6146 pre_samples 16 RW
 0x6148 tot_samples 16 RW
