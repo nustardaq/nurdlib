@@ -798,6 +798,69 @@ config_get_keyword_array_(enum Keyword *a_dst, size_t a_dst_num, struct
 			enum Keyword *pk;
 			size_t length;
 			int i_prev;
+
+			length = 0;
+			i_prev = -1;
+			TAILQ_FOREACH(scalar, &item->scalar_list, next) {
+				if ((int)scalar->vector_index <= i_prev) {
+					log_die(LOGL, "List items out of "
+					    "order (prev=%d,cur=%d) for '%s' "
+					    "(%s:%d:%d)!", i_prev,
+					    scalar->vector_index,
+					    keyword_get_string(item->name),
+					    item->src_path, item->src_line_no,
+					    item->src_col_no);
+				}
+				i_prev = scalar->vector_index;
+				if (CONFIG_SCALAR_KEYWORD != scalar->type) {
+					log_die(LOGL, "List item %"PRIz" of "
+					    "'%s' (%s:%d:%d) not keyword!",
+					    length,
+					    keyword_get_string(item->name),
+					    item->src_path, item->src_line_no,
+					    item->src_col_no);
+				}
+				/* Extract keywords for this index. */
+				keyword_match(item, a_kw_num, a_kw_array,
+				    scalar->value.k);
+				++length;
+			}
+			if (length != a_dst_num) {
+				log_die(LOGL, "List '%s' (%s:%d:%d) has "
+				    "srclen=%"PRIz" != user dstlen=%"PRIz"!",
+				    keyword_get_string(item->name),
+				    item->src_path, item->src_line_no,
+				    item->src_col_no, length, a_dst_num);
+			}
+
+			pk = a_dst;
+			TAILQ_FOREACH(scalar, &item->scalar_list, next) {
+				*pk++ = scalar->value.k;
+			}
+
+			item->is_touched = 1;
+			return;
+		}
+	}
+	log_die(LOGL, "Could not find keyword config '%s'.",
+	    keyword_get_string(a_name));
+}
+
+void
+config_get_flex_keyword_array_(enum Keyword *a_dst, size_t a_dst_num, struct
+    ConfigBlock *a_parent, enum Keyword a_name, size_t a_kw_num, enum Keyword
+    const *a_kw_flex_array)
+{
+	struct ItemList *item_list;
+	struct Item *item;
+
+	item_list = parent_get(a_parent);
+	TAILQ_FOREACH(item, item_list, next) {
+		if (CONFIG_CONFIG == item->type && a_name == item->name) {
+			struct Scalar *scalar;
+			enum Keyword *pk;
+			size_t length;
+			int i_prev;
 			unsigned kw_i0, kw_i1;
 
 			length = 0;
@@ -824,7 +887,8 @@ config_get_keyword_array_(enum Keyword *a_dst, size_t a_dst_num, struct
 				}
 				/* Extract keywords for this index. */
 				for (kw_i1 = kw_i0; kw_i1 < a_kw_num &&
-				    KW_NONE != a_kw_array[kw_i1]; ++kw_i1)
+				    KW_NONE != a_kw_flex_array[kw_i1];
+				    ++kw_i1)
 					;
 				if (kw_i1 == kw_i0) {
 					log_die(LOGL, "Keyword table for %s "
@@ -832,7 +896,7 @@ config_get_keyword_array_(enum Keyword *a_dst, size_t a_dst_num, struct
 					    keyword_get_string(a_name));
 				}
 				keyword_match(item, kw_i1 - kw_i0,
-				    &a_kw_array[kw_i0], scalar->value.k);
+				    &a_kw_flex_array[kw_i0], scalar->value.k);
 				kw_i0 = kw_i1 + 1;
 				++length;
 			}
@@ -1243,15 +1307,27 @@ keyword_match(struct Item *a_item, size_t a_keyword_num, enum Keyword const
 		return;
 	}
 	for (i = 0; a_keyword_num > i; ++i) {
+		if (KW_NONE == a_keyword_list[i]) {
+			log_error(LOGL, "Keyword '%s' (%s:%d,%d) was asked to"
+			    " look for '%s'.",
+			    keyword_get_string(a_item->name),
+			    a_item->src_path, a_item->src_line_no,
+			    a_item->src_col_no,
+			    keyword_get_string(KW_NONE));
+			break;
+		}
 		if (a_keyword_list[i] == a_trial) {
 			a_item->is_touched = 1;
 			return;
 		}
 	}
-	log_error(LOGL, "Keyword '%s' (%s:%d,%d) has invalid value '%s', "
-	    "expected:", keyword_get_string(a_item->name), a_item->src_path,
-	    a_item->src_line_no, a_item->src_col_no,
-	    keyword_get_string(a_trial));
+	if (a_keyword_num == i) {
+		log_error(LOGL, "Keyword '%s' (%s:%d,%d) has invalid value "
+		    "'%s', expected:",
+		    keyword_get_string(a_item->name), a_item->src_path,
+		    a_item->src_line_no, a_item->src_col_no,
+		    keyword_get_string(a_trial));
+	}
 	for (i = 0; a_keyword_num > i; ++i) {
 		log_error(LOGL, " Keyword[%u] = \"%s\".", a_keyword_list[i],
 		    keyword_get_string(a_keyword_list[i]));
