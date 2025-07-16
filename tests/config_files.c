@@ -142,12 +142,14 @@ NTEST(IncludeAvailableUnits)
 
 NTEST(IncludeBig)
 {
+	enum Keyword const c_kw_array[] = {KW_TRUE, KW_NEG};
 	enum Keyword const c_log_info[] = {KW_INFO};
 	enum Keyword const c_ecl[] = {KW_ECL};
 	struct ConfigBlock *crate;
 	struct ConfigBlock *gate;
 	int32_t clock_input[2];
 	int32_t threshold[8];
+	enum Keyword karr[3];
 	int dum;
 
 	(void)dum;
@@ -218,6 +220,11 @@ NTEST(IncludeBig)
 
 	NTRY_DBL(-10.0, ==, config_get_double(crate, KW_CHANNEL2_ENABLE,
 	    CONFIG_UNIT_NONE, -100.0, 0.0));
+
+	CONFIG_GET_KEYWORD_ARRAY(karr, crate, KW_CHANNEL3_ENABLE, c_kw_array);
+	NTRY_U(KW_TRUE, ==, karr[0]);
+	NTRY_U(KW_NEG, ==, karr[1]);
+	NTRY_U(KW_NEG, ==, karr[2]);
 }
 
 NTEST(IncludeAuto)
