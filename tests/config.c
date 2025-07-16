@@ -524,8 +524,18 @@ NTEST(ArraySize)
 
 NTEST(ArrayTypes)
 {
+	enum Keyword kw_flex_array[] = {
+		KW_NEG, KW_POS, KW_NONE,
+		KW_LEMO, KW_NIM
+	};
+	enum Keyword kw_flex_array2[] = {
+		KW_LEMO, KW_NIM, KW_NONE,
+		KW_NEG, KW_POS
+	};
+	enum Keyword kw_array[] = {KW_LEMO, KW_NIM};
 	double darr[2];
 	int iarr[2];
+	enum Keyword karr[2];
 	struct ScalarList *list;
 
 	list = parser_push_config(KW_WIDTH, -1, __FILE__, __LINE__, 1);
@@ -550,6 +560,32 @@ NTEST(ArrayTypes)
 	CONFIG_GET_DOUBLE_ARRAY(darr, NULL, KW_NIM, CONFIG_UNIT_NONE, 0, 3);
 	NTRY_DBL(darr[0], ==, 0.1);
 	NTRY_DBL(darr[1], ==, 0.2);
+
+	/* Keyword array. */
+	list = parser_push_config(KW_TYPE, -1, __FILE__, __LINE__, 1);
+	parser_push_keyword(list, 0, KW_LEMO);
+	parser_push_keyword(list, 1, KW_NIM);
+
+	CONFIG_GET_KEYWORD_ARRAY(karr, NULL, KW_TYPE, kw_array);
+	NTRY_DBL(karr[0], ==, KW_LEMO);
+	NTRY_DBL(karr[1], ==, KW_NIM);
+
+	parser_push_keyword(list, 1, KW_ECL);
+	NTRY_SIGNAL(CONFIG_GET_KEYWORD_ARRAY(karr, NULL, KW_TYPE, kw_array));
+
+	/*
+	 * Flexible keyword array, each item has different possible keywords.
+	 */
+	list = parser_push_config(KW_ECL, -1, __FILE__, __LINE__, 1);
+	parser_push_keyword(list, 0, KW_POS);
+	parser_push_keyword(list, 1, KW_LEMO);
+
+	CONFIG_GET_FLEX_KEYWORD_ARRAY(karr, NULL, KW_ECL, kw_flex_array);
+	NTRY_DBL(karr[0], ==, KW_POS);
+	NTRY_DBL(karr[1], ==, KW_LEMO);
+
+	NTRY_SIGNAL(CONFIG_GET_FLEX_KEYWORD_ARRAY(karr, NULL, KW_ECL,
+	    kw_flex_array2));
 }
 
 NTEST(ArrayUnits)

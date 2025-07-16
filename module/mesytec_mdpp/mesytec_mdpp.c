@@ -172,7 +172,7 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 	has_input_t1 = 0;
 
 	/* NIM I/O. */
-	CONFIG_GET_KEYWORD_ARRAY(a_mdpp->config.nim,
+	CONFIG_GET_FLEX_KEYWORD_ARRAY(a_mdpp->config.nim,
 	    a_mdpp->mxdc32.module.config, KW_NIM, c_nim);
 	has_input_clock |= (KW_SYNC  == a_mdpp->config.nim[3]) << 0;
 	has_input_reset |= (KW_RESET == a_mdpp->config.nim[2]) << 0;
@@ -209,7 +209,7 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 	MAP_WRITE(a_mdpp->mxdc32.sicy_map, nim4, nim[4]);
 
 	/* ECL I/O. */
-	CONFIG_GET_KEYWORD_ARRAY(a_mdpp->config.ecl,
+	CONFIG_GET_FLEX_KEYWORD_ARRAY(a_mdpp->config.ecl,
 	    a_mdpp->mxdc32.module.config, KW_ECL, c_ecl);
 	has_input_clock |= (KW_SYNC  == a_mdpp->config.ecl[2]) << 1;
 	has_input_reset |= (KW_RESET == a_mdpp->config.ecl[1]) << 1;

@@ -41,11 +41,15 @@
     config_get_uint_array(dst, sizeof dst, sizeof dst[0], block, name,\
 	unit, min, max)
 
-#define CONFIG_GET_KEYWORD(block, name, keyword_list) \
-    config_get_keyword_(block, name, LENGTH(keyword_list), keyword_list)
-#define CONFIG_GET_KEYWORD_ARRAY(dst, block, name, keyword_table) \
+#define CONFIG_GET_KEYWORD(block, name, keyword_array) \
+    config_get_keyword_(block, name, LENGTH(keyword_array), keyword_array)
+#define CONFIG_GET_KEYWORD_ARRAY(dst, block, name, keyword_array) \
     config_get_keyword_array_(dst, LENGTH(dst), block, name, \
-	LENGTH(keyword_table), keyword_table)
+	LENGTH(keyword_array), keyword_array)
+#define CONFIG_GET_FLEX_KEYWORD_ARRAY(dst, block, name, \
+    flex_keyword_array) \
+    config_get_flex_keyword_array_(dst, LENGTH(dst), block, name, \
+	LENGTH(flex_keyword_array), flex_keyword_array)
 #define CONFIG_GET_BLOCK_PARAM_KEYWORD(block, idx, keyword_list) \
     config_get_block_param_keyword_(block, idx, LENGTH(keyword_list),\
     keyword_list)
@@ -154,7 +158,18 @@ void				config_get_uint_array(void *, size_t, size_t,
     uint32_t) FUNC_NONNULL((1, 6));
 enum Keyword			config_get_keyword_(struct ConfigBlock *, enum
     Keyword, size_t, enum Keyword const *) FUNC_NONNULL((4)) FUNC_RETURNS;
+/*
+ * List of keywords, every entry can be any value of the given keyword array.
+ */
 void				config_get_keyword_array_(enum Keyword *,
+    size_t, struct ConfigBlock *, enum Keyword, size_t, enum Keyword const *)
+	FUNC_NONNULL((1, 6));
+/*
+ * List of keywords, where the 1st entry can be any keyword before the first
+ * KW_NONE in the given array, the 2nd entry the keywords after that but
+ * before the following KW_NONE etc.
+ */
+void				config_get_flex_keyword_array_(enum Keyword *,
     size_t, struct ConfigBlock *, enum Keyword, size_t, enum Keyword const *)
 	FUNC_NONNULL((1, 6));
 void				config_get_source(struct ConfigBlock const *,
