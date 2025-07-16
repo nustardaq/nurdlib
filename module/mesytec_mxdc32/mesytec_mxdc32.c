@@ -128,12 +128,14 @@ mesytec_mxdc32_init_fast(struct Crate *a_crate, struct MesytecMxdc32Module
 
 	if (KW_MBLT == a_mxdc32->blt_mode) {
 		/* 64-bit transfers. */
-		MAP_WRITE(a_mxdc32->sicy_map, data_len_format, 3);
+		a_mxdc32->data_len_format = 3;
 		a_mxdc32->datum_bytes = sizeof(uint64_t);
 	} else {
-		MAP_WRITE(a_mxdc32->sicy_map, data_len_format, 2);
+		a_mxdc32->data_len_format = 2;
 		a_mxdc32->datum_bytes = sizeof(uint32_t);
 	}
+	MAP_WRITE(a_mxdc32->sicy_map, data_len_format,
+	    a_mxdc32->data_len_format);
 
 	if (0 != a_supported_bank_ops) {
 		/*
@@ -519,21 +521,17 @@ mesytec_mxdc32_readout(struct Crate *a_crate, struct MesytecMxdc32Module
 	if (a_mxdc32->module.skip_dt) {
 		data_size = 1 << 17;
 	} else {
-		uint16_t data_len_format;
-
-		data_len_format =
-		    MAP_READ(a_mxdc32->sicy_map, data_len_format);
-		switch (data_len_format & 0x3) {
+		switch (a_mxdc32->data_len_format & 0x3) {
 			case 0:
 			case 1:
 			case 2:
 			case 3:
-				unit_size = 1 << data_len_format;
+				unit_size = 1 << a_mxdc32->data_len_format;
 				break;
 			default:
 				log_error(LOGL,
 				    "Mesytec Mxdc32: Weird data length format"
-				    " '%04x'.", data_len_format);
+				    " '%04x'.", a_mxdc32->data_len_format);
 				result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
 				goto mesytec_mxdc32_readout_done;
 		}

@@ -87,6 +87,7 @@ struct MesytecMxdc32Module {
 	struct	Map *dma_map;
 	uint32_t	channel_mask;
 	enum	Keyword blt_mode;
+	uint16_t data_len_format;
 	unsigned	datum_bytes;
 	uint32_t	parse_counter;
 	unsigned	buffer_data_length;
