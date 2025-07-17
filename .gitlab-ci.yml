@@ -215,7 +215,7 @@ gcc latest debug:
 rimfaxe _ pic:
   image: "$DOCKER_REG/sbc-mock/rimfaxe"
   <<: *common-no-virt
-  <<: *debian-python
+  <<: *debian-python3
   <<: *run-gcc-pic
   <<: *only-chalmers
 
