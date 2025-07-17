@@ -78,6 +78,15 @@ stages:
     - bison --version
     - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6
 
+.debian-no-apt-get: &debian-no-apt-get
+  before_script:
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+    - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6
+
 .debian-mbs: &debian-mbs
   before_script:
     - apt-get update > /dev/null
@@ -92,6 +101,16 @@ stages:
     - apt-get update > /dev/null
     - apt-get install -y bc curl build-essential flex bison python-dev > /dev/null
     - apt-get install -y clang > /dev/null || true
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+    - python --version || true
+    - touch /dev/xpc_vme && touch /dev/xpc_dma  # Needed for XPC 3.2.6
+
+.debian-python-no-apt-get: &debian-python-no-apt-get
+  before_script:
     - uname -a
     - gcc --version
     - clang --version || true
@@ -161,42 +180,42 @@ debian etch debug:
 debian jessie release:
   image: $DOCKER_REG/docker-buildessential/debian-jessie:gcc
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-release
   <<: *everywhere
 
 debian jessie pic:
   image: $DOCKER_REG/docker-buildessential/debian-jessie:gcc
   <<: *common-no-virt
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *everywhere
 
 debian jessie debug:
   image: $DOCKER_REG/docker-buildessential/debian-jessie:gcc
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *everywhere
 
 debian buster release:
   image: $DOCKER_REG/docker-buildessential/debian-buster:gcc
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-release
   <<: *everywhere
 
 debian buster pic:
   image: $DOCKER_REG/docker-buildessential/debian-buster:gcc
   <<: *common-no-virt
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *everywhere
 
 debian buster debug:
   image: $DOCKER_REG/docker-buildessential/debian-buster:gcc
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *everywhere
 
