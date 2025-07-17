@@ -158,43 +158,43 @@ debian etch debug:
   <<: *everywhere
   # retry: 2
 
-gcc 7 release:
-  image: gcc:7
+debian jessie release:
+  image: $DOCKER_REG/docker-buildessential/debian-jessie:gcc
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-release
   <<: *everywhere
 
-gcc 7 pic:
-  image: gcc:7
+debian jessie pic:
+  image: $DOCKER_REG/docker-buildessential/debian-jessie:gcc
   <<: *common-no-virt
   <<: *debian-python
   <<: *run-gcc-pic
   <<: *everywhere
 
-gcc 7 debug:
-  image: gcc:7
+debian jessie debug:
+  image: $DOCKER_REG/docker-buildessential/debian-jessie:gcc
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
   <<: *everywhere
 
-gcc 8 release:
-  image: gcc:8
+debian buster release:
+  image: $DOCKER_REG/docker-buildessential/debian-buster:gcc
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-release
   <<: *everywhere
 
-gcc 8 pic:
-  image: gcc:8
+debian buster pic:
+  image: $DOCKER_REG/docker-buildessential/debian-buster:gcc
   <<: *common-no-virt
   <<: *debian-python
   <<: *run-gcc-pic
   <<: *everywhere
 
-gcc 8 debug:
-  image: gcc:8
+debian buster debug:
+  image: $DOCKER_REG/docker-buildessential/debian-buster:gcc
   <<: *common-no-virt
   <<: *debian
   <<: *run-gcc-debug
