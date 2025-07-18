@@ -279,18 +279,26 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	{
 		enum Keyword const c_kw_trig_in[] =
 		    {KW_OFF, KW_LVDS, KW_LEMO};
+		double width_dbl;
 		uint32_t ch, width, level, in;
 		uint32_t u32;
 
 		ch = config_get_bitmask(v1725->module.config,
 		    KW_TRIGGER_CHANNEL, 0, 15);
-		width = config_get_double(v1725->module.config,
+		/*
+		 * v1725->period_ns is the sampling period.
+		 * The trigger clock period is four times longer.
+		 * Width in global_trigger_mask uses the trigger clock.
+		 */
+		width_dbl = config_get_double(v1725->module.config,
 		    KW_MAJORITY_WIDTH, CONFIG_UNIT_NS, 0, 15 *
-		    v1725->period_ns);
+		    v1725->period_ns * 4);
 		level = config_get_int32(v1725->module.config,
 		    KW_MAJORITY_LEVEL, CONFIG_UNIT_NONE, 1, 16);
 		in = CONFIG_GET_KEYWORD(v1725->module.config,
 		    KW_TRIGGER_INPUT, c_kw_trig_in);
+		width = (uint32_t) CLAMP(width_dbl / v1725->period_ns / 4,
+		    0,15);
 		switch (in) {
 		case KW_OFF: in = 0; break;
 		case KW_LVDS: in = 1 << 29; break;
@@ -602,8 +610,16 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 		info = MAP_READ(v1725->sicy_map, board_info);
 		switch (info & 0xff) {
-		case 0x0e: v1725->period_ns = 16; break;
-		case 0x0b: v1725->period_ns = 8; break;
+		/*
+		 * Manual UM4380, p. 11, section on register 'Record
+		 * length' (0x1n20) states that 725 series is 4 ns
+		 * sample period and 730 series is 2 ns sample period.
+		 *
+		 * When needed, the trigger clock period is four times
+		 * longer than the sampling clock.
+		 */
+		case 0x0e: v1725->period_ns = 4; break;
+		case 0x0b: v1725->period_ns = 2; break;
 		default:
 			log_error(LOGL,
 			    "Invalid family-code in board-info 0x%08x.",

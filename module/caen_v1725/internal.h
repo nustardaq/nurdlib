@@ -34,7 +34,7 @@ struct CaenV1725Module {
 	struct	Map *sicy_map;
 	struct	Map *dma_map;
 	unsigned	geo;
-	unsigned	period_ns;
+	unsigned	period_ns; /* Sampling clock period. */
 	unsigned	ch_num;
 	uint16_t	channel_enable;
 	enum	Keyword blt_mode;
