@@ -88,7 +88,8 @@ CPPFLAGS_:=$(CPPFLAGS) -I$(BUILD_DIR)/replacements -I$(BUILD_DIR) \
 CFLAGS_:=$(CFLAGS) \
 	-ansi -pedantic-errors \
 	-Wall -Wcast-qual -Werror -Wformat=2 \
-	-Wmissing-prototypes -Wshadow -Wstrict-prototypes
+	-Wmissing-prototypes -Wshadow -Wstrict-prototypes \
+	-Wconversion
 LDFLAGS_:=$(LDFLAGS)
 LIBS_:=$(LIBS)
 
