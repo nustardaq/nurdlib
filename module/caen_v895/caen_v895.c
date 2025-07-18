@@ -103,8 +103,8 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 	uint8_t	threshold_array[16];
 	struct CaenV895Module *v895;
 	uint32_t channel_mask;
-	unsigned output_width_0_7;
-	unsigned output_width_8_15;
+	double output_width_0_7;
+	double output_width_8_15;
 	int i, ow, ofs;
 
 	(void)a_crate;
@@ -127,11 +127,11 @@ caen_v895_init_fast(struct Crate *a_crate, struct Module *a_module)
 	output_width_8_15 = config_get_double(a_module->config,
 	    KW_OUTPUT_WIDTH_8_15, CONFIG_UNIT_NS, 5, 40);
 	ofs = snprintf_(str, sizeof str, "Widths=(");
-	ow = OW_A * output_width_0_7 + OW_B;
+	ow = (int) (OW_A * output_width_0_7 + OW_B);
 	ow = CLAMP(ow, 0, 255);
 	MAP_WRITE(v895->sicy_map, output_width_0_to_7, ow);
 	ofs += snprintf_(str + ofs, sizeof str - ofs, " %d", ow);
-	ow = OW_A * output_width_8_15 + OW_B;
+	ow = (int) (OW_A * output_width_8_15 + OW_B);
 	ow = CLAMP(ow, 0, 255);
 	MAP_WRITE(v895->sicy_map, output_width_8_to_15, ow);
 	ofs += snprintf_(str + ofs, sizeof str - ofs, " %d)", ow);
