@@ -35,5 +35,5 @@
 int32_t
 i32_round_double(double a_d)
 {
-	return 0.0 > a_d ? -floor(0.5 - a_d) : floor(0.5 + a_d);
+	return (int32_t) (0.0 > a_d ? -floor(0.5 - a_d) : floor(0.5 + a_d));
 }
