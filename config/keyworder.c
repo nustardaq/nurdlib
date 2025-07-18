@@ -63,7 +63,7 @@ main(void)
 			}
 			for (j = 0; '\0' != s_cur[j]; ++j) {
 				assert(j < sizeof name - 1);
-				name[j] = toupper(s_cur[j]);
+				name[j] = (char) toupper(s_cur[j]);
 			}
 			name[j] = '\0';
 		}
