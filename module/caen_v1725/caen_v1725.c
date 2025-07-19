@@ -186,6 +186,21 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}
 	}
 	{
+		double length[16];
+		size_t i;
+
+		CONFIG_GET_DOUBLE_ARRAY(length, v1725->module.config,
+		    KW_SAMPLE_LENGTH, CONFIG_UNIT_NS, 0,
+		    BITS_MASK_TOP(13) * 8 * v1725->period_ns);
+		for (i = 0; i < LENGTH(length); ++i) {
+			uint32_t u32;
+
+			u32 = CLAMP(length[i] / 8 / v1725->period_ns,
+			    0, BITS_MASK_TOP(13));
+			MAP_WRITE(v1725->sicy_map, record_length(i), u32);
+		}
+	}
+	{
 #if 0  /* Removed from cfg/default/caen_v1725.cfg ? */
 		double pwidth[16];
 		size_t i;
@@ -326,16 +341,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	{
 		/* TODO: front_panel_trg_out_gpo_enable_mask. */
-	}
-	{
-		uint32_t post;
-
-		post = config_get_int32(v1725->module.config,
-		    KW_SAMPLE_LENGTH, CONFIG_UNIT_NS, 0, BITS_MASK_TOP(30));
-		LOGF(verbose)(LOGL, "Post-trigger=0x%08x.", post);
-#if 0 /* No longer in register list. */
-		MAP_WRITE(v1725->sicy_map, post_trigger, post);
-#endif
 	}
 	{
 		enum Keyword const c_kw_lemo[] = {KW_NIM, KW_TTL};
