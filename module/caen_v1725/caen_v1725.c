@@ -161,6 +161,7 @@ int
 caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
 	struct CaenV1725Module *v1725;
+	uint32_t dyn_range_setting[16];
 
 	(void)a_crate;
 	LOGF(info)(LOGL, NAME" init_fast {");
@@ -177,6 +178,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			uint32_t u32;
 
 			u32 = range[i] <= 0.5;
+			dyn_range_setting[i] = u32;
 			LOGF(verbose)(LOGL, " [%"PRIz"]=%fV (0x%08x).",
 			    i, u32 ? 0.5 : 2.0, u32);
 			MAP_WRITE(v1725->sicy_map, input_dynamic_range(i),
