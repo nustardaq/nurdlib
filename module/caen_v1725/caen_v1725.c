@@ -201,6 +201,21 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}
 	}
 	{
+		double pre_trigger[16];
+		size_t i;
+
+		CONFIG_GET_DOUBLE_ARRAY(pre_trigger, v1725->module.config,
+		    KW_PRETRIGGER_DELAY, CONFIG_UNIT_NS, 0,
+		    BITS_MASK_TOP(9) * 4 * v1725->period_ns);
+		for (i = 0; i < LENGTH(pre_trigger); ++i) {
+			uint32_t u32;
+
+			u32 = CLAMP(pre_trigger[i] / 4 / v1725->period_ns,
+			    0, BITS_MASK_TOP(13));
+			MAP_WRITE(v1725->sicy_map, pre_trigger(i), u32);
+		}
+	}
+	{
 #if 0  /* Removed from cfg/default/caen_v1725.cfg ? */
 		double pwidth[16];
 		size_t i;
@@ -403,9 +418,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  dummy = config_get_int32(v1725->module.config,
 				   KW_AGGREGATE_NUM,
 				   CONFIG_UNIT_NONE, 0, 1);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_PRETRIGGER_DELAY,
-			       CONFIG_UNIT_NS, 0, 1000);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_CFD_DELAY,
 			       CONFIG_UNIT_NS, 0, 1000);
