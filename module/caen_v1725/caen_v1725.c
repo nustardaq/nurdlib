@@ -157,6 +157,24 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	LOGF(verbose)(LOGL, NAME" get_signature }");
 }
 
+/*
+ * The register value corresponds to clk_mul sample clock periods.
+ * The register has active bits [top_bit..0], i.e. one more than top_bit.
+ */
+#define APPLY_TIME_CONFIG(reg, cfg, clk_mul, top_bit) do {\
+	double setting[16];\
+	size_t i;\
+	CONFIG_GET_DOUBLE_ARRAY(setting, v1725->module.config,\
+	    cfg, CONFIG_UNIT_NS, 0,\
+	    BITS_MASK_TOP(top_bit) * clk_mul * v1725->period_ns);\
+	for (i = 0; i < LENGTH(setting); ++i) {\
+		uint32_t u32;\
+		u32 = CLAMP(setting[i] / clk_mul / v1725->period_ns,\
+		    0, BITS_MASK_TOP(top_bit));\
+		MAP_WRITE(v1725->sicy_map, reg(i), u32);\
+	}\
+} while (0);
+
 int
 caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
@@ -185,36 +203,8 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    u32);
 		}
 	}
-	{
-		double length[16];
-		size_t i;
-
-		CONFIG_GET_DOUBLE_ARRAY(length, v1725->module.config,
-		    KW_SAMPLE_LENGTH, CONFIG_UNIT_NS, 0,
-		    BITS_MASK_TOP(13) * 8 * v1725->period_ns);
-		for (i = 0; i < LENGTH(length); ++i) {
-			uint32_t u32;
-
-			u32 = CLAMP(length[i] / 8 / v1725->period_ns,
-			    0, BITS_MASK_TOP(13));
-			MAP_WRITE(v1725->sicy_map, record_length(i), u32);
-		}
-	}
-	{
-		double pre_trigger[16];
-		size_t i;
-
-		CONFIG_GET_DOUBLE_ARRAY(pre_trigger, v1725->module.config,
-		    KW_PRETRIGGER_DELAY, CONFIG_UNIT_NS, 0,
-		    BITS_MASK_TOP(9) * 4 * v1725->period_ns);
-		for (i = 0; i < LENGTH(pre_trigger); ++i) {
-			uint32_t u32;
-
-			u32 = CLAMP(pre_trigger[i] / 4 / v1725->period_ns,
-			    0, BITS_MASK_TOP(13));
-			MAP_WRITE(v1725->sicy_map, pre_trigger(i), u32);
-		}
-	}
+	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 13);
+	APPLY_TIME_CONFIG(pre_trigger, KW_PRETRIGGER_DELAY, 4, 9);
 	{
 #if 0  /* Removed from cfg/default/caen_v1725.cfg ? */
 		double pwidth[16];
