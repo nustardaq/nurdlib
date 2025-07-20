@@ -161,17 +161,24 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
  * The register value corresponds to clk_mul sample clock periods.
  * The register has active bits [top_bit..0], i.e. one more than top_bit.
  */
-#define APPLY_TIME_CONFIG(reg, cfg, clk_mul, top_bit) do {\
+#define PREPARE_TIME_CONFIG(u32, cfg, clk_mul, top_bit) do {\
 	double setting[16];\
-	size_t i;\
+	size_t j;\
 	CONFIG_GET_DOUBLE_ARRAY(setting, v1725->module.config,\
 	    cfg, CONFIG_UNIT_NS, 0,\
 	    BITS_MASK_TOP(top_bit) * clk_mul * v1725->period_ns);\
-	for (i = 0; i < LENGTH(setting); ++i) {\
-		uint32_t u32;\
-		u32 = CLAMP(setting[i] / clk_mul / v1725->period_ns,\
+	for (j = 0; j < LENGTH(setting); ++j) {\
+		u32[j] = CLAMP(setting[j] / clk_mul / v1725->period_ns,\
 		    0, BITS_MASK_TOP(top_bit));\
-		MAP_WRITE(v1725->sicy_map, reg(i), u32);\
+	}\
+} while (0);
+
+#define APPLY_TIME_CONFIG(reg, cfg, clk_mul, top_bit) do {\
+	uint32_t u32[16];\
+	size_t i;\
+	PREPARE_TIME_CONFIG(u32, cfg, clk_mul, top_bit);\
+	for (i = 0; i < LENGTH(u32); ++i) {\
+		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
 	}\
 } while (0);
 
