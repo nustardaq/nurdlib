@@ -161,8 +161,8 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
  * The register value corresponds to clk_mul sample clock periods.
  * The register has active bits [top_bit..0], i.e. one more than top_bit.
  */
-#define PREPARE_TIME_CONFIG(u32, cfg, clk_mul, top_bit) do {\
-	double setting[16];\
+#define PREPARE_TIME_CONFIG(u32, cfg, n, clk_mul, top_bit) do {\
+	double setting[n];\
 	size_t j;\
 	CONFIG_GET_DOUBLE_ARRAY(setting, v1725->module.config,\
 	    cfg, CONFIG_UNIT_NS, 0,\
@@ -173,10 +173,10 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	}\
 } while (0);
 
-#define APPLY_TIME_CONFIG(reg, cfg, clk_mul, top_bit) do {\
-	uint32_t u32[16];\
+#define APPLY_TIME_CONFIG(reg, cfg, n, clk_mul, top_bit) do {\
+	uint32_t u32[n];\
 	size_t i;\
-	PREPARE_TIME_CONFIG(u32, cfg, clk_mul, top_bit);\
+	PREPARE_TIME_CONFIG(u32, cfg, n, clk_mul, top_bit);\
 	for (i = 0; i < LENGTH(u32); ++i) {\
 		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
 	}\
@@ -210,24 +210,24 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    u32);
 		}
 	}
-	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 13);
-	APPLY_TIME_CONFIG(pre_trigger, KW_PRETRIGGER_DELAY, 4, 9);
-	APPLY_TIME_CONFIG(short_gate_width,KW_GATE_SHORT, 1, 11);
-	APPLY_TIME_CONFIG(long_gate_width,KW_GATE_LONG, 1, 15);
-	APPLY_TIME_CONFIG(gate_offset,KW_GATE_OFFSET, 1, 7);
-	APPLY_TIME_CONFIG(trigger_latency,KW_INTERNAL_TRIGGER_DELAY, 4, 9);
+	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 8, 13);
+	APPLY_TIME_CONFIG(pre_trigger, KW_PRETRIGGER_DELAY, 16, 4, 9);
+	APPLY_TIME_CONFIG(short_gate_width,KW_GATE_SHORT, 16, 1, 11);
+	APPLY_TIME_CONFIG(long_gate_width,KW_GATE_LONG, 16, 1, 15);
+	APPLY_TIME_CONFIG(gate_offset,KW_GATE_OFFSET, 16, 1, 7);
+	APPLY_TIME_CONFIG(trigger_latency,KW_INTERNAL_TRIGGER_DELAY, 16, 4, 9);
 	APPLY_TIME_CONFIG(shaped_trigger_width,KW_INTERNAL_TRIGGER_WIDTH,
-			  4, 9);
+			  16, 4, 9);
 	APPLY_TIME_CONFIG(trigger_hold_off_width,KW_INTERNAL_TRIGGER_HOLDOFF,
-			  4, 15);
-	APPLY_TIME_CONFIG(early_baseline_freeze,KW_BASELINE_FREEZE, 4, 9);
+			  16, 4, 15);
+	APPLY_TIME_CONFIG(early_baseline_freeze,KW_BASELINE_FREEZE, 16, 4, 9);
 	{
 		uint32_t cfd_delay_u32[16];
 		uint32_t cfd_fraction[16];
 		uint32_t cfd_width[16];
 		size_t i;
 
-		PREPARE_TIME_CONFIG(cfd_delay_u32, KW_CFD_DELAY, 1, 7);
+		PREPARE_TIME_CONFIG(cfd_delay_u32, KW_CFD_DELAY, 16, 1, 7);
 		CONFIG_GET_INT_ARRAY(cfd_fraction, v1725->module.config,
 				     KW_CFD_FRACTION,
 				     CONFIG_UNIT_NONE, 25, 100);
