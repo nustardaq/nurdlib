@@ -212,6 +212,16 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 13);
 	APPLY_TIME_CONFIG(pre_trigger, KW_PRETRIGGER_DELAY, 4, 9);
+	APPLY_TIME_CONFIG(short_gate_width,KW_GATE_SHORT, 1, 11);
+	APPLY_TIME_CONFIG(long_gate_width,KW_GATE_LONG, 1, 15);
+	APPLY_TIME_CONFIG(gate_offset,KW_GATE_OFFSET, 1, 7);
+	APPLY_TIME_CONFIG(trigger_latency,KW_INTERNAL_TRIGGER_DELAY, 4, 9);
+	APPLY_TIME_CONFIG(shaped_trigger_width,KW_INTERNAL_TRIGGER_WIDTH,
+			  4, 9);
+	APPLY_TIME_CONFIG(trigger_hold_off_width,KW_INTERNAL_TRIGGER_HOLDOFF,
+			  4, 15);
+	APPLY_TIME_CONFIG(early_baseline_freeze,KW_BASELINE_FREEZE, 4, 9);
+	APPLY_TIME_CONFIG(cfd_settings, KW_CFD_DELAY, 1, 7);
 	{
 #if 0  /* Removed from cfg/default/caen_v1725.cfg ? */
 		double pwidth[16];
@@ -416,9 +426,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			       KW_AGGREGATE_NUM,
 			       CONFIG_UNIT_NONE, 0, 1023);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_CFD_DELAY,
-			       CONFIG_UNIT_NS, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_CFD_FRACTION,
 			       CONFIG_UNIT_NONE, 0, 1000);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
@@ -431,32 +438,11 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			       KW_ZERO_SUPPRESS,
 			       CONFIG_UNIT_NONE, 0, 1000);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_GATE_SHORT,
-			       CONFIG_UNIT_NS, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_GATE_LONG,
-			       CONFIG_UNIT_NS, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_GATE_OFFSET,
-			       CONFIG_UNIT_NS, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_BASELINE_FIXED,
 			       CONFIG_UNIT_NONE, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_INTERNAL_TRIGGER_DELAY,
-			       CONFIG_UNIT_NS, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_INTERNAL_TRIGGER_WIDTH,
-			       CONFIG_UNIT_NS, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_INTERNAL_TRIGGER_HOLDOFF,
-			       CONFIG_UNIT_NS, 0, 1000);
 	  CONFIG_GET_DOUBLE_ARRAY(dummy_dbl_array16, v1725->module.config,
 				  KW_THRESHOLD_PSD,
 				  CONFIG_UNIT_NONE, 0, 1000);
-	  CONFIG_GET_DOUBLE_ARRAY(dummy_dbl_array16, v1725->module.config,
-				  KW_BASELINE_FREEZE,
-				  CONFIG_UNIT_NS, 0, 10000 /* figure */);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_THRESHOLD_PUR_GAP,
 			       CONFIG_UNIT_MV, 0, 1000);
