@@ -196,6 +196,26 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	}\
 } while (0);
 
+#define PREPARE_FRAC_CONFIG(u32, cfg, n, top_bit) do {\
+	double setting[n];\
+	size_t j;\
+	CONFIG_GET_DOUBLE_ARRAY(setting, v1725->module.config,\
+	    cfg, CONFIG_UNIT_NONE, 0, 1);\
+	for (j = 0; j < LENGTH(setting); ++j) {\
+		u32[j] = CLAMP(setting[j] * (1UL << ((top_bit)+1)),\
+			       0, BITS_MASK_TOP(top_bit));\
+	}\
+} while (0);
+
+#define APPLY_FRAC_CONFIG(reg, cfg, n, top_bit) do {\
+	uint32_t u32[n];\
+	size_t i;\
+	PREPARE_FRAC_CONFIG(u32, cfg, n, top_bit);\
+	for (i = 0; i < LENGTH(u32); ++i) {\
+		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
+	}\
+} while (0);
+
 int
 caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
@@ -238,6 +258,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			  16, 4, 9);
 	APPLY_TIME_CONFIG(trigger_hold_off_width,KW_INTERNAL_TRIGGER_HOLDOFF,
 			  16, 4, 15);
+	APPLY_FRAC_CONFIG(threshold_for_the_psd_cut, KW_THRESHOLD_PSD, 16, 9);
 	APPLY_TIME_CONFIG(early_baseline_freeze,KW_BASELINE_FREEZE, 16, 4, 9);
 	{
 		uint32_t cfd_delay_u32[16];
@@ -445,7 +466,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  uint32_t dummy;
 	  uint32_t dummy_array16[16];
 	  uint32_t dummy_int_array8[8];
-	  double dummy_dbl_array16[16];
 	  enum Keyword dummy_keyword_array16[16];
 	  enum Keyword dummy_keyword_array8[8];
 	  enum Keyword c_boolean[] = {
@@ -468,9 +488,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	  /* Note: min/max values not checked vs. manual. */
 
-	  CONFIG_GET_DOUBLE_ARRAY(dummy_dbl_array16, v1725->module.config,
-				  KW_THRESHOLD_PSD,
-				  CONFIG_UNIT_NONE, 0, 1000);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_THRESHOLD_PUR_GAP,
 			       CONFIG_UNIT_MV, 0, 1000);
