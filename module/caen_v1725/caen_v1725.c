@@ -182,6 +182,20 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	}\
 } while (0);
 
+#define PREPARE_CONFIG(u32, cfg, n, top_bit) do {\
+	CONFIG_GET_INT_ARRAY(u32, v1725->module.config,\
+	    cfg, CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(top_bit));\
+} while (0);
+
+#define APPLY_CONFIG(reg, cfg, n, top_bit) do {\
+	uint32_t u32[n];\
+	size_t i;\
+	PREPARE_CONFIG(u32, cfg, n, top_bit);\
+	for (i = 0; i < LENGTH(u32); ++i) {\
+		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
+	}\
+} while (0);
+
 int
 caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
@@ -211,10 +225,14 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}
 	}
 	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 8, 13);
+	APPLY_CONFIG(number_of_events_per_aggregate, KW_AGGREGATE_NUM, 8, 9);
 	APPLY_TIME_CONFIG(pre_trigger, KW_PRETRIGGER_DELAY, 16, 4, 9);
+	APPLY_CONFIG(charge_zero_suppression_threshold, KW_ZERO_SUPPRESS,
+		     16, 15);
 	APPLY_TIME_CONFIG(short_gate_width,KW_GATE_SHORT, 16, 1, 11);
 	APPLY_TIME_CONFIG(long_gate_width,KW_GATE_LONG, 16, 1, 15);
 	APPLY_TIME_CONFIG(gate_offset,KW_GATE_OFFSET, 16, 1, 7);
+	APPLY_CONFIG(fixed_baseline, KW_BASELINE_FIXED, 16, 13);
 	APPLY_TIME_CONFIG(trigger_latency,KW_INTERNAL_TRIGGER_DELAY, 16, 4, 9);
 	APPLY_TIME_CONFIG(shaped_trigger_width,KW_INTERNAL_TRIGGER_WIDTH,
 			  16, 4, 9);
@@ -450,15 +468,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	  /* Note: min/max values not checked vs. manual. */
 
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
-			       KW_AGGREGATE_NUM,
-			       CONFIG_UNIT_NONE, 0, 1023);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_ZERO_SUPPRESS,
-			       CONFIG_UNIT_NONE, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_BASELINE_FIXED,
-			       CONFIG_UNIT_NONE, 0, 1000);
 	  CONFIG_GET_DOUBLE_ARRAY(dummy_dbl_array16, v1725->module.config,
 				  KW_THRESHOLD_PSD,
 				  CONFIG_UNIT_NONE, 0, 1000);
