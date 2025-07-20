@@ -415,9 +415,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	  /* Note: min/max values not checked vs. manual. */
 
-	  dummy = config_get_int32(v1725->module.config,
-				   KW_AGGREGATE_NUM,
-				   CONFIG_UNIT_NONE, 0, 1);
+	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
+			       KW_AGGREGATE_NUM,
+			       CONFIG_UNIT_NONE, 0, 1023);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_CFD_DELAY,
 			       CONFIG_UNIT_NS, 0, 1000);
