@@ -221,7 +221,35 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	APPLY_TIME_CONFIG(trigger_hold_off_width,KW_INTERNAL_TRIGGER_HOLDOFF,
 			  4, 15);
 	APPLY_TIME_CONFIG(early_baseline_freeze,KW_BASELINE_FREEZE, 4, 9);
-	APPLY_TIME_CONFIG(cfd_settings, KW_CFD_DELAY, 1, 7);
+	{
+		uint32_t cfd_delay_u32[16];
+		uint32_t cfd_fraction[16];
+		uint32_t cfd_width[16];
+		size_t i;
+
+		PREPARE_TIME_CONFIG(cfd_delay_u32, KW_CFD_DELAY, 1, 7);
+		CONFIG_GET_INT_ARRAY(cfd_fraction, v1725->module.config,
+				     KW_CFD_FRACTION,
+				     CONFIG_UNIT_NONE, 25, 100);
+		CONFIG_GET_INT_ARRAY(cfd_width, v1725->module.config,
+				     KW_CFD_WIDTH,
+				     CONFIG_UNIT_NONE, 1, 4);
+
+		for (i = 0; i < LENGTH(cfd_delay_u32); ++i) {
+			uint32_t u32;
+			uint32_t fraction;
+
+			fraction = (cfd_fraction[i] / 25) * 25;
+
+			u32 =
+			  cfd_delay_u32[i] |
+			  fraction << 8 |
+			  cfd_width[i] << 10;
+			MAP_WRITE(v1725->sicy_map, cfd_settings(i), u32);
+		}
+
+
+	}
 	{
 #if 0  /* Removed from cfg/default/caen_v1725.cfg ? */
 		double pwidth[16];
@@ -425,15 +453,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
 			       KW_AGGREGATE_NUM,
 			       CONFIG_UNIT_NONE, 0, 1023);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_CFD_FRACTION,
-			       CONFIG_UNIT_NONE, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_CFD_WIDTH,
-			       CONFIG_UNIT_NONE, 0, 1000);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_CFD_WIDTH,
-			       CONFIG_UNIT_NONE, 0, 1000);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_ZERO_SUPPRESS,
 			       CONFIG_UNIT_NONE, 0, 1000);
