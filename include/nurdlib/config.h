@@ -68,6 +68,7 @@ struct ConfigUnit {
 extern struct ConfigUnit const *const CONFIG_UNIT_NONE;
 extern struct ConfigUnit const *const CONFIG_UNIT_MHZ;
 extern struct ConfigUnit const *const CONFIG_UNIT_KHZ;
+extern struct ConfigUnit const *const CONFIG_UNIT_HZ;
 extern struct ConfigUnit const *const CONFIG_UNIT_NS;
 extern struct ConfigUnit const *const CONFIG_UNIT_PS;
 extern struct ConfigUnit const *const CONFIG_UNIT_US;

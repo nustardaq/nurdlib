@@ -159,17 +159,18 @@ struct ConfigUnit const *const CONFIG_UNIT_##NAME = &g_config_unit_##name##_
 MAKE_UNIT(none, NONE, 0);
 MAKE_UNIT(MHz, MHZ, 1);
 MAKE_UNIT(kHz, KHZ, 2);
-MAKE_UNIT(ns, NS, 3);
-MAKE_UNIT(ps, PS, 4);
-MAKE_UNIT(us, US, 5);
-MAKE_UNIT(ms, MS, 6);
-MAKE_UNIT(s, S, 7);
-MAKE_UNIT(V, V, 8);
-MAKE_UNIT(mV, MV, 9);
-MAKE_UNIT(B, B, 10);
-MAKE_UNIT(KiB, KIB, 11);
-MAKE_UNIT(MiB, MIB, 12);
-MAKE_UNIT(fC, FC, 13);
+MAKE_UNIT(Hz, HZ, 3);
+MAKE_UNIT(ns, NS, 4);
+MAKE_UNIT(ps, PS, 5);
+MAKE_UNIT(us, US, 6);
+MAKE_UNIT(ms, MS, 7);
+MAKE_UNIT(s, S, 8);
+MAKE_UNIT(V, V, 9);
+MAKE_UNIT(mV, MV, 10);
+MAKE_UNIT(B, B, 11);
+MAKE_UNIT(KiB, KIB, 12);
+MAKE_UNIT(MiB, MIB, 13);
+MAKE_UNIT(fC, FC, 14);
 
 void
 assert_src_path(struct Item const *a_l, char const *a_rp, int a_rl, int a_rc)
@@ -2084,6 +2085,8 @@ unit_dump(struct ConfigUnit const *a_unit)
 		return "MHz";
 	} else if (CONFIG_UNIT_KHZ == a_unit) {
 		return "kHz";
+	} else if (CONFIG_UNIT_HZ == a_unit) {
+		return "Hz";
 	} else if (CONFIG_UNIT_B == a_unit) {
 		return "B";
 	} else if (CONFIG_UNIT_KIB == a_unit) {
@@ -2108,26 +2111,28 @@ unit_from_id(unsigned a_id)
 	case 2:
 		return CONFIG_UNIT_KHZ;
 	case 3:
-		return CONFIG_UNIT_NS;
+		return CONFIG_UNIT_HZ;
 	case 4:
-		return CONFIG_UNIT_PS;
+		return CONFIG_UNIT_NS;
 	case 5:
-		return CONFIG_UNIT_US;
+		return CONFIG_UNIT_PS;
 	case 6:
-		return CONFIG_UNIT_MS;
+		return CONFIG_UNIT_US;
 	case 7:
-		return CONFIG_UNIT_S;
+		return CONFIG_UNIT_MS;
 	case 8:
-		return CONFIG_UNIT_V;
+		return CONFIG_UNIT_S;
 	case 9:
-		return CONFIG_UNIT_MV;
+		return CONFIG_UNIT_V;
 	case 10:
-		return CONFIG_UNIT_B;
+		return CONFIG_UNIT_MV;
 	case 11:
-		return CONFIG_UNIT_KIB;
+		return CONFIG_UNIT_B;
 	case 12:
-		return CONFIG_UNIT_MIB;
+		return CONFIG_UNIT_KIB;
 	case 13:
+		return CONFIG_UNIT_MIB;
+	case 14:
 		return CONFIG_UNIT_FC;
 	}
 	return NULL;
@@ -2154,6 +2159,9 @@ unit_get_factor(struct ConfigUnit const *a_unit)
 	}
 	if (CONFIG_UNIT_KHZ == a_unit) {
 		return 1e3;
+	}
+	if (CONFIG_UNIT_HZ == a_unit) {
+		return 1;
 	}
 	if (CONFIG_UNIT_MV == a_unit) {
 		return 1e-3;
@@ -2196,9 +2204,11 @@ unit_is_compatible(struct ConfigUnit const *a_u1, struct ConfigUnit const
 		return CONFIG_UNIT_NONE == a_u2;
 	}
 	if (CONFIG_UNIT_MHZ == a_u1 ||
-	    CONFIG_UNIT_KHZ == a_u1) {
+	    CONFIG_UNIT_KHZ == a_u1 ||
+	    CONFIG_UNIT_HZ == a_u1) {
 		return CONFIG_UNIT_MHZ == a_u2 ||
-		    CONFIG_UNIT_KHZ == a_u2;
+		    CONFIG_UNIT_KHZ == a_u2 ||
+		    CONFIG_UNIT_HZ == a_u2;
 	}
 	if (CONFIG_UNIT_NS == a_u1 ||
 	    CONFIG_UNIT_PS == a_u1 ||
