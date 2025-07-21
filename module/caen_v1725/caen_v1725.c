@@ -841,10 +841,8 @@ set_thresholds(struct CaenV1725Module *a_v1725, uint16_t const
 
 		u32 = a_threshold_array[i];
 		LOGF(verbose)(LOGL, " [%"PRIz"]=0x%08x.", i, u32);
-#if 0 /* No longer in register list. */
-		MAP_WRITE(a_v1725->sicy_map, channel_n_trigger_threshold(i),
+		MAP_WRITE(a_v1725->sicy_map, trigger_threshold(i),
 		    u32);
-#endif
 		(void) a_v1725;
 	}
 	LOGF(verbose)(LOGL, NAME" set_thresholds }");
