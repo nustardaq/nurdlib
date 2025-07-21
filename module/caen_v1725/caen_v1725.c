@@ -207,7 +207,7 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	}\
 } while (0);
 
-#define PREPARE_CONFIG(u32, cfg, n, top_bit) do {\
+#define PREPARE_CONFIG(u32, cfg, top_bit) do {\
 	CONFIG_GET_INT_ARRAY(u32, v1725->module.config,\
 	    cfg, CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(top_bit));\
 } while (0);
@@ -215,7 +215,7 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 #define APPLY_CONFIG(reg, cfg, n, top_bit) do {\
 	uint32_t u32[n];\
 	size_t i;\
-	PREPARE_CONFIG(u32, cfg, n, top_bit);\
+	PREPARE_CONFIG(u32, cfg, top_bit);\
 	for (i = 0; i < LENGTH(u32); ++i) {\
 		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
 	}\
@@ -239,6 +239,11 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	for (i = 0; i < LENGTH(u32); ++i) {\
 		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
 	}\
+} while (0);
+
+#define PREPARE_KEYWORD_CONFIG(u32, cfg, keyword_list) do {\
+	CONFIG_GET_KEYWORD_ARRAY(u32, v1725->module.config,\
+	    cfg, keyword_list);\
 } while (0);
 
 int
@@ -478,69 +483,78 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	/* DPP Algorithm Control */
 	{
-	  uint32_t dummy_array16[16];
-	  enum Keyword dummy_keyword_array16[16];
+		double charge[16];
+		uint32_t pedestal[16];
+		uint32_t trigout_all[16];
+		uint32_t discrimination[16];
+		uint32_t pileup_trigout[16];
+		uint32_t test_pulse[16];
+		uint32_t test_pulse_freq[16];
+		uint32_t baseline_restart[16];
+		uint32_t test_pulse_polarity[16];
+		uint32_t trigger_method[16];
+		uint32_t baseline_average[16];
+		uint32_t use_internal_trigger[16];
+		uint32_t suppress_pileup[16];
+		uint32_t psd_cut_below[16];
+		uint32_t psd_cut_above[16];
+		uint32_t suppress_over_range[16];
+		uint32_t trigger_hysteresis[16];
+		uint32_t polarity_detection[16];
 
-	  enum Keyword c_discrimination[] = {
-	    KW_CFD,
-	    KW_LED
-	  };
-	  enum Keyword c_boolean[] = {
-	    KW_FALSE,
-	    KW_TRUE,
-	  };
-	  enum Keyword c_trigger_method[] = {
-	    KW_INDEPENDENT,
-	    KW_COINCIDENCE,
-	    KW_ANTICOINCIDENCE,
-	  };
-	  enum Keyword c_polarity[] = {
-	    KW_POS,
-	    KW_NEG
-	    };
+		enum Keyword c_discrimination[] = {
+			KW_CFD,
+			KW_LED
+		};
+		enum Keyword c_boolean[] = {
+			KW_FALSE,
+			KW_TRUE,
+		};
+		enum Keyword c_trigger_method[] = {
+			KW_INDEPENDENT,
+			KW_COINCIDENCE,
+			KW_ANTICOINCIDENCE,
+		};
+		enum Keyword c_polarity[] = {
+			KW_POS,
+			KW_NEG
+		};
 
-	  /* Note: min/max values not checked vs. manual. */
+		/* Note: min/max values not checked vs. manual. */
 
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_CHARGE,
-			       CONFIG_UNIT_FC, 0, 1000);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_PEDESTAL, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TRIGOUT_ALL, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_DISCRIMINATION, c_discrimination);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_PILEUP_TRIGOUT, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TEST_PULSE, c_boolean);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_TEST_PULSE_FREQ,
-			       CONFIG_UNIT_KHZ, 0, 1000);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_BASELINE_RESTART, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TEST_PULSE_POLARITY, c_polarity);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TRIGGER_METHOD, c_trigger_method);
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_BASELINE_AVERAGE,
-			       CONFIG_UNIT_NONE, 0, 1000);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_USE_INTERNAL_TRIGGER, c_boolean);
-
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_SUPPRESS_PILEUP, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_PSD_CUT_BELOW, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_PSD_CUT_ABOVE, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_SUPPRESS_OVER_RANGE, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TRIGGER_HYSTERESIS, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_POLARITY_DETECTION, c_boolean);
+		CONFIG_GET_DOUBLE_ARRAY(charge, v1725->module.config,
+		    KW_CHARGE, CONFIG_UNIT_FC, 1.25, 5.12);
+		PREPARE_KEYWORD_CONFIG(pedestal, KW_PEDESTAL, c_boolean);
+		PREPARE_KEYWORD_CONFIG(trigout_all, KW_TRIGOUT_ALL, c_boolean);
+		PREPARE_KEYWORD_CONFIG(discrimination, KW_DISCRIMINATION,
+		    c_discrimination);
+		PREPARE_KEYWORD_CONFIG(pileup_trigout, KW_PILEUP_TRIGOUT,
+		    c_boolean);
+		PREPARE_KEYWORD_CONFIG(test_pulse, KW_TEST_PULSE, c_boolean);
+		CONFIG_GET_INT_ARRAY(test_pulse_freq, v1725->module.config,
+		    KW_TEST_PULSE_FREQ, CONFIG_UNIT_HZ, 500, 1000000);
+		PREPARE_KEYWORD_CONFIG(baseline_restart, KW_BASELINE_RESTART,
+		    c_boolean);
+		PREPARE_KEYWORD_CONFIG(test_pulse_polarity,
+		    KW_TEST_PULSE_POLARITY, c_polarity);
+		PREPARE_KEYWORD_CONFIG(trigger_method, KW_TRIGGER_METHOD,
+		    c_trigger_method);
+		CONFIG_GET_INT_ARRAY(baseline_average, v1725->module.config,
+		    KW_BASELINE_AVERAGE, CONFIG_UNIT_NONE, 16, 1024);
+		PREPARE_KEYWORD_CONFIG(use_internal_trigger,
+		    KW_USE_INTERNAL_TRIGGER, c_boolean);
+		PREPARE_KEYWORD_CONFIG(suppress_pileup, KW_SUPPRESS_PILEUP,
+		    c_boolean);
+		PREPARE_KEYWORD_CONFIG(psd_cut_below, KW_PSD_CUT_BELOW,
+		    c_boolean);
+		PREPARE_KEYWORD_CONFIG(psd_cut_above, KW_PSD_CUT_ABOVE,
+		    c_boolean);
+		PREPARE_KEYWORD_CONFIG(suppress_over_range,
+		    KW_SUPPRESS_OVER_RANGE, c_boolean);
+		PREPARE_KEYWORD_CONFIG(trigger_hysteresis,
+	            KW_TRIGGER_HYSTERESIS, c_boolean);
+		PREPARE_KEYWORD_CONFIG(polarity_detection,
+		    KW_POLARITY_DETECTION, c_boolean);
 	}
 	/* DPP Algorithm Control 2 */
 	{
