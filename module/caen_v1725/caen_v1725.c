@@ -69,7 +69,7 @@
     set_thresholds(v1725, array, LENGTH(array))
 
 MODULE_PROTOTYPES(caen_v1725);
-static void	set_thresholds(struct CaenV1725Module *, uint16_t const *,
+static void	set_thresholds(struct CaenV1725Module *, uint32_t const *,
     size_t);
 
 uint32_t
@@ -339,21 +339,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 #endif
 	}
 	{
-		double thr_dbl[16];
-		uint16_t thr[16];
-		size_t i;
+		uint32_t thr[16];
 
-		/*
-		 * Upper limit per channel could be dynamic-range dependent.
-		 * Handled by clamping below.
-		 */
-		CONFIG_GET_DOUBLE_ARRAY(thr_dbl, v1725->module.config,
-		    KW_THRESHOLD, CONFIG_UNIT_MV, 0, 2.0);
-		for (i = 0; i < LENGTH(thr_dbl); ++i) {
-			thr[i] = CLAMP(thr_dbl[i] /
-			    (dyn_range_setting[i] ? 0.03 : 0.12),
-			    0, BITS_MASK_TOP(13));
-		}
+		PREPARE_MV_CONFIG(thr, KW_THRESHOLD, 16, 13);
 		SET_THRESHOLDS(v1725, thr);
 	}
 #if 0  /* Changed implementation in cfg/default/caen_v1725.cfg ? */
@@ -852,7 +840,7 @@ caen_v1725_setup_(void)
 }
 
 void
-set_thresholds(struct CaenV1725Module *a_v1725, uint16_t const
+set_thresholds(struct CaenV1725Module *a_v1725, uint32_t const
     *a_threshold_array, size_t a_threshold_num)
 {
 	size_t i;
