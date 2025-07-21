@@ -182,6 +182,31 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	}\
 } while (0);
 
+/*
+ * Upper limit per channel could be dynamic-range dependent.
+ * Handled by clamping.
+ */
+#define PREPARE_MV_CONFIG(u32, cfg, n, top_bit) do {\
+	double setting[n];\
+	size_t j;\
+	CONFIG_GET_DOUBLE_ARRAY(setting, v1725->module.config,\
+	    cfg, CONFIG_UNIT_MV, 0, 2.0);\
+	for (j = 0; j < LENGTH(setting); ++j) {\
+		u32[j] = CLAMP(setting[j]\
+		    / (dyn_range_setting[j] ? 0.03 : 0.12),\
+		    0, BITS_MASK_TOP(top_bit));\
+	}\
+} while (0);
+
+#define APPLY_MV_CONFIG(reg, cfg, n, top_bit) do {\
+	uint32_t u32[n];\
+	size_t i;\
+	PREPARE_MV_CONFIG(u32, cfg, n, top_bit);\
+	for (i = 0; i < LENGTH(u32); ++i) {\
+		MAP_WRITE(v1725->sicy_map, reg(i), u32[i]);\
+	}\
+} while (0);
+
 #define PREPARE_CONFIG(u32, cfg, n, top_bit) do {\
 	CONFIG_GET_INT_ARRAY(u32, v1725->module.config,\
 	    cfg, CONFIG_UNIT_NONE, 0, BITS_MASK_TOP(top_bit));\
