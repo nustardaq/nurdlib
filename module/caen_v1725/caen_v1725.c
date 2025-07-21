@@ -476,29 +476,28 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		MAP_WRITE(v1725->sicy_map, channel_enable_mask,
 		    v1725->channel_enable);
 	}
+	/* DPP Algorithm Control */
 	{
-	  uint32_t dummy;
 	  uint32_t dummy_array16[16];
-	  uint32_t dummy_int_array8[8];
 	  enum Keyword dummy_keyword_array16[16];
-	  enum Keyword dummy_keyword_array8[8];
-	  enum Keyword c_boolean[] = {
-	    KW_FALSE,
-	    KW_TRUE,
-	  };
-	  enum Keyword c_polarity[] = {
-	    KW_POS,
-	    KW_NEG
-	    };
+
 	  enum Keyword c_discrimination[] = {
 	    KW_CFD,
 	    KW_LED
+	  };
+	  enum Keyword c_boolean[] = {
+	    KW_FALSE,
+	    KW_TRUE,
 	  };
 	  enum Keyword c_trigger_method[] = {
 	    KW_INDEPENDENT,
 	    KW_COINCIDENCE,
 	    KW_ANTICOINCIDENCE,
 	  };
+	  enum Keyword c_polarity[] = {
+	    KW_POS,
+	    KW_NEG
+	    };
 
 	  /* Note: min/max values not checked vs. manual. */
 
@@ -507,28 +506,29 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			       CONFIG_UNIT_FC, 0, 1000);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_PEDESTAL, c_boolean);
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_TRIGOUT_ALL, c_boolean);
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_DISCRIMINATION, c_discrimination);
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_PILEUP_TRIGOUT, c_boolean);
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_TEST_PULSE, c_boolean);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_TEST_PULSE_FREQ,
 			       CONFIG_UNIT_KHZ, 0, 1000);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TEST_PULSE_POLARITY, c_polarity);
+				   KW_BASELINE_RESTART, c_boolean);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_DISCRIMINATION, c_discrimination);
+				   KW_TEST_PULSE_POLARITY, c_polarity);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_TRIGGER_METHOD, c_trigger_method);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_BASELINE_AVERAGE,
 			       CONFIG_UNIT_NONE, 0, 1000);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TRIGOUT_ALL, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_PILEUP_TRIGOUT, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_TEST_PULSE, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_BASELINE_RESTART, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_USE_INTERNAL_TRIGGER, c_boolean);
+
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_SUPPRESS_PILEUP, c_boolean);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
@@ -538,45 +538,77 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_SUPPRESS_OVER_RANGE, c_boolean);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_POLARITY_DETECTION, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_TRIGGER_HYSTERESIS, c_boolean);
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_POLARITY_DETECTION, c_boolean);
+	}
+	/* DPP Algorithm Control 2 */
+	{
+	  uint32_t dummy_int_array8[8];
+	  uint32_t dummy_int_array16[16];
+	  enum Keyword dummy_keyword_array16[16];
+	  enum Keyword dummy_keyword_array8[8];
+
+	  enum Keyword c_boolean[] = {
+	    KW_FALSE,
+	    KW_TRUE,
+	  };
+
+	  /* Note: min/max values not checked vs. manual. */
+
+	  /*
+	   * Group-level settings.
+	   */
+	  /* Rename: shaped_trigger_mode? */
+	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
+			       KW_SELF_TRIGGER_SOURCE,
+			       CONFIG_UNIT_NONE, 0, 3);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array8, v1725->module.config,
 				   KW_TRIGGER_SHAPED, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array8, v1725->module.config,
-				   KW_MARK_SATURATED, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array8, v1725->module.config,
-				   KW_VETO_DIRECT, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_USE_VETO, c_boolean);
-
+	  /* Should be keyword: */
 	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
 			       KW_TRIGGER_VALIDATION,
 			       CONFIG_UNIT_NONE, 0, 5);
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
+	  /* Should be keyword?: */
+	  /*
+	   * To make things more interesting:
+	   * From here, settings are per-channel.
+	   */
+	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
 			       KW_EXTRA_WORD,
 			       CONFIG_UNIT_NONE, 0, 7);
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
+	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
 			       KW_SMOOTHED,
 			       CONFIG_UNIT_NONE, 0, 16);
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
+	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
 			       KW_TRIGGER_RATE,
 			       CONFIG_UNIT_NONE, 128, 1024);
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
-			       KW_VETO,
+	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
+			       KW_VETO_SOURCE,
 			       CONFIG_UNIT_NONE, 0, 3);
+	  /* Should be keyword? */
+	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
+			       KW_PIGGY_TO_MOBO,
+			       CONFIG_UNIT_NONE, 0, 3);
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_MARK_SATURATED, c_boolean);
+	  /* Missing: additional local trigger validation. */
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
+				   KW_USE_VETO, c_boolean);
+	  /* Rename: veto_mode?: */
+	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array8, v1725->module.config,
+				   KW_VETO_DIRECT, c_boolean);
+	  /* Missing: Reset timestamp on veto. */
+
+	}
+	/* Veto width. */
+	{
+	  uint32_t dummy_array16[16];
+
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_VETO_WIDTH,
 			       CONFIG_UNIT_NONE /* ns? */,
 			       0, 1 /* ?? - figure*/);
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
-			       KW_PIGGY_TO_MOBO,
-			       CONFIG_UNIT_NONE, 0, 3);
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
-			       KW_SELF_TRIGGER_SOURCE,
-			       CONFIG_UNIT_NONE, 0, 3);
-
-	  (void) dummy;
 	}
 
 	LOGF(info)(LOGL, NAME" init_fast }");
