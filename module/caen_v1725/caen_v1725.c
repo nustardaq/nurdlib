@@ -284,6 +284,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	APPLY_TIME_CONFIG(trigger_hold_off_width,KW_INTERNAL_TRIGGER_HOLDOFF,
 			  16, 4, 15);
 	APPLY_FRAC_CONFIG(threshold_for_the_psd_cut, KW_THRESHOLD_PSD, 16, 9);
+	APPLY_MV_CONFIG(pur_gap_threshold, KW_THRESHOLD_PUR_GAP, 16, 11);
 	APPLY_TIME_CONFIG(early_baseline_freeze,KW_BASELINE_FREEZE, 16, 4, 9);
 	{
 		uint32_t cfd_delay_u32[16];
@@ -513,9 +514,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	  /* Note: min/max values not checked vs. manual. */
 
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_THRESHOLD_PUR_GAP,
-			       CONFIG_UNIT_MV, 0, 1000);
 	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
 			       KW_CHARGE,
 			       CONFIG_UNIT_FC, 0, 1000);
