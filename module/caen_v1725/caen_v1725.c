@@ -221,6 +221,22 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	}\
 } while (0);
 
+#define PREPARE_M1_CONFIG(i32, cfg, top_bit) do {\
+	CONFIG_GET_INT_ARRAY(i32, v1725->module.config,\
+	    cfg, CONFIG_UNIT_NONE, -1, BITS_MASK_TOP(top_bit));\
+} while (0);
+
+#define APPLY_M1_CONFIG(reg, cfg, n, top_bit) do {\
+	int32_t i32[n];\
+	size_t i;\
+	PREPARE_M1_CONFIG(i32, cfg, top_bit);\
+	for (i = 0; i < LENGTH(i32); ++i) {\
+		if (i32[i] < 0)\
+			i32[i] = 0;\
+		MAP_WRITE(v1725->sicy_map, reg(i), i32[i]);\
+	}\
+} while (0);
+
 #define PREPARE_FRAC_CONFIG(u32, cfg, n, top_bit) do {\
 	double setting[n];\
 	size_t j;\
@@ -277,7 +293,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	APPLY_TIME_CONFIG(record_length, KW_SAMPLE_LENGTH, 8, 8, 13);
 	APPLY_CONFIG(number_of_events_per_aggregate, KW_AGGREGATE_NUM, 8, 9);
 	APPLY_TIME_CONFIG(pre_trigger, KW_PRETRIGGER_DELAY, 16, 4, 9);
-	APPLY_CONFIG(charge_zero_suppression_threshold, KW_ZERO_SUPPRESS,
+	APPLY_M1_CONFIG(charge_zero_suppression_threshold, KW_ZERO_SUPPRESS,
 		     16, 15);
 	APPLY_TIME_CONFIG(short_gate_width,KW_GATE_SHORT, 16, 1, 11);
 	APPLY_TIME_CONFIG(long_gate_width,KW_GATE_LONG, 16, 1, 15);
