@@ -262,6 +262,22 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	    cfg, keyword_list);\
 } while (0);
 
+#define PREPARE_BOOLEAN_CONFIG(u32, cfg) do {\
+	enum Keyword c_boolean[] = {\
+		KW_FALSE,\
+		KW_TRUE,\
+	};\
+	size_t j;\
+	CONFIG_GET_KEYWORD_ARRAY(u32, v1725->module.config,\
+	    cfg, c_boolean);\
+	for (j = 0; j < LENGTH(u32); ++j) {\
+		switch (u32[j]) {\
+		case KW_FALSE: u32[j] = 0; break;\
+		case KW_TRUE: u32[j] = 1; break; \
+		}\
+	}\
+} while (0);
+
 int
 caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 {
@@ -499,7 +515,8 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	/* DPP Algorithm Control */
 	{
-		double charge[16];
+		double charge_dbl[16];
+		uint32_t charge;
 		uint32_t pedestal[16];
 		uint32_t trigout_all[16];
 		uint32_t discrimination[16];
@@ -511,20 +528,19 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t trigger_method[16];
 		uint32_t baseline_average[16];
 		uint32_t use_internal_trigger[16];
+		int32_t charge_zero_suppression_threshold[16];
+		uint32_t suppress_charge_zero;
 		uint32_t suppress_pileup[16];
 		uint32_t psd_cut_below[16];
 		uint32_t psd_cut_above[16];
 		uint32_t suppress_over_range[16];
 		uint32_t trigger_hysteresis[16];
 		uint32_t polarity_detection[16];
+		size_t i;
 
 		enum Keyword c_discrimination[] = {
 			KW_CFD,
 			KW_LED
-		};
-		enum Keyword c_boolean[] = {
-			KW_FALSE,
-			KW_TRUE,
 		};
 		enum Keyword c_trigger_method[] = {
 			KW_INDEPENDENT,
@@ -538,39 +554,119 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 		/* Note: min/max values not checked vs. manual. */
 
-		CONFIG_GET_DOUBLE_ARRAY(charge, v1725->module.config,
+		CONFIG_GET_DOUBLE_ARRAY(charge_dbl, v1725->module.config,
 		    KW_CHARGE, CONFIG_UNIT_FC, 1.25, 5.12);
-		PREPARE_KEYWORD_CONFIG(pedestal, KW_PEDESTAL, c_boolean);
-		PREPARE_KEYWORD_CONFIG(trigout_all, KW_TRIGOUT_ALL, c_boolean);
+		PREPARE_BOOLEAN_CONFIG(pedestal, KW_PEDESTAL);
+		PREPARE_BOOLEAN_CONFIG(trigout_all, KW_TRIGOUT_ALL);
 		PREPARE_KEYWORD_CONFIG(discrimination, KW_DISCRIMINATION,
 		    c_discrimination);
-		PREPARE_KEYWORD_CONFIG(pileup_trigout, KW_PILEUP_TRIGOUT,
-		    c_boolean);
-		PREPARE_KEYWORD_CONFIG(test_pulse, KW_TEST_PULSE, c_boolean);
+		PREPARE_BOOLEAN_CONFIG(pileup_trigout, KW_PILEUP_TRIGOUT);
+		PREPARE_BOOLEAN_CONFIG(test_pulse, KW_TEST_PULSE);
 		CONFIG_GET_INT_ARRAY(test_pulse_freq, v1725->module.config,
 		    KW_TEST_PULSE_FREQ, CONFIG_UNIT_HZ, 500, 1000000);
-		PREPARE_KEYWORD_CONFIG(baseline_restart, KW_BASELINE_RESTART,
-		    c_boolean);
+		PREPARE_BOOLEAN_CONFIG(baseline_restart, KW_BASELINE_RESTART);
 		PREPARE_KEYWORD_CONFIG(test_pulse_polarity,
 		    KW_TEST_PULSE_POLARITY, c_polarity);
 		PREPARE_KEYWORD_CONFIG(trigger_method, KW_TRIGGER_METHOD,
 		    c_trigger_method);
 		CONFIG_GET_INT_ARRAY(baseline_average, v1725->module.config,
 		    KW_BASELINE_AVERAGE, CONFIG_UNIT_NONE, 16, 1024);
-		PREPARE_KEYWORD_CONFIG(use_internal_trigger,
-		    KW_USE_INTERNAL_TRIGGER, c_boolean);
-		PREPARE_KEYWORD_CONFIG(suppress_pileup, KW_SUPPRESS_PILEUP,
-		    c_boolean);
-		PREPARE_KEYWORD_CONFIG(psd_cut_below, KW_PSD_CUT_BELOW,
-		    c_boolean);
-		PREPARE_KEYWORD_CONFIG(psd_cut_above, KW_PSD_CUT_ABOVE,
-		    c_boolean);
-		PREPARE_KEYWORD_CONFIG(suppress_over_range,
-		    KW_SUPPRESS_OVER_RANGE, c_boolean);
-		PREPARE_KEYWORD_CONFIG(trigger_hysteresis,
-	            KW_TRIGGER_HYSTERESIS, c_boolean);
-		PREPARE_KEYWORD_CONFIG(polarity_detection,
-		    KW_POLARITY_DETECTION, c_boolean);
+		PREPARE_BOOLEAN_CONFIG(use_internal_trigger,
+		    KW_USE_INTERNAL_TRIGGER);
+		PREPARE_M1_CONFIG(charge_zero_suppression_threshold,
+		    KW_ZERO_SUPPRESS, 15);
+		PREPARE_BOOLEAN_CONFIG(suppress_pileup, KW_SUPPRESS_PILEUP);
+		PREPARE_BOOLEAN_CONFIG(psd_cut_below, KW_PSD_CUT_BELOW);
+		PREPARE_BOOLEAN_CONFIG(psd_cut_above, KW_PSD_CUT_ABOVE);
+		PREPARE_BOOLEAN_CONFIG(suppress_over_range,
+		    KW_SUPPRESS_OVER_RANGE);
+		PREPARE_BOOLEAN_CONFIG(trigger_hysteresis,
+	            KW_TRIGGER_HYSTERESIS);
+		PREPARE_BOOLEAN_CONFIG(polarity_detection,
+		    KW_POLARITY_DETECTION);
+
+		for (i = 0; i < LENGTH(charge_dbl); ++i) {
+			uint32_t u32;
+			double charge_norm_2V = charge_dbl[i];
+
+			/*
+			 * 0.5 V range has levels a factor four smaller
+			 * than 2 V setting.
+			 */
+			if (dyn_range_setting[i])
+				charge_norm_2V *= 4;
+			if      (charge_norm_2V < 5)    charge = 0;
+			else if (charge_norm_2V < 20)   charge = 1;
+			else if (charge_norm_2V < 80)   charge = 2;
+			else if (charge_norm_2V < 320)  charge = 3;
+			else if (charge_norm_2V < 1280) charge = 4;
+			else                            charge = 5;
+
+			if      (test_pulse_freq[i] < 500)
+				test_pulse_freq[i] = 0;
+			else if (test_pulse_freq[i] < 5000)
+				test_pulse_freq[i] = 1;
+			else if (test_pulse_freq[i] < 50000)
+				test_pulse_freq[i] = 2;
+			else if (test_pulse_freq[i] < 500000)
+				test_pulse_freq[i] = 3;
+
+			if      (baseline_average[i] < 16)
+				baseline_average[i] = 1;
+			else if (baseline_average[i] < 64)
+				baseline_average[i] = 2;
+			else if (baseline_average[i] < 256)
+				baseline_average[i] = 3;
+			else if (baseline_average[i] < 1024)
+				baseline_average[i] = 4;
+
+			switch (discrimination[i]) {
+			case KW_LED: discrimination[i] = 0; break;
+			case KW_CFD: discrimination[i] = 1; break;
+			}
+
+			switch (trigger_method[i]) {
+			case KW_INDEPENDENT:     trigger_method[i] = 0; break;
+			case KW_COINCIDENCE:     trigger_method[i] = 1; break;
+			case KW_ANTICOINCIDENCE: trigger_method[i] = 3; break;
+			}
+
+			switch (discrimination[i]) {
+			case KW_LED: discrimination[i] = 0; break;
+			case KW_CFD: discrimination[i] = 1; break;
+			}
+
+			if (charge_zero_suppression_threshold[i] >= 0)
+			  suppress_charge_zero = 1;
+			else
+			  suppress_charge_zero = 0;
+
+			u32 =
+			    charge << 0 |
+			    pedestal[i] << 4 |
+			    trigout_all[i] << 5 |
+			    discrimination[i] << 6 |
+			    pileup_trigout[i] << 7 |
+			    test_pulse[i] << 8 |
+			    test_pulse_freq[i] << 9 |
+			    baseline_restart[i] << 15 |
+			    test_pulse_polarity[i] << 16 |
+			    trigger_method[i] << 18 |
+			    baseline_average[i] << 20 |
+			    use_internal_trigger[i] << 24 |
+			    suppress_charge_zero << 25 |
+			    suppress_pileup[i] << 26 |
+			    psd_cut_below[i] << 27 |
+			    psd_cut_above[i] << 28 |
+			    suppress_over_range[i] << 29 |
+			    trigger_hysteresis[i] << 30 |
+			    polarity_detection[i] << 31;
+
+			LOGF(verbose)(LOGL, "DPP algo ctrl[%"PRIz"]=0x%08x.",
+			    i, u32);
+			MAP_WRITE(v1725->sicy_map, dpp_algorithm_control(i),
+			    u32);
+		}
 	}
 	/* DPP Algorithm Control 2 */
 	{
