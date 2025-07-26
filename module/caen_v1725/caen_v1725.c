@@ -859,7 +859,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		 */
 
 		CONFIG_GET_INT_ARRAY(veto_width, v1725->module.config,
-		    KW_VETO_WIDTH, CONFIG_UNIT_NS, 0, 0xffffffff);
+		    KW_VETO_WIDTH, CONFIG_UNIT_NS, 0, 2000000000);
 
 		/* Apply per-channel. */
 		for (i = 0; i < LENGTH(veto_width); ++i) {
