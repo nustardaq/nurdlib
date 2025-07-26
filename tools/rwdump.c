@@ -109,6 +109,7 @@ int
 main(int argc, char *argv[])
 {
 	uint32_t address;
+	int address_set = 0;
 	int type;
 
 	g_arg0 = argv[0];
@@ -247,6 +248,7 @@ main(int argc, char *argv[])
 				base = 10;
 			}
 			address = strtoi32(p, NULL, base);
+			address_set = 1;
 			LOGF(info)(LOGL, "Address=0x%08x.", address);
 		} else if (arg_match(argc, argv, 'd', "register-dump", NULL))
 		{
@@ -262,7 +264,7 @@ main(int argc, char *argv[])
 			if (0 == type) {
 				usage("Missing module type.");
 			}
-			if (0 == address) {
+			if (0 == address_set) {
 				usage("Missing address.");
 			}
 			ZERO(props);
