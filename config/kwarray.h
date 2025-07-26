@@ -203,6 +203,9 @@ static char const g_keyword_array[][52] = {
 	"exp_trig_delay0",
 	"exp_trig_delay1",
 	"ext_clk_freq",
+	"ext_ts_baseline",
+	"ext_ts_finetime",
+	"ext_ts_flags",
 	"external",
 	"extra_filter",
 	"extra_word",
@@ -212,6 +215,7 @@ static char const g_keyword_array[][52] = {
 	"ff",
 	"fifo_length",
 	"filter_trace",
+	"fixed",
 	"free_running",
 	"frontend",
 	"gain",
@@ -374,6 +378,7 @@ static char const g_keyword_array[][52] = {
 	"trailing_and_leading",
 	"trig0",
 	"trig1",
+	"trig_counts",
 	"trigger0_enable",
 	"trigger1_enable",
 	"trigger2_enable",
@@ -432,6 +437,7 @@ static char const g_keyword_array[][52] = {
 	"write_traces_maw",
 	"write_traces_maw_energy",
 	"write_traces_raw",
+	"zero_crossing",
 	"zero_suppress"
 };
 

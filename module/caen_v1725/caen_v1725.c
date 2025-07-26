@@ -683,6 +683,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t shaped_self_trigger[8];
 		uint32_t pair_trigger_validation[8];
 		uint32_t trigger_validation[16];
+		uint32_t extra_word[16];
 
 	  uint32_t dummy_int_array16[16];
 	  enum Keyword dummy_keyword_array16[16];
@@ -706,6 +707,14 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			KW_AND,
 			KW_OR
 		};
+		enum Keyword c_extra_word[] = {
+			KW_EXT_TS_BASELINE,
+			KW_EXT_TS_FLAGS,
+			KW_EXT_TS_FINETIME,
+			KW_TRIG_COUNTS,
+			KW_ZERO_CROSSING,
+			KW_FIXED
+		};
 
 	  enum Keyword c_boolean[] = {
 	    KW_FALSE,
@@ -727,11 +736,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		 */
 		PREPARE_KEYWORD_CONFIG(trigger_validation,
 		    KW_TRIGGER_VALIDATION, c_trigger_validation);
+		PREPARE_KEYWORD_CONFIG(extra_word,
+		    KW_EXTRA_WORD, c_extra_word);
 
-	  /* Should be keyword?: */
-	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
-			       KW_EXTRA_WORD,
-			       CONFIG_UNIT_NONE, 0, 7);
 	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
 			       KW_SMOOTHED,
 			       CONFIG_UNIT_NONE, 0, 16);
