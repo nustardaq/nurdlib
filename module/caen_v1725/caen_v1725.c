@@ -680,10 +680,20 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	/* DPP Algorithm Control 2 */
 	{
+		uint32_t shaped_self_trigger[8];
+
 	  uint32_t dummy_int_array8[8];
 	  uint32_t dummy_int_array16[16];
 	  enum Keyword dummy_keyword_array16[16];
 	  enum Keyword dummy_keyword_array8[8];
+
+		enum Keyword c_shaped_self_trigger[] = {
+			KW_AND,
+			KW_CH_EVEN,
+			KW_CH_ODD,
+			KW_OR,
+			KW_OFF
+		};
 
 	  enum Keyword c_boolean[] = {
 	    KW_FALSE,
@@ -695,12 +705,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	  /*
 	   * Group-level settings.
 	   */
-	  /* Rename: shaped_trigger_mode? */
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
-			       KW_SELF_TRIGGER_SOURCE,
-			       CONFIG_UNIT_NONE, 0, 3);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array8, v1725->module.config,
-				   KW_TRIGGER_SHAPED, c_boolean);
+		PREPARE_KEYWORD_CONFIG(shaped_self_trigger,
+		    KW_SHAPED_SELF_TRIGGER, c_shaped_self_trigger);
+
 	  /* Should be keyword: */
 	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
 			       KW_TRIGGER_VALIDATION,
