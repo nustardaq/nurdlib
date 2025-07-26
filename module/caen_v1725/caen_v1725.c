@@ -686,10 +686,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t extra_word[16];
 		uint32_t smoothing[16];
 		uint32_t trigger_flag_downscale[16];
-
-	  uint32_t dummy_int_array16[16];
-	  enum Keyword dummy_keyword_array16[16];
-	  enum Keyword dummy_keyword_array8[8];
+		uint32_t veto_source[16];
+		uint32_t piggy_to_mobo[16];
+		uint32_t mark_saturated[16];
+		uint32_t veto_direct[16];
 
 		enum Keyword c_shaped_self_trigger[] = {
 			KW_AND,
@@ -717,13 +717,12 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			KW_ZERO_CROSSING,
 			KW_FIXED
 		};
-
-	  enum Keyword c_boolean[] = {
-	    KW_FALSE,
-	    KW_TRUE,
-	  };
-
-	  /* Note: min/max values not checked vs. manual. */
+		enum Keyword c_veto_source[] = {
+			KW_OFF,
+			KW_COMMON,
+			KW_PAIR,
+			KW_SATURATED
+		};
 
 		/*
 		 * Group-level settings.
@@ -745,22 +744,18 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		CONFIG_GET_INT_ARRAY(trigger_flag_downscale,
 		    v1725->module.config,
 		    KW_TRIGGER_FLAG_DOWNSCALE, CONFIG_UNIT_NONE, 0, 16);
+		/* Should be keyword? */
+		CONFIG_GET_INT_ARRAY(piggy_to_mobo, v1725->module.config,
+		    KW_PIGGY_TO_MOBO, CONFIG_UNIT_NONE, 0, 12);
+		PREPARE_BOOLEAN_CONFIG(mark_saturated,
+		    KW_MARK_SATURATED);
+		PREPARE_KEYWORD_CONFIG(veto_source,
+		    KW_VETO_SOURCE, c_veto_source);
+		PREPARE_BOOLEAN_CONFIG(veto_direct,
+		    KW_VETO_DIRECT);
 
-	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
-			       KW_VETO_SOURCE,
-			       CONFIG_UNIT_NONE, 0, 3);
-	  /* Should be keyword? */
-	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
-			       KW_PIGGY_TO_MOBO,
-			       CONFIG_UNIT_NONE, 0, 3);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_MARK_SATURATED, c_boolean);
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
-				   KW_USE_VETO, c_boolean);
-	  /* Rename: veto_mode?: */
-	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array8, v1725->module.config,
-				   KW_VETO_DIRECT, c_boolean);
-	  /* Missing: Reset timestamp on veto. */
+		/* Missing: Reset timestamp on veto. */
+		/* Resetting time we try to avoid! */
 
 	}
 	/* Veto width. */
