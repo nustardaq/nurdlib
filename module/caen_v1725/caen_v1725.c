@@ -690,6 +690,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t piggy_to_mobo[16];
 		uint32_t mark_saturated[16];
 		uint32_t veto_direct[16];
+		size_t i;
 
 		enum Keyword c_shaped_self_trigger[] = {
 			KW_AND,
@@ -757,6 +758,93 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		/* Missing: Reset timestamp on veto. */
 		/* Resetting time we try to avoid! */
 
+		/* Apply per-channel. */
+		for (i = 0; i < LENGTH(trigger_validation); ++i) {
+			uint32_t u32;
+			uint32_t shaped_trigger_mode = 0;
+			uint32_t enable_shaped_trigger = 1;
+			uint32_t pair_trigger_validation_mode = 3;
+			uint32_t enable_trigger_validation = 1;
+			uint32_t ch_trigger_validation_mode = 0;
+			uint32_t extra_word_val = 0; /* Avoid warning. */
+			uint32_t use_smoothing = 1;
+			uint32_t smoothing_val = 0;
+			uint32_t trigger_flag_downscale_val;
+			uint32_t veto_source_val = 0; /* Avoid warning. */
+
+			/* Group-level settings, thus [i/2]. */
+			switch (shaped_self_trigger[i/2]) {
+			case KW_OFF:     enable_shaped_trigger = 0; break;
+			case KW_AND:     shaped_trigger_mode = 0; break;
+			case KW_CH_EVEN: shaped_trigger_mode = 1; break;
+			case KW_CH_ODD:  shaped_trigger_mode = 2; break;
+			case KW_OR:      shaped_trigger_mode = 3; break;
+			}
+
+			switch (pair_trigger_validation[i/2]) {
+			case KW_OFF:  enable_trigger_validation = 0; break;
+			case KW_MOBO: pair_trigger_validation_mode = 1; break;
+			case KW_AND:  pair_trigger_validation_mode = 2; break;
+			case KW_OR:   pair_trigger_validation_mode = 3; break;
+			}
+
+			/* Per-channel settings, [i] from here on. */
+			switch (trigger_validation[i]) {
+			case KW_PAIR: ch_trigger_validation_mode = 0; break;
+			case KW_AND:  ch_trigger_validation_mode = 1; break;
+			case KW_OR:   ch_trigger_validation_mode = 2; break;
+			}
+
+			switch (extra_word[i]) {
+			case KW_EXT_TS_BASELINE: extra_word_val = 0; break;
+			case KW_EXT_TS_FLAGS:    extra_word_val = 1; break;
+			case KW_EXT_TS_FINETIME: extra_word_val = 2; break;
+			case KW_TRIG_COUNTS:	 extra_word_val = 4; break;
+			case KW_ZERO_CROSSING:	 extra_word_val = 5; break;
+			case KW_FIXED:		 extra_word_val = 7; break;
+			}
+
+			if      (smoothing[i] == 0)     use_smoothing = 0;
+			else if (smoothing[i] <= 2)     smoothing_val = 1;
+			else if (smoothing[i] <= 4)     smoothing_val = 2;
+			else if (smoothing[i] <= 8)     smoothing_val = 3;
+			else /* (smoothing[i] <= 16) */ smoothing_val = 4;
+
+			if      (trigger_flag_downscale[i] <= 128)
+			  trigger_flag_downscale_val = 0;
+			else if (trigger_flag_downscale[i] <= 1028)
+			  trigger_flag_downscale_val = 1;
+			else /* (trigger_flag_downscale[i] <= 8192) */
+			  trigger_flag_downscale_val = 2;
+
+			switch (veto_source[i]) {
+			case KW_OFF:       veto_source_val = 0; break;
+			case KW_COMMON:    veto_source_val = 1; break;
+			case KW_PAIR:      veto_source_val = 2; break;
+			case KW_SATURATED: veto_source_val = 3; break;
+			}
+
+			u32 =
+			    shaped_trigger_mode << 0 |
+			    enable_shaped_trigger << 2 |
+			    pair_trigger_validation_mode << 4 |
+			    enable_trigger_validation << 6 |
+			    extra_word_val << 8 |
+			    use_smoothing << 11 |
+			    smoothing_val << 12 |
+			    trigger_flag_downscale_val << 16 |
+			    veto_source_val << 18 |
+			    piggy_to_mobo[i] << 20 |
+			    mark_saturated[i] << 24 |
+			    ch_trigger_validation_mode << 25 |
+			    veto_direct[i] << 27 /* |
+			    reset_time_on_ext_veto[i] << 28*/;
+
+			LOGF(verbose)(LOGL, "DPP algo ctrl2[%"PRIz"]=0x%08x.",
+			    i, u32);
+			MAP_WRITE(v1725->sicy_map, dpp_algorithm_control_2(i),
+			    u32);
+		}
 	}
 	/* Veto width. */
 	{
