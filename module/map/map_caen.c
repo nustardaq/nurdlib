@@ -152,8 +152,12 @@ caen_init()
 	}
 	strlcpy_(link_ip, str, sizeof link_ip);
 
+	/*
+	 * The link number can contain a USB PID.
+	 * Low 5-digit values seen, assuming 16-bit.
+	 */
 	link_number = config_get_int32(caenvme, KW_LINK_NUMBER,
-	    CONFIG_UNIT_NONE, 0, 10);
+	    CONFIG_UNIT_NONE, 0, 0xffff);
 	conet_node = config_get_int32(caenvme, KW_CONET_NODE,
 	    CONFIG_UNIT_NONE, 0, 10);
 
