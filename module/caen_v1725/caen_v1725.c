@@ -516,7 +516,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	/* DPP Algorithm Control */
 	{
 		double charge_dbl[16];
-		uint32_t charge;
 		uint32_t pedestal[16];
 		uint32_t trigout_all[16];
 		uint32_t discrimination[16];
@@ -529,7 +528,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t baseline_average[16];
 		uint32_t use_internal_trigger[16];
 		int32_t charge_zero_suppression_threshold[16];
-		uint32_t suppress_charge_zero;
 		uint32_t suppress_pileup[16];
 		uint32_t psd_cut_below[16];
 		uint32_t psd_cut_above[16];
@@ -588,6 +586,8 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		for (i = 0; i < LENGTH(charge_dbl); ++i) {
 			uint32_t u32;
 			double charge_norm_2V = charge_dbl[i];
+			uint32_t charge;
+			uint32_t suppress_charge_zero;
 
 			/*
 			 * 0.5 V range has levels a factor four smaller
