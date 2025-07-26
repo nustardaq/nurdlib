@@ -588,6 +588,10 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			double charge_norm_2V = charge_dbl[i];
 			uint32_t charge;
 			uint32_t suppress_charge_zero;
+			uint32_t test_pulse_freq_val = 0; /* Avoid warning. */
+			uint32_t baseline_average_val = 0; /* Avoid warning. */
+			uint32_t discrimination_val = 0; /* Avoid warning. */
+			uint32_t trigger_method_val = 0; /* Avoid warning. */
 
 			/*
 			 * 0.5 V range has levels a factor four smaller
@@ -603,32 +607,32 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			else                            charge = 5;
 
 			if      (test_pulse_freq[i] < 500)
-				test_pulse_freq[i] = 0;
+				test_pulse_freq_val = 0;
 			else if (test_pulse_freq[i] < 5000)
-				test_pulse_freq[i] = 1;
+				test_pulse_freq_val = 1;
 			else if (test_pulse_freq[i] < 50000)
-				test_pulse_freq[i] = 2;
+				test_pulse_freq_val = 2;
 			else if (test_pulse_freq[i] < 500000)
-				test_pulse_freq[i] = 3;
+				test_pulse_freq_val = 3;
 
 			if      (baseline_average[i] < 16)
-				baseline_average[i] = 1;
+				baseline_average_val = 1;
 			else if (baseline_average[i] < 64)
-				baseline_average[i] = 2;
+				baseline_average_val = 2;
 			else if (baseline_average[i] < 256)
-				baseline_average[i] = 3;
+				baseline_average_val = 3;
 			else if (baseline_average[i] < 1024)
-				baseline_average[i] = 4;
+				baseline_average_val = 4;
 
 			switch (discrimination[i]) {
-			case KW_LED: discrimination[i] = 0; break;
-			case KW_CFD: discrimination[i] = 1; break;
+			case KW_LED: discrimination_val = 0; break;
+			case KW_CFD: discrimination_val = 1; break;
 			}
 
 			switch (trigger_method[i]) {
-			case KW_INDEPENDENT:     trigger_method[i] = 0; break;
-			case KW_COINCIDENCE:     trigger_method[i] = 1; break;
-			case KW_ANTICOINCIDENCE: trigger_method[i] = 3; break;
+			case KW_INDEPENDENT:     trigger_method_val = 0; break;
+			case KW_COINCIDENCE:     trigger_method_val = 1; break;
+			case KW_ANTICOINCIDENCE: trigger_method_val = 3; break;
 			}
 
 			if (charge_zero_suppression_threshold[i] >= 0)
@@ -640,14 +644,14 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    charge << 0 |
 			    pedestal[i] << 4 |
 			    trigout_all[i] << 5 |
-			    discrimination[i] << 6 |
+			    discrimination_val << 6 |
 			    pileup_trigout[i] << 7 |
 			    test_pulse[i] << 8 |
-			    test_pulse_freq[i] << 9 |
+			    test_pulse_freq_val << 9 |
 			    baseline_restart[i] << 15 |
 			    test_pulse_polarity[i] << 16 |
-			    trigger_method[i] << 18 |
-			    baseline_average[i] << 20 |
+			    trigger_method_val << 18 |
+			    baseline_average_val << 20 |
 			    use_internal_trigger[i] << 24 |
 			    suppress_charge_zero << 25 |
 			    suppress_pileup[i] << 26 |
