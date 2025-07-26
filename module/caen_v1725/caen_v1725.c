@@ -631,11 +631,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			case KW_ANTICOINCIDENCE: trigger_method[i] = 3; break;
 			}
 
-			switch (discrimination[i]) {
-			case KW_LED: discrimination[i] = 0; break;
-			case KW_CFD: discrimination[i] = 1; break;
-			}
-
 			if (charge_zero_suppression_threshold[i] >= 0)
 			  suppress_charge_zero = 1;
 			else
