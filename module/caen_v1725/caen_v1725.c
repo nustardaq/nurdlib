@@ -850,12 +850,62 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	}
 	/* Veto width. */
 	{
-	  uint32_t dummy_array16[16];
+		uint32_t veto_width[16];
+		size_t i;
 
-	  CONFIG_GET_INT_ARRAY(dummy_array16, v1725->module.config,
-			       KW_VETO_WIDTH,
-			       CONFIG_UNIT_NONE /* ns? */,
-			       0, 1 /* ?? - figure*/);
+		/* The maximum value is actually insanely large:
+		 * 1725: 264 ms * 0xffff = 17301.504 s = 4.8 h
+		 * 1730: 132 ms * 0xffff =  8650.752 s = 2.4 h
+		 */
+
+		CONFIG_GET_INT_ARRAY(veto_width, v1725->module.config,
+		    KW_VETO_WIDTH, CONFIG_UNIT_NS, 0, 0xffffffff);
+
+		/* Apply per-channel. */
+		for (i = 0; i < LENGTH(veto_width); ++i) {
+			uint32_t u32;
+			uint32_t veto_width_val;
+			uint32_t veto_width_step;
+
+			/* The step sizes are in increments of a factor 256 */
+			/* Express as hexadecimal multipliers or the
+			 * sampling clock, this is 0x4, 0x400, 0x40000
+			 * and 0x4000000.
+			 */
+
+			if (veto_width[i] <=
+			    0xffff * 0x4 * v1725->period_ns) {
+				veto_width_step = 0;
+				veto_width_val = veto_width[i]
+				    / (0x4 * v1725->period_ns);
+			} else if (veto_width[i] <=
+			    0xffff * 0x400 * v1725->period_ns) {
+				veto_width_step = 1;
+				veto_width_val = veto_width[i]
+				    / (0x400 * v1725->period_ns);
+			} else if (veto_width[i] <=
+			    0xffff * (uint64_t) 0x40000 * v1725->period_ns) {
+				veto_width_step = 2;
+				veto_width_val = veto_width[i]
+				    / (0x40000 * v1725->period_ns);
+			} else {
+				/* This will actually not be used since we
+				 * do not handle values above 32 bits of ns.
+				 */
+				veto_width_step = 3;
+				veto_width_val = veto_width[i]
+				    / (0x4000000 * v1725->period_ns);
+			}
+
+			u32 =
+			    veto_width_val << 0 |
+			    veto_width_step << 16;
+
+			LOGF(verbose)(LOGL, "Veto width[%"PRIz"]=0x%08x.",
+			    i, u32);
+			MAP_WRITE(v1725->sicy_map, veto_width(i),
+			    u32);
+		}
 	}
 
 	LOGF(info)(LOGL, NAME" init_fast }");
