@@ -681,8 +681,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 	/* DPP Algorithm Control 2 */
 	{
 		uint32_t shaped_self_trigger[8];
+		uint32_t pair_trigger_validation[8];
+		uint32_t trigger_validation[16];
 
-	  uint32_t dummy_int_array8[8];
 	  uint32_t dummy_int_array16[16];
 	  enum Keyword dummy_keyword_array16[16];
 	  enum Keyword dummy_keyword_array8[8];
@@ -694,6 +695,17 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			KW_OR,
 			KW_OFF
 		};
+		enum Keyword c_pair_trigger_validation[] = {
+			KW_OFF,
+			KW_MOBO,
+			KW_AND,
+			KW_OR
+		};
+		enum Keyword c_trigger_validation[] = {
+			KW_PAIR,
+			KW_AND,
+			KW_OR
+		};
 
 	  enum Keyword c_boolean[] = {
 	    KW_FALSE,
@@ -702,21 +714,21 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 	  /* Note: min/max values not checked vs. manual. */
 
-	  /*
-	   * Group-level settings.
-	   */
+		/*
+		 * Group-level settings.
+		 */
 		PREPARE_KEYWORD_CONFIG(shaped_self_trigger,
 		    KW_SHAPED_SELF_TRIGGER, c_shaped_self_trigger);
+		PREPARE_KEYWORD_CONFIG(pair_trigger_validation,
+		    KW_PAIR_TRIGGER_VALIDATION, c_pair_trigger_validation);
+		/*
+		 * To make things more interesting:
+		 * From here, settings are per-channel.
+		 */
+		PREPARE_KEYWORD_CONFIG(trigger_validation,
+		    KW_TRIGGER_VALIDATION, c_trigger_validation);
 
-	  /* Should be keyword: */
-	  CONFIG_GET_INT_ARRAY(dummy_int_array8, v1725->module.config,
-			       KW_TRIGGER_VALIDATION,
-			       CONFIG_UNIT_NONE, 0, 5);
 	  /* Should be keyword?: */
-	  /*
-	   * To make things more interesting:
-	   * From here, settings are per-channel.
-	   */
 	  CONFIG_GET_INT_ARRAY(dummy_int_array16, v1725->module.config,
 			       KW_EXTRA_WORD,
 			       CONFIG_UNIT_NONE, 0, 7);
@@ -735,7 +747,6 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			       CONFIG_UNIT_NONE, 0, 3);
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_MARK_SATURATED, c_boolean);
-	  /* Missing: additional local trigger validation. */
 	  CONFIG_GET_KEYWORD_ARRAY(dummy_keyword_array16, v1725->module.config,
 				   KW_USE_VETO, c_boolean);
 	  /* Rename: veto_mode?: */
