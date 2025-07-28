@@ -588,6 +588,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			double charge_norm_2V = charge_dbl[i];
 			uint32_t charge;
 			uint32_t suppress_charge_zero;
+			uint32_t test_pulse_polarity_val = 0; /* Avoid warn. */
 			uint32_t test_pulse_freq_val = 0; /* Avoid warning. */
 			uint32_t baseline_average_val = 0; /* Avoid warning. */
 			uint32_t discrimination_val = 0; /* Avoid warning. */
@@ -629,6 +630,11 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			case KW_CFD: discrimination_val = 1; break;
 			}
 
+			switch (test_pulse_polarity[i]) {
+			case KW_POS: test_pulse_polarity_val = 0; break;
+			case KW_NEG: test_pulse_polarity_val = 1; break;
+			}
+
 			switch (trigger_method[i]) {
 			case KW_INDEPENDENT:     trigger_method_val = 0; break;
 			case KW_COINCIDENCE:     trigger_method_val = 1; break;
@@ -649,7 +655,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    test_pulse[i] << 8 |
 			    test_pulse_freq_val << 9 |
 			    baseline_restart[i] << 15 |
-			    test_pulse_polarity[i] << 16 |
+			    test_pulse_polarity_val << 16 |
 			    trigger_method_val << 18 |
 			    baseline_average_val << 20 |
 			    use_internal_trigger[i] << 24 |
