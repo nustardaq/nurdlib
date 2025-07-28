@@ -948,17 +948,17 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	/* TODO: Check geo before reset! */
 
 	{
-		uint32_t ff;
+		uint32_t form_factor;
 
-		ff = MAP_READ(v1725->sicy_map,
+		form_factor = MAP_READ(v1725->sicy_map,
 		    configuration_rom_board_form_factor);
-		if (0 == ff) {
+		if (0 == form_factor) {
 			/* VME64, we can write the nurdlib ID. */
 			MAP_WRITE(v1725->sicy_map, board_id, v1725->geo);
 		}
 		v1725->geo = 0x1f & MAP_READ(v1725->sicy_map, board_id);
 		LOGF(verbose)(LOGL, "GEO = %u.", v1725->geo);
-		if (1 == ff) {
+		if (1 == form_factor) {
 			/* VME64x, we have to remap the nurdlib ID. */
 			crate_module_remap_id(a_crate, v1725->module.id,
 			    v1725->geo);
