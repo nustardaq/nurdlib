@@ -1118,11 +1118,19 @@ caen_v1725_readout(struct Crate *a_crate, struct Module *a_module, struct
 
 	event_size = MAP_READ(v1725->sicy_map, event_size);
 	LOGF(spam)(LOGL, "Event_size = %u.", event_size);
-	if (0) if (0 == event_size) {
-		log_error(LOGL, "Event buffer empty!");
-		result = CRATE_READOUT_FAIL_DATA_MISSING;
-		goto caen_v1725_readout_fail;
+	if (0 == event_size) {
+		LOGF(spam)(LOGL, "Event buffer empty.");
+		goto caen_v1725_readout_done;
 	}
+	/* Since the V1725 sometimes report a non-zero event size, but
+	 * then delivers nothing (likely due to short-lived stale
+	 * value from previous aggregate), we may run into troubles
+	 * with V3718 controller, that seems to report communication
+	 * error for sub-size BLT transfers, especially 0-size.  It
+	 * may also be that this is no problem, since the controller
+	 * turnaround time is so large that a correct event-size is
+	 * always reported.  Or only USB access is 'slow' enough?
+	 */
 
 	/* Move data from module. */
 	if (KW_NOBLT == v1725->blt_mode) {
@@ -1162,6 +1170,7 @@ caen_v1725_readout(struct Crate *a_crate, struct Module *a_module, struct
 	}
 
 caen_v1725_readout_fail:
+caen_v1725_readout_done:
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32);
 	LOGF(spam)(LOGL, NAME" readout }");
 	return result;
