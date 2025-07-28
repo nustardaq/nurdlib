@@ -616,13 +616,15 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			else /* (test_pulse_freq[i] <= 500000) */
 				test_pulse_freq_val = 3;
 
-			if      (baseline_average[i] < 16)
+			if      (baseline_average[i] == 0)
+				baseline_average_val = 0;
+			else if (baseline_average[i] <= 16)
 				baseline_average_val = 1;
-			else if (baseline_average[i] < 64)
+			else if (baseline_average[i] <= 64)
 				baseline_average_val = 2;
-			else if (baseline_average[i] < 256)
+			else if (baseline_average[i] <= 256)
 				baseline_average_val = 3;
-			else if (baseline_average[i] < 1024)
+			else /* (baseline_average[i] <= 1024) */
 				baseline_average_val = 4;
 
 			switch (discrimination[i]) {
