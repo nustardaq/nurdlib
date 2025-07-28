@@ -60,8 +60,6 @@
 #define ACQ_MODE_FIRST        (2)
 #define ACQ_MODE_LVDS         (3)
 #define ACQ_START             (1 <<  2)
-#define ACQ_ALL_TRIGGERS      (1 <<  3)
-#define ACQ_ALMOST_FULL       (1 <<  5)
 #define ACQ_EXTERNAL_CLOCK    (1 <<  6)
 #define ACQ_BUSY_IO           (1 <<  8)
 #define ACQ_VETO_IO           (1 <<  9)
@@ -428,10 +426,8 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		uint32_t acq;
 
 		acq =
-		    ACQ_MODE_S_IN |
-		    ACQ_START |
-		    ACQ_ALL_TRIGGERS |
-		    ACQ_ALMOST_FULL |
+		    ACQ_MODE_SW |
+		    /* ACQ_START | */
 		    /* ACQ_EXTERNAL_CLOCK | */
 		    ACQ_BUSY_IO |
 		    /* ACQ_VETO_IO | */
