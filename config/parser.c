@@ -600,6 +600,10 @@ parse_unit(struct File *a_file, struct ScalarList *a_scalar_list, unsigned
 		parser_push_unit(a_scalar_list, a_vector_index,
 		    CONFIG_UNIT_KHZ);
 		advancec(a_file, 3);
+	} else if (is_exactly_identifier(a_file, "Hz")) {
+		parser_push_unit(a_scalar_list, a_vector_index,
+		    CONFIG_UNIT_HZ);
+		advancec(a_file, 2);
 	} else if (is_exactly_identifier(a_file, "MHz")) {
 		parser_push_unit(a_scalar_list, a_vector_index,
 		    CONFIG_UNIT_MHZ);
