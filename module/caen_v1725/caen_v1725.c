@@ -949,16 +949,18 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 	{
 		uint32_t form_factor;
+		int board_id_set = 0;
 
 		form_factor = MAP_READ(v1725->sicy_map,
 		    configuration_rom_board_form_factor);
 		if (0 == form_factor) {
 			/* VME64, we can write the nurdlib ID. */
 			MAP_WRITE(v1725->sicy_map, board_id, v1725->geo);
+			board_id_set = 1;
 		}
 		v1725->geo = 0x1f & MAP_READ(v1725->sicy_map, board_id);
 		LOGF(verbose)(LOGL, "GEO = %u.", v1725->geo);
-		if (1 == form_factor) {
+		if (0 == board_id_set) {
 			/* VME64x, we have to remap the nurdlib ID. */
 			crate_module_remap_id(a_crate, v1725->module.id,
 			    v1725->geo);
