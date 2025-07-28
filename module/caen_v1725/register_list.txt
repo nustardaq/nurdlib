@@ -32,7 +32,7 @@ Early Baseline Freeze[16]                     0x10D8  RW 32 0x100
 Board Configuration                           0x8000  RW 32     0
 Board Configuration Bit Set                   0x8004  RW 32     0
 Board Configuration Bit Clear                 0x8008  RW 32     0
-Buffer Organization                           0x800C  RW 32     0
+Aggregate Organization                        0x800C  RW 32     0
 Channel ADC Calibration                       0x809C  W  32     0
 Channels Shutdown                             0x80BC  W  32     0
 Acquisition Control                           0x8100  RW 32     0
