@@ -964,8 +964,13 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 
 		form_factor = MAP_READ(v1725->sicy_map,
 		    configuration_rom_board_form_factor);
-		if (0 == form_factor) {
-			/* VME64, we can write the nurdlib ID. */
+		/*
+		 * Manual states that VME64X has a read-only board_id,
+		 * but it can in fact be written on a VX1725S.
+		 */
+		if (0 == form_factor ||
+		    1 == form_factor) {
+			/* VME64(x), we can write the nurdlib ID. */
 			MAP_WRITE(v1725->sicy_map, board_id, v1725->geo);
 			board_id_set = 1;
 		}
