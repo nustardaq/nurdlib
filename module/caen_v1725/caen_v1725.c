@@ -568,7 +568,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		PREPARE_KEYWORD_CONFIG(trigger_method, KW_TRIGGER_METHOD,
 		    c_trigger_method);
 		CONFIG_GET_INT_ARRAY(baseline_average, v1725->module.config,
-		    KW_BASELINE_AVERAGE, CONFIG_UNIT_NONE, 16, 1024);
+		    KW_BASELINE_AVERAGE, CONFIG_UNIT_NONE, 0, 1024);
 		PREPARE_BOOLEAN_CONFIG(use_internal_trigger,
 		    KW_USE_INTERNAL_TRIGGER);
 		PREPARE_M1_CONFIG(charge_zero_suppression_threshold,
