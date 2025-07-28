@@ -766,11 +766,11 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			uint32_t pair_trigger_validation_mode = 3;
 			uint32_t enable_trigger_validation = 1;
 			uint32_t ch_trigger_validation_mode = 0;
-			uint32_t extra_word_val = 0; /* Avoid warning. */
+			uint32_t extra_word_val;
 			uint32_t use_smoothing = 1;
 			uint32_t smoothing_val = 0;
 			uint32_t trigger_flag_downscale_val;
-			uint32_t veto_source_val = 0; /* Avoid warning. */
+			uint32_t veto_source_val;
 
 			/* Group-level settings, thus [i/2]. */
 			switch (shaped_self_trigger[i/2]) {
@@ -801,6 +801,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			case KW_EXT_TS_FINETIME: extra_word_val = 2; break;
 			case KW_TRIG_COUNTS:	 extra_word_val = 4; break;
 			case KW_ZERO_CROSSING:	 extra_word_val = 5; break;
+			default: /* Avoid uninitialised variable warning. */
 			case KW_FIXED:		 extra_word_val = 7; break;
 			}
 
@@ -818,6 +819,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			  trigger_flag_downscale_val = 2;
 
 			switch (veto_source[i]) {
+			default: /* Avoid uninitialised variable warning. */
 			case KW_OFF:       veto_source_val = 0; break;
 			case KW_COMMON:    veto_source_val = 1; break;
 			case KW_PAIR:      veto_source_val = 2; break;
