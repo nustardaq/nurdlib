@@ -553,7 +553,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		/* Note: min/max values not checked vs. manual. */
 
 		CONFIG_GET_DOUBLE_ARRAY(charge_dbl, v1725->module.config,
-		    KW_CHARGE, CONFIG_UNIT_FC, 1.25, 5.12);
+		    KW_CHARGE, CONFIG_UNIT_FC, 1.25, 5120);
 		PREPARE_BOOLEAN_CONFIG(pedestal, KW_PEDESTAL);
 		PREPARE_BOOLEAN_CONFIG(trigout_all, KW_TRIGOUT_ALL);
 		PREPARE_KEYWORD_CONFIG(discrimination, KW_DISCRIMINATION,
