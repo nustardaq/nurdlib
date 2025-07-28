@@ -41,9 +41,12 @@
 #define DMA_FILLER 0x17251725
 #define NO_DATA_TIMEOUT 1.0
 
-#define CFG_TRIGGER_OVERLAP   (1 << 1)
-#define CFG_TEST_PATTERN      (1 << 3)
-#define CFG_SELF_TRIGGER_NEG  (1 << 6)
+#define BOARD_CFG_AUTOMATIC_FLUSH      (1 << 0)
+#define BOARD_CFG_PROPAGATE_TRIGGER    (1 << 2)
+#define BOARD_CFG_DUAL_TRACE           (1 << 11)
+#define BOARD_CFG_WAVEVFORM_RECORDING  (1 << 16)
+#define BOARD_CFG_EXTRAS_RECORDING     (1 << 17)
+#define BOARD_CFG_RESERVED_FIXED_1     0x000c0110
 
 #define CTL_OPTICAL_INTERRUPT (1 << 3)
 #define CTL_BERR_ENABLE       (1 << 4)
@@ -986,7 +989,11 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	{
 		uint32_t u32;
 
-		u32 = CFG_TRIGGER_OVERLAP;
+		u32 =
+		    BOARD_CFG_AUTOMATIC_FLUSH |
+		    BOARD_CFG_PROPAGATE_TRIGGER |
+		    BOARD_CFG_EXTRAS_RECORDING |
+		    BOARD_CFG_RESERVED_FIXED_1;
 		LOGF(verbose)(LOGL, "Board configuration = 0x%08x.", u32);
 		MAP_WRITE(v1725->sicy_map, board_configuration_bit_set, u32);
 		MAP_WRITE(v1725->sicy_map, board_configuration_bit_clear,
