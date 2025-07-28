@@ -945,7 +945,18 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	v1725->sicy_map = map_map(v1725->address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(scratch), MAP_POKE_REG(scratch), 0);
 
-	/* TODO: Check geo before reset! */
+	/* TODO: Check geo before reset? */
+
+	/*
+	 * Reset, before GEO.
+	 * Reset sets board_id to actual backplane geom (slot).
+	 */
+	MAP_WRITE(v1725->sicy_map, software_reset, 1);
+	MAP_WRITE(v1725->sicy_map, software_clear, 1);
+	time_sleep(0.1);
+
+	LOGF(verbose)(LOGL, "GEO = %u. (after reset)",
+	    0x1f & MAP_READ(v1725->sicy_map, board_id));
 
 	{
 		uint32_t form_factor;
@@ -966,11 +977,6 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 			    v1725->geo);
 		}
 	}
-
-	/* Reset, after GEO. */
-	MAP_WRITE(v1725->sicy_map, software_reset, 1);
-	MAP_WRITE(v1725->sicy_map, software_clear, 1);
-	time_sleep(0.1);
 
 	{
 		uint32_t u32;
