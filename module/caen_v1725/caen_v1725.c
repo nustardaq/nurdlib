@@ -907,6 +907,9 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 		}
 	}
 
+	/* Enable acquisition. */
+	MAP_WRITE(v1725->sicy_map, acquisition_control, ACQ_START);
+
 	LOGF(info)(LOGL, NAME" init_fast }");
 	return 1;
 }
