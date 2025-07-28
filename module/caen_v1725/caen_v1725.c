@@ -190,7 +190,7 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	double setting[n];\
 	size_t j;\
 	CONFIG_GET_DOUBLE_ARRAY(setting, v1725->module.config,\
-	    cfg, CONFIG_UNIT_MV, 0, 2.0);\
+	    cfg, CONFIG_UNIT_MV, 0, 2000.0);\
 	for (j = 0; j < LENGTH(setting); ++j) {\
 		u32[j] = CLAMP(setting[j]\
 		    / (dyn_range_setting[j] ? 0.03 : 0.12),\
