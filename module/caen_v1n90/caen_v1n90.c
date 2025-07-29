@@ -249,7 +249,7 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 }
 
 void
-caen_v1n90_init_slow(struct CaenV1n90Module *a_v1n90)
+caen_v1n90_init_slow(struct Crate *a_crate, struct CaenV1n90Module *a_v1n90)
 {
 	enum Keyword const c_blt_mode[] = {
 		KW_BLT,
@@ -261,6 +261,7 @@ caen_v1n90_init_slow(struct CaenV1n90Module *a_v1n90)
 	};
 	uint16_t revision, rom_vers, control;
 
+	(void) a_crate;
 	LOGF(info)(LOGL, NAME" init_slow {");
 
 	a_v1n90->sicy_map = map_map(a_v1n90->address, MAP_SIZE,

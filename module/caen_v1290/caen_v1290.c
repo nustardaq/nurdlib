@@ -103,9 +103,8 @@ caen_v1290_init_slow(struct Crate *a_crate, struct Module *a_module)
 {
 	struct CaenV1290Module *v1290;
 
-	(void)a_crate;
 	MODULE_CAST(KW_CAEN_V1290, v1290, a_module);
-	caen_v1n90_init_slow(&v1290->v1n90);
+	caen_v1n90_init_slow(a_crate, &v1290->v1n90);
 	return 1;
 }
 
