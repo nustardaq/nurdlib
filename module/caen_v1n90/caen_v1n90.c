@@ -385,29 +385,37 @@ caen_v1n90_micro_init_slow(struct Crate *a_crate,
 		/* Continuous storage mode. */
 		MICRO_WRITE(MICRO_CONT_STOR);
 		expect_trig_mode = MICRO_ACQ_MODE_CONT;
+
+		/*
+		 * Setting a window or search margin is not useful in
+		 * continuous storage mode.
+		 *
+		 * Enabling subtraction of match window start makes
+		 * all data words 0 in continuous storage mode.
+		 */
 	} else {
 		/* Trigger matching mode. */
 		MICRO_WRITE(MICRO_TRIG_MATCH);
 		expect_trig_mode = MICRO_ACQ_MODE_TRIG;
+
+		/* Window. */
+		MICRO_WRITE(MICRO_SET_WIN_WIDTH);
+		MICRO_WRITE_MEMBER(gate_width);
+
+		MICRO_WRITE(MICRO_SET_WIN_OFFSET);
+		MICRO_WRITE_MEMBER(gate_offset);
+
+		/* Search margin in cycles. */
+		MICRO_WRITE(MICRO_SET_SW_MARGIN);
+		MICRO_WRITE(SEARCH_MARGIN);
+
+		/* Reject margin in cycles. */
+		MICRO_WRITE(MICRO_SET_REJ_MARGIN);
+		MICRO_WRITE(REJECT_MARGIN);
+
+		/* Subtraction, TDC times against match window start. */
+		MICRO_WRITE(MICRO_EN_SUB_TRG);
 	}
-
-	/* Window. */
-	MICRO_WRITE(MICRO_SET_WIN_WIDTH);
-	MICRO_WRITE_MEMBER(gate_width);
-
-	MICRO_WRITE(MICRO_SET_WIN_OFFSET);
-	MICRO_WRITE_MEMBER(gate_offset);
-
-	/* Search margin in cycles. */
-	MICRO_WRITE(MICRO_SET_SW_MARGIN);
-	MICRO_WRITE(SEARCH_MARGIN);
-
-	/* Reject margin in cycles. */
-	MICRO_WRITE(MICRO_SET_REJ_MARGIN);
-	MICRO_WRITE(REJECT_MARGIN);
-
-	/* Subtraction, TDC times against match window start. */
-	MICRO_WRITE(MICRO_EN_SUB_TRG);
 
 	/* Detection mode. */
 	MICRO_WRITE(MICRO_SET_DETECTION);
