@@ -241,7 +241,7 @@ caen_v1n90_init_fast(struct CaenV1n90Module *a_v1n90, enum Keyword a_subtype)
 	} else if (100 == deadtime) {
 		a_v1n90->deadtime_code |= 0x3;
 	} else {
-		log_die(LOGL, "Invalid eadtime %d ns, should be 5, 10, 30, "
+		log_die(LOGL, "Invalid deadtime %d ns, should be 5, 10, 30, "
 		    "or 100 ns.", deadtime);
 	}
 
