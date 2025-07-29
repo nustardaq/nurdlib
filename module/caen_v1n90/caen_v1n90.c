@@ -292,6 +292,9 @@ caen_v1n90_init_slow(struct Crate *a_crate, struct CaenV1n90Module *a_v1n90)
 	    !CTRL_EXTENDED_TRIGGER_TIME_TAG_ENABLE |
 	    !CTRL_16MB_ADDR_RANGE_MEB_ACCESS_ENABLE;
 
+	if (crate_free_running_get(a_crate))
+		control |= CTRL_BERREN;
+
 	MAP_WRITE(a_v1n90->sicy_map, control, control);
 	MAP_WRITE(a_v1n90->sicy_map, geo_address, a_v1n90->module.id);
 
@@ -785,6 +788,39 @@ caen_v1n90_readout(struct Crate *a_crate, struct CaenV1n90Module *a_v1n90,
 
 	header = outp = a_event_buffer->ptr;
 	result = 0;
+
+	if (crate_free_running_get(a_crate)) {
+		/* BLT moving. */
+		size_t bytes;
+		int ret;
+
+		if (KW_NOBLT == a_v1n90->blt_mode)
+			log_die(LOGL, "Non-BLT transfer not handled for "
+			    "continuous storage mode.!");
+
+		a_v1n90->parse.expect = EXPECT_TDC_PAYLOAD;
+
+		bytes = 4096 * sizeof(uint32_t);
+		outp = map_align(outp, &bytes, a_v1n90->blt_mode, DMA_FILLER);
+		ret = map_blt_read_berr(a_v1n90->dma_map, 0, outp, bytes);
+		if (-1 == ret) {
+			log_error(LOGL, "DMA read failed!");
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto caen_v1n90_readout_done;
+		} else {
+			/* Got data. */
+			LOGF(spam)(LOGL, "Got %d bytes.", ret);
+			/*
+			 * Last word might have been a filler.
+			 * If so, drop it.
+			 */
+			outp += ret / sizeof(uint32_t);
+			if (ret > 0 &&
+			    0xc0000000 == (outp[-1] & TYPE_MASK))
+				--outp;
+			goto caen_v1n90_readout_done;
+		}
+	}
 
 	if (a_v1n90->was_full) {
 		result |= CRATE_READOUT_FAIL_DATA_TOO_MUCH;
