@@ -71,7 +71,7 @@ struct Map	*caen_v1n90_get_map(struct CaenV1n90Module *) FUNC_RETURNS;
 void		caen_v1n90_get_signature(struct ModuleSignature const **,
     size_t *);
 void		caen_v1n90_init_fast(struct CaenV1n90Module *, enum Keyword);
-void		caen_v1n90_init_slow(struct CaenV1n90Module *);
+void		caen_v1n90_init_slow(struct Crate *, struct CaenV1n90Module *);
 int		caen_v1n90_micro_init_fast(struct ModuleList const *);
 int		caen_v1n90_micro_init_slow(struct Crate *,
     struct ModuleList const *);
