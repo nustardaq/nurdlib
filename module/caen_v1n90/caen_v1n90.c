@@ -634,7 +634,9 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 		switch (a_v1n90->parse.expect) {
 		case EXPECT_DMA_HEADER:
 			if (DMA_FILLER == u32) {
+				/* DMA alignment word. */
 			} else if (0x40000000 == (TYPE_MASK & u32)) {
+				/* Global header. */
 				/*
 				uint32_t event_count;
 				event_count = (u32 & BITS_MASK(5, 26)) >> 5;
@@ -652,6 +654,7 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 			break;
 		case EXPECT_TDC_HEADER:
 			if (0x08000000 == (TYPE_MASK & u32)) {
+				/* TDC header. */
 				/*
 				uint32_t tdc_num;
 				tdc_num = (u32 & BITS_MASK(24, 25)) >> 24;
@@ -670,12 +673,15 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 		case EXPECT_TDC_PAYLOAD:
 			++tdc_word_cnt;
 			if (0x00000000 == (TYPE_MASK & u32)) {
+				/* TDC measuremnt. */
 			} else if (0x20000000 == (TYPE_MASK & u32)) {
+				/* TDC error. */
 				/* TODO: This is optional. */
 				log_error(LOGL,
 				    NAME" TDC [%1x] reports error 0x%4x.",
 				    ((u32 >> 24) & 0x3), (u32 & 0x7FFF));
 			} else if (0x18000000 == (TYPE_MASK & u32)) {
+				/* TDC footer. */
 				/* TODO: This fails! */
 				/*
 				uint32_t word_count;
@@ -704,11 +710,14 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 			break;
 		case EXPECT_TIMETAG_OR_TRAILER_OR_TDC_HEADER:
 			if (0x88000000 == (TYPE_MASK & u32)) {
+				/* Extended trigger time tag. */
 				a_v1n90->parse.expect = EXPECT_TRAILER;
 			} else if (0x80000000 == (TYPE_MASK & u32)) {
+				/* Trailer. */
 				/* TODO: Check word-count and geo! */
 				a_v1n90->parse.expect = EXPECT_DMA_HEADER;
 			} else if (0x08000000 == (TYPE_MASK & u32)) {
+				/* TDC header. */
 				/* TODO: Check Event-ID and Bunch-ID? */
 				/*
 				uint32_t tdc_num;
@@ -726,6 +735,7 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 			break;
 		case EXPECT_TRAILER:
 			if (0x80000000 == (TYPE_MASK & u32)) {
+				/* Trailer. */
 				/* TODO: Check word-count and geo! */
 				a_v1n90->parse.expect = EXPECT_DMA_HEADER;
 			} else {
