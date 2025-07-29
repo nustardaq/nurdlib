@@ -701,6 +701,16 @@ caen_v1n90_parse_data(struct CaenV1n90Module *a_v1n90, struct EventConstBuffer
 				log_error(LOGL,
 				    NAME" TDC [%1x] reports error 0x%4x.",
 				    ((u32 >> 24) & 0x3), (u32 & 0x7FFF));
+			} else if (DMA_FILLER == u32 &&
+			    a_event_buffer->ptr == p32) {
+				/* DMA alignment word. */
+				/*
+				 * Accepted at start of buffer,
+				 * for continuous storage mode.
+				 *
+				 * Before TDC footer, since footer bitmask
+				 * otherwise matches.
+				 */
 			} else if (0x18000000 == (TYPE_MASK & u32)) {
 				/* TDC footer. */
 				/* TODO: This fails! */
