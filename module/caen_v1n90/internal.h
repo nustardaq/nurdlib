@@ -73,7 +73,8 @@ void		caen_v1n90_get_signature(struct ModuleSignature const **,
 void		caen_v1n90_init_fast(struct CaenV1n90Module *, enum Keyword);
 void		caen_v1n90_init_slow(struct CaenV1n90Module *);
 int		caen_v1n90_micro_init_fast(struct ModuleList const *);
-int		caen_v1n90_micro_init_slow(struct ModuleList const *);
+int		caen_v1n90_micro_init_slow(struct Crate *,
+    struct ModuleList const *);
 uint32_t	caen_v1n90_parse_data(struct CaenV1n90Module *, struct
     EventConstBuffer const *, int) FUNC_RETURNS;
 uint32_t	caen_v1n90_readout(struct Crate *, struct CaenV1n90Module *,

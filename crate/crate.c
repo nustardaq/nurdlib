@@ -1066,6 +1066,11 @@ crate_init_there_is_no_try:
 		gsi_pex_init(a_crate->gsi_pex.pex, a_crate->gsi_pex.config);
 	}
 	a_crate->shadow.module_readable_num = 0;
+#define INIT_BATCH_WITH_CRATE(name, member) do {\
+		if (!name##_init_slow(a_crate,&a_crate->member)) {\
+			goto crate_init_done;\
+		}\
+	} while (0)
 #define INIT_BATCH(name, member) do {\
 		if (!name##_init_slow(&a_crate->member)) {\
 			goto crate_init_done;\
@@ -1143,7 +1148,7 @@ crate_init_there_is_no_try:
 		pop_log_level(module);
 	}
 	module_init_id_clear(a_crate);
-	INIT_BATCH(caen_v1n90_micro, module_list);
+	INIT_BATCH_WITH_CRATE(caen_v1n90_micro, module_list);
 	if (!caen_v1n90_micro_init_fast(&a_crate->module_list)) {
 		goto crate_init_done;
 	}

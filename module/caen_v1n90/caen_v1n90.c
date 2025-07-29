@@ -356,12 +356,14 @@ caen_v1n90_micro_init_fast(struct ModuleList const *a_list)
 }
 
 int
-caen_v1n90_micro_init_slow(struct ModuleList const *a_list)
+caen_v1n90_micro_init_slow(struct Crate *a_crate,
+    struct ModuleList const *a_list)
 {
 	struct Module *module;
 	struct CaenV1n90Module *v1n90;
 	size_t num;
 	int skip;
+	int expect_trig_mode;
 
 	v1n90 = NULL;
 	num = 0;
@@ -379,8 +381,15 @@ caen_v1n90_micro_init_slow(struct ModuleList const *a_list)
 	LOGF(info)(LOGL, NAME" micro_init_slow (patience...) {");
 	skip = 0;
 
-	/* Trigger matching mode. */
-	MICRO_WRITE(MICRO_TRIG_MATCH);
+	if (crate_free_running_get(a_crate)) {
+		/* Continuous storage mode. */
+		MICRO_WRITE(MICRO_CONT_STOR);
+		expect_trig_mode = MICRO_ACQ_MODE_CONT;
+	} else {
+		/* Trigger matching mode. */
+		MICRO_WRITE(MICRO_TRIG_MATCH);
+		expect_trig_mode = MICRO_ACQ_MODE_TRIG;
+	}
 
 	/* Window. */
 	MICRO_WRITE(MICRO_SET_WIN_WIDTH);
@@ -451,7 +460,7 @@ caen_v1n90_micro_init_slow(struct ModuleList const *a_list)
 		if (skip) {
 			return 0;
 		}
-		if (MICRO_ACQ_MODE_TRIG != mode) {
+		if (expect_trig_mode != mode) {
 			log_die(LOGL, NAME" runs in continuous mode (%d)",
 			    mode);
 			return 0;
