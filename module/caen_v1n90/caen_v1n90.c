@@ -807,6 +807,11 @@ caen_v1n90_readout(struct Crate *a_crate, struct CaenV1n90Module *a_v1n90,
 			log_error(LOGL, "DMA read failed!");
 			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
 			goto caen_v1n90_readout_done;
+		} else if (0 == ret) {
+			/* No data, so undo any filler. */
+			LOGF(spam)(LOGL, "No data.");
+			outp = header;
+			goto caen_v1n90_readout_done;
 		} else {
 			/* Got data. */
 			LOGF(spam)(LOGL, "Got %d bytes.", ret);
