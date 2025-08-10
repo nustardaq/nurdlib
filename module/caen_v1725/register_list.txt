@@ -20,7 +20,7 @@ Trigger Hold-Off Width[16]                    0x1074  RW 32 0x100
 Threshold for the PSD cut[16]                 0x1078  RW 32 0x100
 PUR-GAP Threshold[16]                         0x107C  RW 32 0x100
 DPP Algorithm Control[16]                     0x1080  RW 32 0x100
-DPP Algorithm Control 2[8]                    0x1084  RW 32 0x200
+DPP Algorithm Control 2[16]                   0x1084  RW 32 0x100
 Channel n Status[16]                          0x1088  R  32 0x100
 AMC Firmware Revision[16]                     0x108C  R  32 0x100
 DC Offset[16]                                 0x1098  RW 32 0x100
