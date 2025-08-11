@@ -597,14 +597,14 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			 * 0.5 V range has levels a factor four smaller
 			 * than 2 V setting.
 			 */
-			if (dyn_range_setting[i])
+			if (dyn_range_setting[i]) /* If 0.5 V range. */
 				charge_norm_2V *= 4;
-			if      (charge_norm_2V < 5)    charge = 0;
-			else if (charge_norm_2V < 20)   charge = 1;
-			else if (charge_norm_2V < 80)   charge = 2;
-			else if (charge_norm_2V < 320)  charge = 3;
-			else if (charge_norm_2V < 1280) charge = 4;
-			else                            charge = 5;
+			if      (charge_norm_2V <= 5)    charge = 0;
+			else if (charge_norm_2V <= 20)   charge = 1;
+			else if (charge_norm_2V <= 80)   charge = 2;
+			else if (charge_norm_2V <= 320)  charge = 3;
+			else if (charge_norm_2V <= 1280) charge = 4;
+			else                             charge = 5;
 
 			if      (test_pulse_freq[i] <= 500)
 				test_pulse_freq_val = 0;
