@@ -668,8 +668,8 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			    psd_cut_below[i] << 27 |
 			    psd_cut_above[i] << 28 |
 			    suppress_over_range[i] << 29 |
-			    trigger_hysteresis[i] << 30 |
-			    polarity_detection[i] << 31;
+			    !trigger_hysteresis[i] << 30 |
+			    !polarity_detection[i] << 31;
 
 			LOGF(verbose)(LOGL, "DPP algo ctrl[%"PRIz"]=0x%08x.",
 			    i, u32);
