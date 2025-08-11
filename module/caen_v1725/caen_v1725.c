@@ -340,13 +340,13 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 
 		for (i = 0; i < LENGTH(cfd_delay_u32); ++i) {
 			uint32_t u32;
-			uint32_t fraction;
+			uint32_t fraction_25;
 
-			fraction = (cfd_fraction[i] / 25) * 25;
+			fraction_25 = (cfd_fraction[i] / 25);
 
 			u32 =
 			  cfd_delay_u32[i] |
-			  (fraction - 1) << 8 |
+			  (fraction_25 - 1) << 8 |
 			  (cfd_width[i] - 1) << 10;
 			MAP_WRITE(v1725->sicy_map, cfd_settings(i), u32);
 		}
