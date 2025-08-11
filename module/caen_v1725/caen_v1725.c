@@ -233,7 +233,7 @@ caen_v1725_get_signature(struct ModuleSignature const **a_array, size_t
 	PREPARE_M1_CONFIG(i32, cfg, top_bit);\
 	for (i = 0; i < LENGTH(i32); ++i) {\
 		if (i32[i] < 0)\
-			i32[i] = 0;\
+			i32[i] = 0xffff; /* Value when disabled. */\
 		MAP_WRITE(v1725->sicy_map, reg(i), i32[i]);\
 	}\
 } while (0);
