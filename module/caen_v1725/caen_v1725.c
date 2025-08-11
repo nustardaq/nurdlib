@@ -762,7 +762,7 @@ caen_v1725_init_fast(struct Crate *a_crate, struct Module *a_module)
 			uint32_t u32;
 			uint32_t shaped_trigger_mode = 0;
 			uint32_t enable_shaped_trigger = 1;
-			uint32_t pair_trigger_validation_mode = 3;
+			uint32_t pair_trigger_validation_mode = 0;
 			uint32_t enable_trigger_validation = 1;
 			uint32_t ch_trigger_validation_mode = 0;
 			uint32_t extra_word_val;
