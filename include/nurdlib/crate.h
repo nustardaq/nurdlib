@@ -171,5 +171,7 @@ uint32_t		crate_cmvlc_fetch(struct Crate *, struct EventBuffer *,
 
 void			crate_cmvlc_free_running_init(struct Crate *);
 void			crate_cmvlc_free_running_deinit(struct Crate *);
+uint32_t		crate_cmvlc_free_running_fetch(struct Crate *,
+    struct EventBuffer *);
 
 #endif
