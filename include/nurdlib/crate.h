@@ -169,4 +169,7 @@ uint32_t		crate_cmvlc_fetch_dt(struct Crate *, const uint32_t *,
 uint32_t		crate_cmvlc_fetch(struct Crate *, struct EventBuffer *,
     const uint32_t *, uint32_t, uint32_t *);
 
+void			crate_cmvlc_free_running_init(struct Crate *);
+void			crate_cmvlc_free_running_deinit(struct Crate *);
+
 #endif
