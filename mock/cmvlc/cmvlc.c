@@ -106,7 +106,6 @@ int cmvlc_block_get(struct cmvlc_client *a_a, const uint32_t *a_b,
 void cmvlc_stackcmd_init(struct cmvlc_stackcmdbuf *a_a)
 {
 	(void)a_a;
-	return 0;
 }
 
 void cmvlc_stackcmd_start(struct cmvlc_stackcmdbuf *a_a,
@@ -114,13 +113,11 @@ void cmvlc_stackcmd_start(struct cmvlc_stackcmdbuf *a_a,
 {
 	(void)a_a;
 	(void)a_b;
-	return 0;
 }
 
 void cmvlc_stackcmd_end(struct cmvlc_stackcmdbuf *a_a)
 {
 	(void)a_a;
-	return 0;
 }
 
 void cmvlc_stackcmd_vme_rw(struct cmvlc_stackcmdbuf *a_a,
@@ -135,7 +132,6 @@ void cmvlc_stackcmd_vme_rw(struct cmvlc_stackcmdbuf *a_a,
 	(void)a_d;
 	(void)a_e;
 	(void)a_f;
-	return 0;
 }
 
 void cmvlc_stackcmd_vme_block(struct cmvlc_stackcmdbuf *a_a,
@@ -149,7 +145,6 @@ void cmvlc_stackcmd_vme_block(struct cmvlc_stackcmdbuf *a_a,
 	(void)a_c;
 	(void)a_d;
 	(void)a_e;
-	return 0;
 }
 
 void cmvlc_stackcmd_write_special(struct cmvlc_stackcmdbuf *a_a,
@@ -157,7 +152,6 @@ void cmvlc_stackcmd_write_special(struct cmvlc_stackcmdbuf *a_a,
 {
 	(void)a_a;
 	(void)a_b;
-	return 0;
 }
 
 void cmvlc_stackcmd_marker(struct cmvlc_stackcmdbuf *a_a,
@@ -165,7 +159,6 @@ void cmvlc_stackcmd_marker(struct cmvlc_stackcmdbuf *a_a,
 {
 	(void)a_a;
 	(void)a_b;
-	return 0;
 }
 
 void cmvlc_stackcmd_wait(struct cmvlc_stackcmdbuf *a_a,
@@ -173,7 +166,6 @@ void cmvlc_stackcmd_wait(struct cmvlc_stackcmdbuf *a_a,
 {
 	(void)a_a;
 	(void)a_b;
-	return 0;
 }
 
 void cmvlc_stackcmd_wait_ns(struct cmvlc_stackcmdbuf *a_a,
@@ -181,7 +173,6 @@ void cmvlc_stackcmd_wait_ns(struct cmvlc_stackcmdbuf *a_a,
 {
 	(void)a_a;
 	(void)a_b;
-	return 0;
 }
 
 void cmvlc_stackcmd_mask_rotate_accu(struct cmvlc_stackcmdbuf *a_a,
@@ -191,13 +182,11 @@ void cmvlc_stackcmd_mask_rotate_accu(struct cmvlc_stackcmdbuf *a_a,
 	(void)a_a;
 	(void)a_b;
 	(void)a_c;
-	return 0;
 }
 
 void cmvlc_stackcmd_signal_accu(struct cmvlc_stackcmdbuf *a_a)
 {
 	(void)a_a;
-	return 0;
 }
 
 void cmvlc_stackcmd_set_accu(struct cmvlc_stackcmdbuf *a_a,
@@ -205,7 +194,6 @@ void cmvlc_stackcmd_set_accu(struct cmvlc_stackcmdbuf *a_a,
 {
 	(void)a_a;
 	(void)a_b;
-	return 0;
 }
 
 int cmvlc_mvlc_write(struct cmvlc_client *a_a,
