@@ -521,8 +521,8 @@ mesytec_mxdc32_cmvlc_init(struct MesytecMxdc32Module *a_mxdc32,
 		/* Block transfer of data. */
 		/* Note: 0x8000 MBLT (64-bit) words,is 0x10000 32-bit words. */
 		cmvlc_stackcmd_vme_block(a_stack, a_mxdc32->address,
-					 vme_rw_read, vme_user_MBLT_A32,
-					 0x8000);
+					 vme_rw_read, vme_user_BLT_A32,
+					 0xf000);
 
 		/* Reset something. */
 		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6034, 1,
@@ -588,7 +588,7 @@ mesytec_mxdc32_cmvlc_fetch(struct Crate *a_crate,
         result = 0;
 
 	ret = cmvlc_block_get(g_cmvlc, a_in_buffer, a_in_remain, &used,
-	    outp, 0x10000 /* 0x8000 MBLT words*/, &block_len);
+	    outp, 2 * 0xf000 /* MBLT words */, &block_len);
 
 	if (ret < 0) {
 		log_error(LOGL, "Mesytec Mxdc32: Failed to get cmvlc block: "
