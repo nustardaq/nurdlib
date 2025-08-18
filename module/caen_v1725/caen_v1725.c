@@ -955,6 +955,9 @@ caen_v1725_init_slow(struct Crate *a_crate, struct Module *a_module)
 	v1725->sicy_map = map_map(v1725->address, MAP_SIZE, KW_NOBLT, 0, 0,
 	    MAP_POKE_REG(scratch), MAP_POKE_REG(scratch), 0);
 
+	/* Stop acquisition. */
+	MAP_WRITE(v1725->sicy_map, acquisition_control, 0);
+
 	/* TODO: Check geo before reset? */
 
 	/*
