@@ -58,6 +58,13 @@ struct cmvlc_client {
 
 struct cmvlc_stackcmdbuf;
 
+struct cmvlc_event_info
+{
+	uint8_t  _errors;
+	uint8_t  _stacknum;
+	uint8_t  _ctrlid;
+};
+
 int			cmvlc_close(struct cmvlc_client *);
 struct cmvlc_client	*cmvlc_connect(const char *, int, const char **, FILE
     *, FILE *);
@@ -81,5 +88,8 @@ int			cmvlc_setup_stack(struct cmvlc_client *,
 
 int			cmvlc_readout_attach(struct cmvlc_client *);
 int			cmvlc_readout_reset(struct cmvlc_client *);
+
+int			cmvlc_readout_get_event(struct cmvlc_client *,
+    uint32_t *, size_t, size_t *, struct cmvlc_event_info *);
 
 #endif

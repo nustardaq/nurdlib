@@ -243,3 +243,14 @@ int cmvlc_readout_reset(struct cmvlc_client *a_a)
 	(void)a_a;
 	return 0;
 }
+
+int			cmvlc_readout_get_event(struct cmvlc_client *a_a,
+    uint32_t *a_b, size_t a_c, size_t *a_d, struct cmvlc_event_info *a_e)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	(void)a_e;
+	return 0;
+}
