@@ -2642,4 +2642,68 @@ done:
 	LOGF(spam)(LOGL, "crate_cmvlc_fetch }");
 	return result;
 }
+
+void
+crate_cmvlc_free_running_init(struct Crate *a_crate)
+{
+	struct cmvlc_stackcmdbuf stack_object;
+	struct cmvlc_stackcmdbuf *stack;
+
+	/* It is easier with a pointer to the MVLC stack preparation. */
+	stack = &stack_object;
+
+	/* Clear library state of stacks. */
+	cmvlc_reset_stacks(g_cmvlc);
+
+	/* Initialise and start readout sequence preparation object. */
+	cmvlc_stackcmd_init(stack);
+	cmvlc_stackcmd_start(stack, stack_out_pipe_data);
+
+	/* Place a marker at the beginning of the readout sequence. */
+	cmvlc_stackcmd_marker(stack, 0x12345678);
+
+	/* The readout itself. */
+	crate_cmvlc_init(a_crate, stack, 1);
+	crate_cmvlc_init(a_crate, stack, 0);
+
+	/* Place a marker at the end of the readout sequence. */
+	cmvlc_stackcmd_marker(stack, 0x3456789a);
+	/* End the sequence preparation. */
+	cmvlc_stackcmd_end(stack);
+
+	/* The readout stack is for free-running.
+	 * Cheat by triggering it by a periodic timer.
+	 * 1 kHz - most the MVLC internal timers can do.
+	 */
+	cmvlc_setup_stack(g_cmvlc, stack, 4, 0x0040 | 20); /* Trig by timer. */
+
+	/* Timer 0 period. */
+	cmvlc_mvlc_write(g_cmvlc, 0x1180, 1 /* Period is ms. */ );
+
+	/* Tell MVLC where to send readout data. */
+	if (cmvlc_readout_attach(g_cmvlc) < 0)
+		log_die(LOGL, "Failed to attach MVLC data output.");
+
+	/* Setup pointers to stacks, their triggers. */
+	if (cmvlc_set_daq_mode(g_cmvlc, 0, 1, NULL, 0, 0) < 0)
+		log_die(LOGL, "Failed to setup MVLC stacks "
+		    "and IRQ stack map.");
+
+	/* Reset the internal data buffer handling (UDP packet reader). */
+	cmvlc_readout_reset(g_cmvlc);
+
+	/* Enable DAQ mode, i.e. start sequencer. */
+	if (cmvlc_set_daq_mode(g_cmvlc, 1, 0, NULL, 0, 0) < 0)
+		log_die(LOGL, "Failed to set MVLC DAQ mode.");
+}
+
+void
+crate_cmvlc_free_running_deinit(struct Crate *a_crate)
+{
+	(void) a_crate;
+
+	/* Disable DAQ mode. */
+	if (cmvlc_set_daq_mode(g_cmvlc, 0, 0, NULL, 0, 0) < 0)
+		log_die(LOGL, "Failed to disable MVLC DAQ mode.");
+}
 #endif
