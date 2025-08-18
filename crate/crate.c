@@ -2711,4 +2711,130 @@ crate_cmvlc_free_running_deinit(struct Crate *a_crate)
 	if (cmvlc_set_daq_mode(g_cmvlc, 0, 0, NULL, 0, 0) < 0)
 		log_die(LOGL, "Failed to disable MVLC DAQ mode.");
 }
+
+uint32_t
+crate_cmvlc_free_running_fetch(struct Crate *a_crate,
+    struct EventBuffer *a_event_buffer)
+{
+	uint32_t result;
+
+	int ret;
+	/* Additional space for block transfer continuation frames,
+	 * approximately one word per 370 words, so less than one word
+	 * for 256 words.
+	 *
+	 * TODO: this must be determined by the maximum amount of data
+	 * that can be transferred.  Hmmm, this could be calculated
+	 * when the stack is set up - it knows the max block transfer
+	 * sizes!
+	 */
+	uint32_t dest[0x20000 + 0x200 /* block cont */ + 0x10 /* start+end*/];
+	size_t   event_len = 0;
+	struct cmvlc_event_info info;
+
+	const uint32_t *input_u32;
+
+	uint32_t remain;
+	uint32_t used;
+
+	LOGF(spam)(LOGL, " f_user_cmvlc_fetch {");
+
+        result = 0;
+
+	/* Get one readout event from the sequencer output stream. */
+	ret = cmvlc_readout_get_event(g_cmvlc, dest,
+				      sizeof (dest) / sizeof (dest[0]),
+				      &event_len, &info);
+
+	if (ret < 0)
+	  {
+	    log_error(LOGL, "Failed to get cmvlc event: "
+		      "%d - %s", ret, cmvlc_last_error(g_cmvlc));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	if (event_len < 2 ||
+	    info._errors ||
+	    info._stacknum != 4 ||
+	    info._ctrlid != 0)
+	  {
+	    log_error(LOGL, "Bad cmvlc event: "
+		      "len: %d flags: %d stack: %d ctrlid: %d.",
+		      (int) event_len,
+		      info._errors,
+		      info._stacknum,
+		      info._ctrlid);
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	/* Check that the markers in the data are as expected. */
+	if (dest[0]                != 0x12345678 ||
+	    dest[event_len-1]      != 0x3456789a) /* 8 or 2 */
+	  {
+	    log_error(LOGL, "Malformed cmvlc event.");
+	    /* Since we are *not* writing the buffer we got from
+	     * cmvlc to the output buffer, we dump it.
+	     */
+	    log_dump(LOGL, dest, event_len * sizeof (uint32_t));
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	/* Jump past the start marker. */
+	input_u32 = dest + 1;
+	remain = event_len - 1;
+
+	/* Let the modules fetch what they have prepared (dt = 1). */
+	result |= crate_cmvlc_fetch_dt(a_crate,
+				       input_u32, remain, &used);
+
+	if (result != 0)
+	  {
+	    log_error(LOGL, "Cmvlc crate_cmvlc_fetch_dt failed.");
+	    goto done;
+	  }
+
+	/* Move ahead for the amount of sequencer output handled. */
+	input_u32 += used;
+	remain -= used;
+
+	/* Let the modules fetch what they have prepared (dt = 0). */
+	result |= crate_cmvlc_fetch(a_crate,
+				    a_event_buffer,
+				    input_u32, remain, &used);
+
+	if (result != 0)
+	  {
+	    log_error(LOGL, "Cmvlc crate_cmvlc_fetch failed.");
+	    goto done;
+	  }
+
+	/* Move ahead for the amount of sequencer output handled. */
+	input_u32 += used;
+	remain -= used;
+
+	/*
+	if (used > 0x8000)
+	  printf ("crate_cmvlc_fetch: used = %d\n", used);
+	*/
+
+	/* Expect exactly the end marker to remain.  Value already checked. */
+	if (remain != 1)
+	  {
+	    log_error(LOGL, "Cmvlc block "
+		      "did not exhaust buffer except end marker.");
+	    /* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+	    result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+	    goto done;
+	  }
+
+	/* All went fine! */
+
+done:
+	LOGF(spam)(LOGL, " f_user_cmvlc_fetch(0x%08x) }", result);
+	return result;
+}
+
 #endif
