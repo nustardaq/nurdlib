@@ -56,6 +56,8 @@ struct cmvlc_client {
 	int	dummy;
 };
 
+struct cmvlc_stackcmdbuf;
+
 int			cmvlc_close(struct cmvlc_client *);
 struct cmvlc_client	*cmvlc_connect(const char *, int, const char **, FILE
     *, FILE *);
@@ -69,5 +71,15 @@ int			cmvlc_set_daq_mode(struct cmvlc_client *, int, int,
     uint8_t (*)[2], int, uint8_t);
 int			cmvlc_block_get(struct cmvlc_client *,
     const uint32_t *, size_t,  size_t *, uint32_t *, size_t, size_t *);
+
+int			cmvlc_mvlc_write(struct cmvlc_client *,
+    uint16_t, uint32_t);
+
+void			cmvlc_reset_stacks(struct cmvlc_client *);
+int			cmvlc_setup_stack(struct cmvlc_client *,
+    struct cmvlc_stackcmdbuf *, int, uint8_t);
+
+int			cmvlc_readout_attach(struct cmvlc_client *);
+int			cmvlc_readout_reset(struct cmvlc_client *);
 
 #endif

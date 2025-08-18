@@ -207,3 +207,39 @@ void cmvlc_stackcmd_set_accu(struct cmvlc_stackcmdbuf *a_a,
 	(void)a_b;
 	return 0;
 }
+
+int cmvlc_mvlc_write(struct cmvlc_client *a_a,
+    uint16_t a_b, uint32_t a_c)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	return 0;
+}
+
+void cmvlc_reset_stacks(struct cmvlc_client *a_a)
+{
+	(void)a_a;
+}
+
+int cmvlc_setup_stack(struct cmvlc_client *a_a,
+    struct cmvlc_stackcmdbuf *a_b, int a_c, uint8_t a_d)
+{
+	(void)a_a;
+	(void)a_b;
+	(void)a_c;
+	(void)a_d;
+	return 0;
+}
+
+int cmvlc_readout_attach(struct cmvlc_client *a_a)
+{
+	(void)a_a;
+	return 0;
+}
+
+int cmvlc_readout_reset(struct cmvlc_client *a_a)
+{
+	(void)a_a;
+	return 0;
+}
