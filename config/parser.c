@@ -63,6 +63,7 @@ struct File {
 	 * 0 = No comment.
 	 * 1 = Single-line comment (#,//)
 	 * 2 = Block comment (/ * ... * /)
+	 * 3 = While parsing a literal string ("").
 	 */
 	int	comment_state;
 };
@@ -395,6 +396,7 @@ parse_literal_string(struct File *a_file, char *a_str)
 
 	assert('"' == peekc(a_file, 0));
 	advancec(a_file, 1);
+	a_file->comment_state = 3;
 	for (i = 0;;) {
 		int c;
 
@@ -404,6 +406,7 @@ parse_literal_string(struct File *a_file, char *a_str)
 		}
 		a_str[i++] = c;
 	}
+	a_file->comment_state = 0;
 	a_str[i] = '\0';
 	advancec(a_file, i + 1);
 }
@@ -758,7 +761,7 @@ sneaky_continue:
 					if ('\n' == c) {
 						a_file->comment_state = 0;
 					}
-				} else {
+				} else if (2 == a_file->comment_state) {
 					if ('*' == c) {
 						c2 = file_getc(a_file);
 						if ('/' == c2) {
@@ -782,8 +785,20 @@ sneaky_continue:
 						 */
 						break;
 					}
+				} else {
+					if ('\n' == c) {
+						/*
+						 * TODO: Counting newlines
+						 * in the peek-ahead buffer
+						 * could overflow with lots of
+						 * commented modules configs,
+						 * not nice...
+						 */
+						break;
+					}
 				}
-			} while (0 != a_file->comment_state);
+			} while (0 != a_file->comment_state &&
+				 3 != a_file->comment_state);
 			a_file->buf[i] = c;
 			i = (i + 1) % LENGTH(a_file->buf);
 			++a_file->buf_len;
