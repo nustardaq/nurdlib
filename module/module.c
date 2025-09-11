@@ -275,6 +275,7 @@ module_parse_error(struct LogFile const *a_file, int a_line, struct
     *a_fmt, ...)
 {
 	char str[1024];
+	uint32_t const *p32;
 	uint8_t const *p8;
 	va_list args;
 	uintptr_t ofs;
@@ -283,10 +284,11 @@ module_parse_error(struct LogFile const *a_file, int a_line, struct
 	vsnprintf_(str, sizeof str, a_fmt, args);
 	va_end(args);
 	ofs = (uintptr_t)a_p - (uintptr_t)a_event_buffer->ptr;
+	p32 = a_p;
 	p8 = a_p;
 	log_error((void const *)a_file, a_line,
-	    "%s (ofs=0x%08"PRIzx",u8[4]=0x%02x%02x%02x%02x).",
-	    str, ofs, p8[0], p8[1], p8[2], p8[3]);
+	    "%s (ofs=0x%08"PRIzx",u32=0x%08x,u8[4]=0x%02x%02x%02x%02x).",
+	    str, ofs, p32[0], p8[0], p8[1], p8[2], p8[3]);
 }
 
 void
