@@ -378,7 +378,9 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 			id = (0x00ff0000 & header) >> 16;
 			if (a_mxdc32->module.id != id) {
 				module_parse_error(LOGL, a_event_buffer, p32,
-				    "Module header ID corrupt");
+				    "Module header ID corrupt"
+				    "got 0x%02x, expected 0x%02x",
+                                    id, a_mxdc32->module.id);
 				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
 				goto mesytec_mxdc32_parse_data_done;
 			}
@@ -393,7 +395,9 @@ mesytec_mxdc32_parse_data(struct Crate *a_crate, struct MesytecMxdc32Module
 			id = (0x3f000000 & header) >> 24;
 			if (a_mxdc32->module.id != id) {
 				module_parse_error(LOGL, a_event_buffer, p32,
-				    "Module streaming header ID corrupt");
+				    "Module streaming header ID corrupt, "
+				    "got 0x%02x, expected 0x%02x",
+				    id, a_mxdc32->module.id);
 				result = CRATE_READOUT_FAIL_DATA_CORRUPT;
 				goto mesytec_mxdc32_parse_data_done;
 			}
