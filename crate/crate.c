@@ -2628,6 +2628,7 @@ crate_cmvlc_fetch(struct Crate *a_crate, struct EventBuffer *a_event_buffer,
 			log_error(LOGL, "%s[%u]=%s parse error=0x%08x,"
 			    " dumping data:", a_crate->name, module->id,
 			    keyword_get_string(module->type), result);
+			log_dump(LOGL, ceb.ptr, ceb.bytes);
 		}
 
 		module->crate_counter_prev = module->crate_counter->value;
