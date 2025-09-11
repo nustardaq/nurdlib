@@ -287,7 +287,7 @@ module_parse_error(struct LogFile const *a_file, int a_line, struct
 	p32 = a_p;
 	p8 = a_p;
 	log_error((void const *)a_file, a_line,
-	    "%s (ofs=0x%08"PRIzx",u32=0x%08x,u8[4]=0x%02x%02x%02x%02x).",
+	    "%s (ofs=0x%08"PRIzx",u32=0x%08x,u8[4]=0x%02x:%02x:%02x:%02x).",
 	    str, ofs, p32[0], p8[0], p8[1], p8[2], p8[3]);
 }
 
