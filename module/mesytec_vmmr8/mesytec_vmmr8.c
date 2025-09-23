@@ -37,6 +37,14 @@ static int	mesytec_vmmr8_post_init(struct Crate *, struct Module *)
 	FUNC_RETURNS;
 static uint32_t	mesytec_vmmr8_readout_shadow(struct Crate *, struct Module *,
     struct EventBuffer *) FUNC_RETURNS;
+#if NCONF_mMAP_bCMVLC
+static void	mesytec_vmmr8_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t mesytec_vmmr8_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t mesytec_vmmr8_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+#endif
 
 uint32_t
 mesytec_vmmr8_check_empty(struct Module *a_module)
@@ -390,10 +398,50 @@ mesytec_vmmr8_readout_shadow(struct Crate *a_crate, struct Module *a_module,
 	    0);
 }
 
+#if NCONF_mMAP_bCMVLC
+void
+mesytec_vmmr8_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	struct MesytecVmmr8Module *vmmr8;
+
+	MODULE_CAST(KW_MESYTEC_VMMR8, vmmr8, a_module);
+	mesytec_mxdc32_cmvlc_init(&vmmr8->mxdc32, a_stack, a_dt);
+}
+
+uint32_t
+mesytec_vmmr8_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct MesytecVmmr8Module *vmmr8;
+
+	MODULE_CAST(KW_MESYTEC_VMMR8, vmmr8, a_module);
+	return mesytec_mxdc32_cmvlc_fetch_dt(&vmmr8->mxdc32,
+	    a_in_buffer, a_in_remain, a_in_used);
+}
+
+uint32_t
+mesytec_vmmr8_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct MesytecVmmr8Module *vmmr8;
+
+	MODULE_CAST(KW_MESYTEC_VMMR8, vmmr8, a_module);
+	return mesytec_mxdc32_cmvlc_fetch(a_crate, &vmmr8->mxdc32,
+	    a_event_buffer, a_in_buffer, a_in_remain, a_in_used);
+}
+#endif
+
 void
 mesytec_vmmr8_setup_(void)
 {
 	MODULE_SETUP(mesytec_vmmr8, MODULE_FLAG_EARLY_DT);
 	MODULE_CALLBACK_BIND(mesytec_vmmr8, post_init);
 	MODULE_CALLBACK_BIND(mesytec_vmmr8, readout_shadow);
+#if NCONF_mMAP_bCMVLC
+	MODULE_CALLBACK_BIND(mesytec_vmmr8, cmvlc_init);
+	MODULE_CALLBACK_BIND(mesytec_vmmr8, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(mesytec_vmmr8, cmvlc_fetch);
+#endif
 }
