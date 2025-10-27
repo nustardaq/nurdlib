@@ -40,6 +40,14 @@ static uint32_t	mesytec_madc32_readout_shadow(struct Crate *, struct Module *,
     struct EventBuffer *) FUNC_RETURNS;
 static void	mesytec_madc32_use_pedestals(struct Module *);
 static void	mesytec_madc32_zero_suppress(struct Module *, int);
+#if NCONF_mMAP_bCMVLC
+static void	mesytec_madc32_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t mesytec_madc32_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t mesytec_madc32_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+#endif
 
 uint32_t
 mesytec_madc32_check_empty(struct Module *a_module)
@@ -312,6 +320,41 @@ mesytec_madc32_readout_shadow(struct Crate *a_crate, struct Module *a_module,
 	return result;
 }
 
+#if NCONF_mMAP_bCMVLC
+void
+mesytec_madc32_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	struct MesytecMadc32Module *madc32;
+
+	MODULE_CAST(KW_MESYTEC_MADC32, madc32, a_module);
+	mesytec_mxdc32_cmvlc_init(&madc32->mxdc32, a_stack, a_dt);
+}
+
+uint32_t
+mesytec_madc32_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct MesytecMadc32Module *madc32;
+
+	MODULE_CAST(KW_MESYTEC_MADC32, madc32, a_module);
+	return mesytec_mxdc32_cmvlc_fetch_dt(&madc32->mxdc32,
+	    a_in_buffer, a_in_remain, a_in_used);
+}
+
+uint32_t
+mesytec_madc32_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct MesytecMadc32Module *madc32;
+
+	MODULE_CAST(KW_MESYTEC_MADC32, madc32, a_module);
+	return mesytec_mxdc32_cmvlc_fetch(a_crate, &madc32->mxdc32,
+	    a_event_buffer, a_in_buffer, a_in_remain, a_in_used);
+}
+#endif
+
 void
 mesytec_madc32_setup_(void)
 {
@@ -320,6 +363,11 @@ mesytec_madc32_setup_(void)
 	MODULE_CALLBACK_BIND(mesytec_madc32, readout_shadow);
 	MODULE_CALLBACK_BIND(mesytec_madc32, use_pedestals);
 	MODULE_CALLBACK_BIND(mesytec_madc32, zero_suppress);
+#if NCONF_mMAP_bCMVLC
+	MODULE_CALLBACK_BIND(mesytec_madc32, cmvlc_init);
+	MODULE_CALLBACK_BIND(mesytec_madc32, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(mesytec_madc32, cmvlc_fetch);
+#endif
 }
 
 void
