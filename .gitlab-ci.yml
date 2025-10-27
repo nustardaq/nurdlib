@@ -154,25 +154,25 @@ stages:
     - if: '$CI'
 
 debian etch release:
-  image: munken/debian:etch
+  image: $DOCKER_REG/docker-buildessential/debian-etch:gcc
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-release
   <<: *everywhere
   # retry: 2
 
 debian etch pic:
-  image: munken/debian:etch
+  image: $DOCKER_REG/docker-buildessential/debian-etch:gcc
   <<: *common-no-virt
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *everywhere
   # retry: 2
 
 debian etch debug:
-  image: munken/debian:etch
+  image: $DOCKER_REG/docker-buildessential/debian-etch:gcc
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *everywhere
   # retry: 2
