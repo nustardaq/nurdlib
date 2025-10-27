@@ -131,6 +131,15 @@ stages:
     - bison --version
     - python --version || true
 
+.debian-python3-no-apt-get: &debian-python3-no-apt-get
+  before_script:
+    - uname -a
+    - gcc --version
+    - clang --version || true
+    - flex --version
+    - bison --version
+    - python --version || true
+
 .suha: &suha
   before_script:
     - uname -a
@@ -243,21 +252,21 @@ gcc latest debug:
 # rimfaxe _ release:
 #   image: "$DOCKER_REG/sbc-mock/rimfaxe"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rimfaxe _ pic:
   image: "$DOCKER_REG/sbc-mock/rimfaxe"
   <<: *common-no-virt
-  <<: *debian-python3
+  <<: *debian-python3-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rimfaxe _ debug:
   image: "$DOCKER_REG/sbc-mock/rimfaxe"
   <<: *common-no-virt
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
@@ -397,83 +406,83 @@ ubuntu bionic clang debug:
 # mvme _ release:
 #   image: "$DOCKER_REG/sbc-mock/mvme"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 
 mvme _ pic:
   image: "$DOCKER_REG/sbc-mock/mvme"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 mvme _ debug:
   image: "$DOCKER_REG/sbc-mock/mvme"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
 # rio4 3.2.3 release:
 #   image: "$DOCKER_REG/sbc-mock/rio4:3.2.3"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rio4 3.2.3 pic:
   image: "$DOCKER_REG/sbc-mock/rio4:3.2.3"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rio4 3.2.3 debug:
   image: "$DOCKER_REG/sbc-mock/rio4:3.2.3"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
 # rio4 3.3.10 release:
 #   image: "$DOCKER_REG/sbc-mock/rio4:3.3.10"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rio4 3.3.10 pic:
   image: "$DOCKER_REG/sbc-mock/rio4:3.3.10"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rio4 3.3.10 debug:
   image: "$DOCKER_REG/sbc-mock/rio4:3.3.10"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
 # rio4 bma release:
 #   image: "$DOCKER_REG/sbc-mock/rio4:bma"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rio4 bma pic:
   image: "$DOCKER_REG/sbc-mock/rio4:bma"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rio4 bma debug:
   image: "$DOCKER_REG/sbc-mock/rio4:bma"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
@@ -481,63 +490,63 @@ rio4 bma debug:
 # rio3 bma release:
 #   image: "$DOCKER_REG/sbc-mock/rio3:bma"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rio3 bma pic:
   image: "$DOCKER_REG/sbc-mock/rio3:bma"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rio3 bma debug:
   image: "$DOCKER_REG/sbc-mock/rio3:bma"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
 # rio3 find release:
 #   image: "$DOCKER_REG/sbc-mock/rio3:find"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rio3 find pic:
   image: "$DOCKER_REG/sbc-mock/rio3:find"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rio3 find debug:
   image: "$DOCKER_REG/sbc-mock/rio3:find"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
 # rio2 smem release:
 #   image: "$DOCKER_REG/sbc-mock/rio2:smem"
 #   <<: *common
-#   <<: *debian
+#   <<: *debian-no-apt-get
 #   <<: *run-gcc-release
 #   <<: *only-chalmers
 
 rio2 smem pic:
   image: "$DOCKER_REG/sbc-mock/rio2:smem"
   <<: *common
-  <<: *debian-python
+  <<: *debian-python-no-apt-get
   <<: *run-gcc-pic
   <<: *only-chalmers
 
 rio2 smem debug:
   image: "$DOCKER_REG/sbc-mock/rio2:smem"
   <<: *common
-  <<: *debian
+  <<: *debian-no-apt-get
   <<: *run-gcc-debug
   <<: *only-chalmers
 
