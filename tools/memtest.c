@@ -35,7 +35,7 @@ main(int argc, char **argv)
 	(void)argv;
 
 	/* TODO: Optional argument to set the config file? */
-	crate = nurdlib_setup(NULL, "main.cfg", NULL, NULL);
+	crate = nurdlib_setup(NULL, "nurdlib.cfg", NULL, NULL);
 	for (cycle = 0;; ++cycle) {
 		LOGF(info)(LOGL, "Memtest cycle: %u", cycle);
 		crate_memtest(crate, 1);

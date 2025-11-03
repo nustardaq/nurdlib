@@ -37,7 +37,7 @@
 git clone http://???/nurdlib.git
 make -C nurdlib
 make -C nurdlib fuser_drasi
-echo 'CRATE("test") {}' > main.cfg
+echo 'CRATE("test") {}' > nurdlib.cfg
 ./nurdlib/build_*/m_read_meb.drasi ...
 \end{Verbatim}
 
@@ -77,7 +77,7 @@ struct CrateTag *g_tag;
 void
 backend_setup(void)
 {
-  g_crate = nurdlib_setup(NULL, "main.cfg", NULL, NULL);
+  g_crate = nurdlib_setup(NULL, "nurdlib.cfg", NULL, NULL);
   g_tag = crate_get_tag_by_name(g_crate, NULL);
 }
 

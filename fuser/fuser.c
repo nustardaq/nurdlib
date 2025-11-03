@@ -30,7 +30,7 @@
 #include <util/stdint.h>
 #include <util/string.h>
 
-#define CONFIG_NAME_PRIMARY "main.cfg"
+#define CONFIG_NAME_PRIMARY "nurdlib.cfg"
 
 #if FUSER_DRASI
 #	include <lwroc_message_inject.h>
