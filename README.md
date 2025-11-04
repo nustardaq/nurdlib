@@ -34,8 +34,11 @@ creates bin/m_read_meb.{mbs,drasi} that is sufficient to run a simple readout.
 make doc
 ```
 
-creates Sphinx webpage documentation which should be available also online
-somewhere, to be taken care of...
+creates Sphinx webpage documentation, which can also be found online at:
+
+```
+https://nustardaq.github.io/nurdlib/
+```
 
 
 ## Licence
