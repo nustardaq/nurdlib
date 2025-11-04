@@ -1,6 +1,6 @@
 # nurdlib, NUstar ReaDout LIBrary
 #
-# Copyright (C) 2015-2017, 2021, 2024
+# Copyright (C) 2017, 2021, 2024-2025
 # Hans Toshihide Törnqvist
 #
 # This library is free software; you can redistribute it and/or
@@ -20,18 +20,22 @@
 
 NAME:=doc
 DIR_$(NAME):=doc
+SRC_$(NAME):=$(wildcard $(addprefix $(DIR_$(NAME))/source/,*))
 
-DOC_TARGET:=$(BUILD_DIR)/doc/index.pdf
+INKSCAPE=inkscape
+SPHINX_BUILD=sphinx-build
 
 .PHONY: doc
-doc: $(DOC_TARGET)
+doc: $(BUILD_DIR)/doc/web/index.html
 
-$(DOC_TARGET): doc/index.tex
-	$(QUIET)dst_dir=$(BUILD_DIR)/doc; \
-	echo "LATEX $$dst_dir"; \
-	$(MKDIR) && \
-	$(LATEX) -output-directory=$$dst_dir $< && \
-	$(LATEX) -output-directory=$$dst_dir $< && \
-	dvipdf $$dst_dir/index.dvi $@
+$(BUILD_DIR)/doc/web/index.html: $(SRC_$(NAME)) $(BUILD_DIR)/$(DIR_$(NAME))/source/nurdlib.png
+	$(QUIET)echo "WD    $@" &&\
+	cp -r $(dir $<)/* $(BUILD_DIR)/doc/source/ && \
+	$(SPHINX_BUILD) $(BUILD_DIR)/doc/source/ $(dir $@)
+
+$(BUILD_DIR)/$(DIR_$(NAME))/source/nurdlib.png: $(DIR_$(NAME))/source/nurdlib.svg $(DIR_$(NAME))/rules.mk
+	$(QUIET)echo "PNG   $@" &&\
+	$(MKDIR) &&\
+	$(INKSCAPE) -D -o $@ -d 150 $<
 
 include gmake/close.mk

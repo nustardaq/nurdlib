@@ -354,7 +354,6 @@ ifeq (pic,$(BUILD_MODE))
  include ctrl/pynurdlibctrl/rules.mk
 endif
 include doc/rules.mk
-include doc/web/rules.mk
 include module/rules.mk
 include tools/rules.mk
 include $(foreach module,$(MODULE_LIST),module/$(module)/rules.mk)
