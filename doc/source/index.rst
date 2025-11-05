@@ -738,8 +738,8 @@ nurdlib decisions in your own DAQ build:
     NCONF_ARGS = $(NURDLIB_PATH)/$(BUILD_DIR)/nconf.args
     include $(NURDLIB_PATH)/nconf/nconf.mk
 
-If you then access the four variables ``NCONF_CPPFLAGS*, ``NCONF_CFLAGS*,
-``NCONF_LDFLAGS*, ``NCONF_LIBS``, you will get the flags that were chosen in
+If you then access the four variables ``NCONF_CPPFLAGS``, ``NCONF_CFLAGS``,
+``NCONF_LDFLAGS``, ``NCONF_LIBS``, you will get the flags that were chosen in
 the nurdlib build process.
 
 If you'd like to use nconf yourself, first:
