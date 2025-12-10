@@ -109,7 +109,7 @@ NTEST(Parse)
 		0x00000000, /* TDC measurement. */
 		0x20000000, /* Error bits. */
 		0x18000000, /* TDC trailer. */
-		0x88000000, /* Extented time tag. */
+		0x88000000, /* Extended time tag. */
 		0x80000000, /* Trailer. */
 	};
 	struct EventConstBuffer eb;

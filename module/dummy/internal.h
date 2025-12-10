@@ -56,7 +56,7 @@ struct DummyModule {
 };
 
 void	dummy_init_set_callback(struct Module *, void (*)(void));
-/* This is a software trigger that preferrably happens in hardware! */
+/* This is a software trigger that preferably happens in hardware! */
 void	dummy_counter_increase(struct Module *, unsigned);
 
 #endif

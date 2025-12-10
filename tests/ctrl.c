@@ -117,7 +117,7 @@ NTEST(SimpleCrate)
 	ctrl_crate = &crate_array.array[0];
 	NTRY_STR("Simple", ==, ctrl_crate->name);
 
-	/* And two specific modules with a barrier inbetween. */
+	/* And two specific modules with a barrier in between. */
 	NTRY_I(3, ==, ctrl_crate->module_num);
 	ctrl_module = ctrl_crate->module_array;
 	NTRY_I(KW_CAEN_V775, ==, ctrl_module->type);

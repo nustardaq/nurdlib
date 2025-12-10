@@ -163,7 +163,7 @@ void sis_3316_disarm(struct Sis3316Module *);
 void sis_3316_adjust_address_threshold(struct Sis3316Module *, double);
 void sis_3316_configure_external_clock_input(struct Sis3316Module *);
 uint32_t sis_rataclock_firmware_check(uint32_t firmware);
-uint32_t extract_bit_range(uint32_t word, uint32_t first_bit, uint32_t last_bit); /* if deemed useful, this function should to general utilities - whereever this is */
+uint32_t extract_bit_range(uint32_t word, uint32_t first_bit, uint32_t last_bit); /* if deemed useful, this function should to general utilities - wherever this is */
 
 #define CHECK_REG_SET_MASK(reg, val, mask) do { \
 		uint32_t reg_; \
@@ -3366,7 +3366,7 @@ err:
 	log_die(LOGL, "Corrupt data.");
 }
 
-/* if deemed useful, this function should to general utilities - whereever this is */
+/* if deemed useful, this function should to general utilities - wherever this is */
 uint32_t extract_bit_range(uint32_t word, uint32_t first_bit, uint32_t last_bit) {
 	return (uint32_t)((word & BITS_MASK(first_bit, last_bit)) / (uint32_t)pow(2, first_bit));
 }
