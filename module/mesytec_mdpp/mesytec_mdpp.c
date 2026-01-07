@@ -261,7 +261,6 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 	DUP_INPUT(t1);
 
 	/* Check trigger setup. */
-#if 0
 #define CHECK_TRIG(tnum, sett) do { \
 	if (sett == a_mdpp->config.trigger_input && \
 	    !has_input_t##tnum) { \
@@ -269,9 +268,8 @@ mesytec_mdpp_init_fast(struct Crate *a_crate, struct MesytecMdppModule
 		    "but no T" #tnum " conf:ed!"); \
 	} \
 } while (0)
-	CHECK_TRIG(0, );
-	CHECK_TRIG(1);
-#endif
+	CHECK_TRIG(0, 35);
+	CHECK_TRIG(1, 36);
 
 	/* Clock setup. */
 	a_mdpp->config.use_ext_clk = config_get_boolean(
