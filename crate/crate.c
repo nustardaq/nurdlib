@@ -2478,10 +2478,6 @@ crate_cmvlc_init(struct Crate *a_crate, struct cmvlc_stackcmdbuf *a_stack,
 	LOGF(info)(LOGL, "crate_cmvlc_init }");
 }
 
-/* TODO: also send along pointer and size of *full* MVLC sequence
- * buffer such that dump can show everything, also stuff that may have
- * been consumed before we got called.
- */
 uint32_t
 crate_cmvlc_fetch_dt(struct Crate *a_crate,
     const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
@@ -2565,10 +2561,6 @@ done:
 	return result;
 }
 
-/* TODO: also send along pointer and size of *full* MVLC sequence
- * buffer such that dump can show everything, also stuff that may have
- * been consumed before we got called.
- */
 uint32_t
 crate_cmvlc_fetch(struct Crate *a_crate, struct EventBuffer *a_event_buffer,
     const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
