@@ -232,13 +232,13 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 	/* For later checking. */
 	COPY(event_buffer_orig, event_buffer);
 
-	remain = input_len / sizeof (uint32_t);
-
 	result = 0;
 
 	used = 0;
 
 	/* Let the modules fetch what they have prepared (dt = 1). */
+	remain = input_len / sizeof (uint32_t);
+
 	result |= crate_cmvlc_fetch_dt(g_crate,
 				       input_u32, remain, &used);
 
