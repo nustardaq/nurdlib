@@ -212,6 +212,7 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 	struct EventBuffer event_buffer;
 
 	const uint32_t *input_u32 = (const uint32_t *) input;
+	long orig_input_len = input_len;
 	uint32_t remain, used;
 
 	static int _master_starts = 0;
@@ -244,7 +245,7 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 
 	if (0 != result) {
 		log_error(LOGL, "Cmvlc crate_cmvlc_fetch_dt failed.");
-		goto done;
+		goto fail;
 	}
 
 	/* Move ahead for the amount of sequencer output handled. */
@@ -257,14 +258,14 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 		log_error(LOGL, "Missing separator in cmvlc event: len=%ld.",
 		    input_len);
 		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
-		goto done;
+		goto fail;
 	}
 
 	if (0x87654321 != input_u32[0]) {
 		log_error(LOGL, "Malformed separator in cmvlc event "
 		    "(0x%08x != 0x%08x).", input_u32[0], 0x87654321);
 		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
-		goto done;
+		goto fail;
 	}
 
 	/* Move ahead for the checked marker. */
@@ -280,7 +281,7 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 
 	if (0 != result) {
 		log_error(LOGL, "Cmvlc crate_cmvlc_fetch failed.");
-		goto done;
+		goto fail;
 	}
 
 	/* Move ahead for the amount of sequencer output handled. */
@@ -290,9 +291,8 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 
 	if (input_len != 0) {
 		log_error(LOGL, "Cmvlc block did not exhaust buffer.");
-		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
 		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
-		goto done;
+		goto fail;
 	}
 
 	/* Make sure event-buffer is consistent. */
@@ -301,6 +301,9 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 	*bytes_read = (uintptr_t)event_buffer.ptr - (uintptr_t)buf;
 
 	goto done;
+fail:
+	log_error(LOGL, "Cmvlc block did not exhaust buffer.");
+	log_dump(LOGL, input, orig_input_len);
 done:
 	return result;
 }
