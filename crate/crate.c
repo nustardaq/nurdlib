@@ -2498,6 +2498,7 @@ crate_cmvlc_fetch_dt(struct Crate *a_crate,
 	*a_in_used = 0;
 
 	TAILQ_FOREACH(module, &a_crate->module_list, next) {
+		uint32_t diff_module;
 
 		if (NULL == module->props ||
 		    NULL == module->props->cmvlc_fetch_dt) {
@@ -2554,6 +2555,31 @@ crate_cmvlc_fetch_dt(struct Crate *a_crate,
 		a_in_buffer++;
 		a_in_remain--;
 		(*a_in_used)++;
+
+		/* The data (event counter) looked good.
+		 * Now check the value.
+		 */
+
+		diff_module = COUNTER_DIFF(*module->crate_counter,
+		    module->event_counter, module->this_minus_crate);
+		if (0 != diff_module) {
+			log_error(LOGL, "%s[%u]=%s: Event counter: "
+			    "crate=0x%08x/%u, this-crate=0x%08x, "
+			    "module=0x%08x/%u diff=0x%08x.",
+			    a_crate->name, module->id,
+			    keyword_get_string(module->type),
+			    module->crate_counter->value,
+			    bits_get_count(module->crate_counter->mask),
+			    module->this_minus_crate,
+			    module->event_counter.value,
+			    bits_get_count(module->event_counter.mask),
+			    diff_module);
+			/* Not good. */
+			module->result |=
+			    CRATE_READOUT_FAIL_EVENT_COUNTER_MISMATCH;
+			result |= module->result;
+			/* Continue to check all other. */
+		}
 	}
 
 done:
