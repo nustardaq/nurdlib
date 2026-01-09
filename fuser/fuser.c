@@ -233,6 +233,14 @@ int f_user_format_event(unsigned char trig, unsigned char crate_number,
 	/* For later checking. */
 	COPY(event_buffer_orig, event_buffer);
 
+	/* See corresponding code in f_user_readout() (trig = bh_trig_typ). */
+	crate_gsi_mbs_trigger_set(g_crate, trig);
+
+	if (g_tag[trig]) {
+		crate_tag_counter_increase(g_crate, g_tag[trig], 1);
+	}
+	/* End corresponding code. */
+
 	result = 0;
 
 	used = 0;
