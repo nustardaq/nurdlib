@@ -516,6 +516,15 @@ mesytec_mxdc32_cmvlc_init(struct MesytecMxdc32Module *a_mxdc32,
 	LOGF(verbose)(LOGL, NAME" cmvlc_init {");
 
 	if (a_dt) {
+		/* Dummy read of module type. */
+		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6008, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+		/* cmvlc_stackcmd_wait(a_stack, 30); */
+		/* Read event counter, low then high word. */
+		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6092, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6094, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
 		/* Read event counter, low then high word. */
 		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6092, 0,
 				      vme_rw_read, vme_user_A32, vme_D16);
@@ -544,7 +553,7 @@ mesytec_mxdc32_cmvlc_fetch_dt(struct MesytecMxdc32Module *a_mxdc32,
 
 	result = 0;
 
-	if (a_in_remain < 2) {
+	if (a_in_remain < 4) {
 		log_error(LOGL, "Mesytec Mxdc32: Too few words for event "
 		    "counter in cmvlc data.");
 		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
@@ -552,10 +561,21 @@ mesytec_mxdc32_cmvlc_fetch_dt(struct MesytecMxdc32Module *a_mxdc32,
 		goto done;
 	}
 
+	if (a_in_buffer[0] != 0x5007 ||
+	    a_in_buffer[1] != a_in_buffer[3] ||
+	    a_in_buffer[2] != a_in_buffer[4]) {
+		LOGF(info)(LOGL, "ev.c. read mism: "
+		    "%08x %08x %08x  %08x %08x\n",
+		    a_in_buffer[0],
+		    a_in_buffer[1], a_in_buffer[2],
+		    a_in_buffer[3], a_in_buffer[4]);
+	}
+
+	a_in_buffer += 3;
 	a_mxdc32->module.event_counter.value =
 	    a_in_buffer[0] | (a_in_buffer[1] << 16);
 
-	*a_in_used = 2;
+	*a_in_used = 3 + 2;
 
 	/*
 	if (a_mxdc32->module.event_counter.value % 100000 == 0) {
