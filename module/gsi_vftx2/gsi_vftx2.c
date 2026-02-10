@@ -35,11 +35,19 @@
 #include <util/bits.h>
 #include <util/endian.h>
 #include <util/time.h>
+#include <module/map/map_cmvlc.h>
 
 #define NAME "Gsi Vftx2"
 #define NO_DATA_TIMEOUT 1.0
 
 MODULE_PROTOTYPES(gsi_vftx2);
+static void	gsi_vftx2_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t	gsi_vftx2_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t	gsi_vftx2_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+
 
 uint32_t
 gsi_vftx2_check_empty(struct Module *a_module)
@@ -309,6 +317,153 @@ gsi_vftx2_parse_data_end:
 	return result;
 }
 
+void
+gsi_vftx2_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	struct GsiVftx2Module *vftx2;
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init {");
+	MODULE_CAST(KW_GSI_VFTX2, vftx2, a_module);
+
+#if NCONF_mMAP_bCMVLC
+	if (a_dt) {
+		(void) 0;
+	} else {
+		/* Tell how the accu should be used to get number of words. */
+		cmvlc_stackcmd_mask_rotate_accu(a_stack, 0x1ff0, 4);
+		/* Read status. */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      vftx2->address + OFS_fifo_status, 0,
+				      vme_rw_read_to_accu,
+				      vme_user_A32, vme_D32);
+		/* Write the accu to the output stream. */
+		cmvlc_stackcmd_write_special(a_stack, wrspec_accu);
+		/* Since the accu has been set (also if actual value is 0),
+		 * the following read will be repeated that many times,
+		 * and will also generate a block header.
+		 */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      vftx2->address + OFS_data_fifo, 0,
+				      vme_rw_read, vme_user_A32, vme_D32);
+		/* Clear the module. */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      vftx2->address + OFS_allow_new_trigger,0,
+				      vme_rw_write, vme_user_A32, vme_D32);
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      vftx2->address + OFS_allow_new_trigger,1,
+				      vme_rw_write, vme_user_A32, vme_D32);
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      vftx2->address + OFS_trigger_enable, 0,
+				      vme_rw_write, vme_user_A32, vme_D32);
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      vftx2->address + OFS_trigger_enable,
+				      vftx2->channel_mask,
+				      vme_rw_write, vme_user_A32, vme_D32);
+	}
+#else
+	(void) a_module;
+	(void) a_stack;
+	(void) a_dt;
+	(void) vftx2;
+#endif
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init }");
+}
+
+uint32_t
+gsi_vftx2_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	(void) a_module;
+	(void) a_in_buffer;
+	(void) a_in_remain;
+	(void) a_in_used;
+	return 0; /* Should not be used, better return some error code? */
+}
+
+uint32_t
+gsi_vftx2_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+#if NCONF_mMAP_bCMVLC
+	uint32_t *outp;
+	uint32_t result;
+
+	size_t used;
+	size_t block_len;
+
+	uint32_t status, hit_num;
+
+	int ret;
+
+	(void) a_crate;
+	(void) a_module;
+
+	outp = a_event_buffer->ptr;
+        result = 0;
+
+	/* Check that readout stream has space for status word. */
+	if (a_in_remain < 1) {
+		log_error(LOGL, "Mesytec Mxdc32: Too few words for event "
+		    "counter in cmvlc data.");
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	/* Get the status word from the readout stream. */
+	status = a_in_buffer[0];
+	hit_num = (status & 0x1ff0) >> 4;
+
+	/* Write status word to output (as in ..._readout()). */
+	*outp++ = 0xab000000 | (status << 5) | a_module->id;
+
+	/* One readout stream word was used. */
+	*a_in_used = 1;
+	--a_in_remain;
+
+	/* Get the payload data.  Write directly to output. */
+	ret = cmvlc_block_get(g_cmvlc, a_in_buffer, a_in_remain, &used,
+	    outp, 0x1ff, &block_len);
+	/* Check. */
+	if (ret < 0) {
+		log_error(LOGL, "GSI VFTX2: Failed to get cmvlc block: "
+		    "%d.", ret);
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+	/* The MVLC readout sequence already used the word count,
+	 * so the block should have that many words.
+	 */
+	if (hit_num != block_len) {
+		log_error(LOGL, "GSI VFTX2: Wrong cmvlc block size: "
+		    "got %"PRIz" = expected from status %d.",
+		    block_len, hit_num);
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+	/* Update number of used readout stream words. */
+	*a_in_used += (uint32_t) used;
+	/* Update number of words written to output. */
+	outp += block_len;
+
+done:
+	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
+	return result;
+#else
+	(void) a_crate;
+	(void) a_module;
+	(void) a_event_buffer;
+	(void) a_in_buffer;
+	(void) a_in_remain;
+	(void) a_in_used;
+	return 0; /* Should not be used, better return some error code? */
+#endif
+}
+
 uint32_t
 gsi_vftx2_readout(struct Crate *a_crate, struct Module *a_module, struct
     EventBuffer *a_event_buffer)
@@ -385,4 +540,7 @@ void
 gsi_vftx2_setup_(void)
 {
 	MODULE_SETUP(gsi_vftx2, 0);
+	MODULE_CALLBACK_BIND(gsi_vftx2, cmvlc_init);
+	MODULE_CALLBACK_BIND(gsi_vftx2, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(gsi_vftx2, cmvlc_fetch);
 }
