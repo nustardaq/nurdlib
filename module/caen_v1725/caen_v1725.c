@@ -1119,12 +1119,15 @@ caen_v1725_cmvlc_init(struct Module *a_module,
 #if NCONF_mMAP_bCMVLC
 	if (a_dt) {
 		/* Read event size. */
-		cmvlc_stackcmd_vme_rw(a_stack, v1725->address + 0x814C, 0,
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      v1725->address + OFS_event_size, 0,
 				      vme_rw_read, vme_user_A32, vme_D16);
 	} else {
 		/* Block transfer of data. */
 		/* Note: 0x8000 MBLT (64-bit) words,is 0x10000 32-bit words. */
-		cmvlc_stackcmd_vme_block(a_stack, v1725->address,
+		cmvlc_stackcmd_vme_block(a_stack,
+					 v1725->address +
+					 OFS_event_readout_buffer,
 					 vme_rw_read_swap, vme_user_MBLT_A32,
 					 0x8000);
 	}
