@@ -1212,7 +1212,7 @@ caen_v1725_cmvlc_fetch(struct Crate *a_crate,
 
 	if (block_len > 0)
 	  {
-	    /* Discard filler word at the end om MBLT transfer. */
+	    /* Discard filler word at the end of MBLT transfer. */
 	    /* TODO: is this safe, or do we need to traverse the
 	     * aggregates.  It is not enough to check for an initial
 	     * aggregate header, there may be several in one block
