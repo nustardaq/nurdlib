@@ -35,6 +35,14 @@
 MODULE_PROTOTYPES(caen_v965);
 static void	caen_v965_use_pedestals(struct Module *);
 static void	caen_v965_zero_suppress(struct Module *, int);
+#if NCONF_mMAP_bCMVLC
+static void	caen_v965_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t caen_v965_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t caen_v965_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+#endif
 
 uint32_t
 caen_v965_check_empty(struct Module *a_module)
@@ -170,12 +178,52 @@ caen_v965_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	return 0;
 }
 
+#if NCONF_mMAP_bCMVLC
+void
+caen_v965_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	struct CaenV965Module *v965;
+
+	MODULE_CAST(KW_CAEN_V965, v965, a_module);
+	caen_v7nn_cmvlc_init(&v965->v7nn, a_stack, a_dt);
+}
+
+uint32_t
+caen_v965_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct CaenV965Module *v965;
+
+	MODULE_CAST(KW_CAEN_V965, v965, a_module);
+	return caen_v7nn_cmvlc_fetch_dt(&v965->v7nn,
+	    a_in_buffer, a_in_remain, a_in_used);
+}
+
+uint32_t
+caen_v965_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct CaenV965Module *v965;
+
+	MODULE_CAST(KW_CAEN_V965, v965, a_module);
+	return caen_v7nn_cmvlc_fetch(a_crate, &v965->v7nn,
+	    a_event_buffer, a_in_buffer, a_in_remain, a_in_used);
+}
+#endif
+
 void
 caen_v965_setup_(void)
 {
 	MODULE_SETUP(caen_v965, 0);
 	MODULE_CALLBACK_BIND(caen_v965, use_pedestals);
 	MODULE_CALLBACK_BIND(caen_v965, zero_suppress);
+#if NCONF_mMAP_bCMVLC
+	MODULE_CALLBACK_BIND(caen_v965, cmvlc_init);
+	MODULE_CALLBACK_BIND(caen_v965, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(caen_v965, cmvlc_fetch);
+#endif
 }
 
 void
