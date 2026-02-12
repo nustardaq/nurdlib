@@ -63,5 +63,13 @@ uint32_t	caen_v7nn_readout_shadow(struct CaenV7nnModule *, struct
     EventBuffer *) FUNC_RETURNS;
 void		caen_v7nn_use_pedestals(struct CaenV7nnModule *);
 void		caen_v7nn_zero_suppress(struct CaenV7nnModule *, int);
+struct cmvlc_stackcmdbuf;
+void		caen_v7nn_cmvlc_init(struct CaenV7nnModule *,
+    struct cmvlc_stackcmdbuf *, int);
+uint32_t	caen_v7nn_cmvlc_fetch_dt(struct CaenV7nnModule *,
+    const uint32_t *, uint32_t, uint32_t *);
+uint32_t	caen_v7nn_cmvlc_fetch(struct Crate *, struct
+    CaenV7nnModule *, struct EventBuffer *, const uint32_t *, uint32_t,
+    uint32_t *);
 
 #endif

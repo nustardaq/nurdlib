@@ -37,6 +37,7 @@
 #include <util/fmtmod.h>
 #include <util/string.h>
 #include <util/time.h>
+#include <module/map/map_cmvlc.h>
 
 #define NAME "Caen v7nn"
 
@@ -754,6 +755,99 @@ caen_v7nn_readout_shadow(struct CaenV7nnModule *a_v7nn, struct EventBuffer
 caen_v7nn_readout_shadow_done:
 	return result;
 }
+
+#if NCONF_mMAP_bCMVLC
+void
+caen_v7nn_cmvlc_init(struct CaenV7nnModule *a_v7nn,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	LOGF(verbose)(LOGL, NAME" cmvlc_init {");
+
+	if (a_dt) {
+		/* Read event counter, high then low word. */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_v7nn->address + OFS_event_counter_h, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_v7nn->address + OFS_event_counter_l, 0,
+				      vme_rw_read, vme_user_A32, vme_D16);
+	} else {
+		/* Block transfer of data. */
+		cmvlc_stackcmd_vme_block(a_stack,
+					 a_v7nn->address + OFS_output_buffer,
+					 vme_rw_read, vme_user_BLT_A32,
+					 0x8000);
+	}
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init }");
+}
+
+uint32_t
+caen_v7nn_cmvlc_fetch_dt(struct CaenV7nnModule *a_v7nn,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	uint32_t counter, h, l;
+	uint32_t result;
+
+	result = 0;
+
+	if (a_in_remain < 2) {
+		log_error(LOGL, "CAEN V7nn: Too few words for event "
+		    "counter in cmvlc data.");
+		/* log_dump(LOGL, dest, event_len * sizeof (uint32_t)); */
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	h = a_in_buffer[0];
+	l = a_in_buffer[1];
+	counter = ((0x00ff & h) << 16) | l;
+
+	a_v7nn->module.event_counter.value = counter;
+
+	*a_in_used = 2;
+
+done:
+	return result;
+}
+
+uint32_t
+caen_v7nn_cmvlc_fetch(struct Crate *a_crate,
+    struct CaenV7nnModule *a_v7nn, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	uint32_t *outp;
+	uint32_t result;
+
+	size_t used;
+	size_t block_len;
+
+	int ret;
+
+	(void) a_crate;
+	(void) a_v7nn;
+
+	outp = a_event_buffer->ptr;
+        result = 0;
+
+	ret = cmvlc_block_get(g_cmvlc, a_in_buffer, a_in_remain, &used,
+	    outp, 0x10000 /* 0x8000 MBLT words*/, &block_len);
+
+	if (ret < 0) {
+		log_error(LOGL, "CAEN V7nn: Failed to get cmvlc block: "
+		    "%d.", ret);
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	*a_in_used = (uint32_t) used;
+	outp += block_len;
+
+done:
+	EVENT_BUFFER_ADVANCE(*a_event_buffer, outp);
+	return result;
+}
+#endif
 
 void
 caen_v7nn_use_pedestals(struct CaenV7nnModule *a_v7nn)
