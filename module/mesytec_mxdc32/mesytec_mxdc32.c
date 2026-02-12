@@ -517,19 +517,23 @@ mesytec_mxdc32_cmvlc_init(struct MesytecMxdc32Module *a_mxdc32,
 
 	if (a_dt) {
 		/* Read event counter, low then high word. */
-		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6092, 0,
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_mxdc32->address + OFS_evctr_lo, 0,
 				      vme_rw_read, vme_user_A32, vme_D16);
-		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6094, 0,
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_mxdc32->address + OFS_evctr_hi, 0,
 				      vme_rw_read, vme_user_A32, vme_D16);
 	} else {
 		/* Block transfer of data. */
 		/* Note: 0x8000 MBLT (64-bit) words,is 0x10000 32-bit words. */
-		cmvlc_stackcmd_vme_block(a_stack, a_mxdc32->address,
+		cmvlc_stackcmd_vme_block(a_stack,
+					 a_mxdc32->address + OFS_data_fifo(0),
 					 vme_rw_read, vme_user_MBLT_A32,
 					 0x8000);
 
 		/* Reset something. */
-		cmvlc_stackcmd_vme_rw(a_stack, a_mxdc32->address + 0x6034, 1,
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_mxdc32->address + OFS_readout_reset, 1,
 				      vme_rw_write, vme_user_A32, vme_D16);
 	}
 
