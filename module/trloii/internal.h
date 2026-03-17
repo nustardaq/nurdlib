@@ -37,6 +37,8 @@ struct TRLOIIModule {
 	struct	Module module;
 	uint32_t	address;
 	int	has_timestamp;
+	int	clear_scalers;
+	int	incremental_scalers;
 	char	const *multi_event_tag_name;
 	int	acvt_has;
 	/*
@@ -51,6 +53,7 @@ struct TRLOIIModule {
 	uint32_t	u32_low;
 	size_t	scaler_n;
 	uint8_t	scaler[64];
+	uint32_t last_scaler_value[64];
 };
 
 void		trloii_create(struct Crate *, struct TRLOIIModule *, struct

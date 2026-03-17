@@ -172,6 +172,7 @@ gsi_##nlib_name##_init_fast(struct Crate *a_crate, struct Module *a_module) \
 int \
 gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 { \
+	uint8_t i; \
 	struct TRLOIIModule *trloii; \
 	t2_name##_opaque volatile *opaque; \
 \
@@ -193,6 +194,13 @@ gsi_##nlib_name##_init_slow(struct Crate *a_crate, struct Module *a_module) \
 	    T2_NAME##_PULSE_SERIAL_TSTAMP_BUF_CLEAR);\
 	T2_NAME##_WRITE(opaque, pulse.pulse, \
 	    T2_NAME##_PULSE_SERIAL_TSTAMP_FAIL_CLEAR);\
+	if (trloii->clear_scalers) { \
+		T2_NAME##_WRITE(opaque, pulse.pulse, \
+			T2_NAME##_PULSE_MUX_SRC_SCALER_RESET);\
+	} \
+	for (i = 0; i < trloii->scaler_n; ++i) { \
+		trloii->last_scaler_value[i] = 0; \
+	} \
 	SERIALIZE_IO;\
 	LOGF(info)(LOGL, NAME" init_slow }"); \
 	return 1; \
@@ -270,8 +278,17 @@ nlib_name##_readout_done: \
 		unsigned i; \
 		*p32++ = trloii->scaler_n; \
 		for (i = 0; i < trloii->scaler_n; ++i) { \
-			*p32++ = T2_NAME##_READ(opaque, \
-			    scaler.mux_src[trloii->scaler[i]]); \
+			if (trloii->incremental_scalers) { \
+				uint32_t value_now; \
+				value_now = T2_NAME##_READ(opaque, \
+				scaler.mux_src[trloii->scaler[i]]); \
+				*p32++ = \
+				    value_now - trloii->last_scaler_value[i]; \
+				trloii->last_scaler_value[i] = value_now; \
+			} else { \
+				*p32++ = T2_NAME##_READ(opaque, \
+				    scaler.mux_src[trloii->scaler[i]]); \
+			} \
 		} \
 	} \
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32); \
