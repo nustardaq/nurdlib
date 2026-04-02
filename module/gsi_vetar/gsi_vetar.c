@@ -31,6 +31,14 @@
 #define NO_DATA_TIMEOUT 1.0
 
 MODULE_PROTOTYPES(gsi_vetar);
+#if NCONF_mMAP_bCMVLC
+static void    gsi_vetar_cmvlc_init(struct Module *,
+    struct cmvlc_stackcmdbuf *, int);
+static uint32_t gsi_vetar_cmvlc_fetch_dt(struct Module *,
+    const uint32_t *, uint32_t, uint32_t *);
+static uint32_t gsi_vetar_cmvlc_fetch(struct Crate *, struct
+    Module *, struct EventBuffer *, const uint32_t *, uint32_t, uint32_t *);
+#endif
 
 uint32_t
 gsi_vetar_check_empty(struct Module *a_module)
@@ -139,8 +147,48 @@ gsi_vetar_readout_dt(struct Crate *a_crate, struct Module *a_module)
 	return gsi_etherbone_readout_dt(&vetar->etherbone);
 }
 
+#if NCONF_mMAP_bCMVLC
+void
+gsi_vetar_cmvlc_init(struct Module *a_module,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	struct GsiVetarModule *vetar;
+
+	MODULE_CAST(KW_GSI_VETAR, vetar, a_module);
+	gsi_etherbone_cmvlc_init(&vetar->etherbone, a_stack, a_dt);
+}
+
+uint32_t
+gsi_vetar_cmvlc_fetch_dt(struct Module *a_module,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct GsiVetarModule *vetar;
+
+	MODULE_CAST(KW_GSI_VETAR, vetar, a_module);
+	return gsi_etherbone_cmvlc_fetch_dt(&vetar->etherbone,
+	   a_in_buffer, a_in_remain, a_in_used);
+}
+
+uint32_t
+gsi_vetar_cmvlc_fetch(struct Crate *a_crate,
+    struct Module *a_module, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	struct GsiVetarModule *vetar;
+
+	MODULE_CAST(KW_GSI_VETAR, vetar, a_module);
+	return gsi_etherbone_cmvlc_fetch(a_crate, &vetar->etherbone,
+	   a_event_buffer, a_in_buffer, a_in_remain, a_in_used);
+}
+#endif
+
 void
 gsi_vetar_setup_(void)
 {
 	MODULE_SETUP(gsi_vetar, 0);
+#if NCONF_mMAP_bCMVLC
+	MODULE_CALLBACK_BIND(gsi_vetar, cmvlc_init);
+	MODULE_CALLBACK_BIND(gsi_vetar, cmvlc_fetch_dt);
+	MODULE_CALLBACK_BIND(gsi_vetar, cmvlc_fetch);
+#endif
 }
