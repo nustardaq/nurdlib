@@ -30,8 +30,8 @@ endif
 CHECK_MAP_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/map/map && if ! grep
 CHECK_MAP_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
 
-CHECK_EBONE_PRE=dir=$$(BUILD_DIR_PREFIX=etherbone_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/gsi_etherbone/nconf && if ! grep
-CHECK_EBONE_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "etherbone branch failed!" 1>&2; exit 1; fi
+CHECK_EBONE_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/gsi_etherbone/nconf && if ! grep
+CHECK_EBONE_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
 
 CHECK_PEX_PRE=dir=$$(BUILD_DIR_PREFIX=$@_ make -C .. -s -f gmake/build_dir_echo.mk) && nconf=../$$dir/nconf/module/gsi_pex/nconf && if ! grep
 CHECK_PEX_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!" 1>&2; exit 1; fi
@@ -148,11 +148,11 @@ cmvlc_env: cmvlc/libcmvlc.a
 etherbone: etherbone_test
 .PHONY: etherbone_test
 etherbone_test: etherbone_lib
-	BUILD_DIR_PREFIX=etherbone_ make -C etherbone
+	BUILD_DIR_PREFIX=etherbone_lib_ make -C etherbone
 .PHONY: etherbone_lib
 etherbone_lib: etherbone/lib/libetherbone.a
 	$(QUIET) \
-	BUILD_DIR_PREFIX=etherbone_ make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone && \
+	BUILD_DIR_PREFIX=etherbone_lib_ make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone && \
 	$(CHECK_EBONE_PRE) ETHERBONE_bYES $(CHECK_EBONE_POST)
 
 .PHONY: pex
@@ -260,7 +260,7 @@ clean:  clean_rio3find_ \
 	clean_mvlcc_env_ \
 	clean_cmvlc_config_ \
 	clean_cmvlc_env_ \
-	clean_etherbone_ \
+	clean_etherbone_lib_ \
 	clean_pex_ \
 	clean_tridi_ \
 	clean_trlo_ \
