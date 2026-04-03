@@ -55,5 +55,13 @@ uint32_t	gsi_etherbone_readout(struct GsiEtherboneModule *, struct
     EventBuffer *) FUNC_RETURNS;
 uint32_t	gsi_etherbone_readout_dt(struct GsiEtherboneModule *)
 	FUNC_RETURNS;
+struct cmvlc_stackcmdbuf;
+void		gsi_etherbone_cmvlc_init(struct GsiEtherboneModule *,
+    struct cmvlc_stackcmdbuf *, int);
+uint32_t	gsi_etherbone_cmvlc_fetch_dt(struct GsiEtherboneModule *,
+    const uint32_t *, uint32_t, uint32_t *);
+uint32_t	gsi_etherbone_cmvlc_fetch(struct Crate *, struct
+    GsiEtherboneModule *, struct EventBuffer *, const uint32_t *, uint32_t,
+    uint32_t *);
 
 #endif

@@ -31,6 +31,7 @@
 #include <nurdlib/serialio.h>
 #include <module/map/map.h>
 #include <util/bits.h>
+#include <module/map/map_cmvlc.h>
 
 #define NAME "Gsi Etherbone"
 
@@ -574,6 +575,106 @@ gsi_etherbone_readout_dt(struct GsiEtherboneModule *a_etherbone)
 	LOGF(spam)(LOGL, NAME" readout_dt }");
 	return result;
 }
+
+#if NCONF_mMAP_bCMVLC
+void
+gsi_etherbone_cmvlc_init(struct GsiEtherboneModule *a_etherbone,
+    struct cmvlc_stackcmdbuf *a_stack, int a_dt)
+{
+	LOGF(verbose)(LOGL, NAME" cmvlc_init {");
+
+	if (a_dt) {
+		/* Read FIFO count. */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_etherbone->direct.address + OFS_fifo_cnt, 0,
+				      vme_rw_read, vme_user_A32, vme_D32);
+	} else {
+		/* Pop FIFO. */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_etherbone->direct.address + OFS_fifo_pop, 0,
+				      vme_rw_write, vme_user_A32, vme_D32);
+		/* Read one timestamp from FIFO. */
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_etherbone->direct.address + OFS_fifo_ftshi, 0,
+				      vme_rw_read, vme_user_A32, vme_D32);
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_etherbone->direct.address + OFS_fifo_ftslo, 0,
+				      vme_rw_read, vme_user_A32, vme_D32);
+		cmvlc_stackcmd_vme_rw(a_stack,
+				      a_etherbone->direct.address + OFS_fifo_ftssub,0,
+				      vme_rw_read, vme_user_A32, vme_D32);
+	}
+
+	LOGF(verbose)(LOGL, NAME" cmvlc_init }");
+}
+
+uint32_t
+gsi_etherbone_cmvlc_fetch_dt(struct GsiEtherboneModule *a_etherbone,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	uint32_t result;
+
+	result = 0;
+
+	if (a_in_remain < 1) {
+		log_error(LOGL, "Etherbone: Too few words for FIFO "
+		    "count in cmvlc data.");
+		result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+		goto done;
+	}
+
+	a_etherbone->fifo_num = a_in_buffer[0];
+
+	*a_in_used = 1;
+
+done:
+	return result;
+}
+
+uint32_t
+gsi_etherbone_cmvlc_fetch(struct Crate *a_crate,
+    struct GsiEtherboneModule *a_etherbone, struct EventBuffer *a_event_buffer,
+    const uint32_t *a_in_buffer, uint32_t a_in_remain, uint32_t *a_in_used)
+{
+	uint32_t result;
+	unsigned i;
+
+	size_t used;
+
+	int ret;
+
+	(void) a_crate;
+	(void) a_etherbone;
+
+        result = 0;
+	used = 0;
+
+	for (i = 0; i < a_etherbone->fifo_num; ++i) {
+		uint32_t hi, lo, fn;
+
+		if (a_in_remain < 3) {
+			log_error(LOGL, "Etherbone: Too few words for FIFO "
+			    "data in cmvlc data.");
+			result |= CRATE_READOUT_FAIL_ERROR_DRIVER;
+			goto done;
+		}
+		hi = a_in_buffer[used+0];
+		lo = a_in_buffer[used+1];
+		/* TODO: Skip? */
+		fn = a_in_buffer[used+2];
+		ret = write_ts(a_event_buffer, hi, lo, fn);
+		if (0 != ret) {
+			goto done;
+		}
+		used += 3;
+	}
+
+	*a_in_used = (uint32_t) used;
+
+done:
+	return result;
+}
+#endif
 
 uint32_t
 write_ts(struct EventBuffer *a_event_buffer, uint32_t a_hi, uint32_t a_lo,
