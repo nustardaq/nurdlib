@@ -62,6 +62,7 @@ NTEST(ServerClient)
 
 	s = (char *)datagram.buf;
 	server = udp_server_create(UDP_IPV4, 12345);
+	NTRY_PTR(NULL, !=, server);
 
 	{
 		struct UDPClient *client;
