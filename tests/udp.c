@@ -23,12 +23,36 @@
 #include <util/udp.h>
 #include <util/string.h>
 #include <ntest/ntest.h>
+#include <util/time.h>
+#include <nurdlib/base.h>
+#include <math.h>
+
+static struct UDPServer *
+udp_server_create_repeat(unsigned a_flags, uint16_t a_port)
+{
+	struct UDPServer *server;
+	int i;
+
+	/* With tests running in parallel, port may be in use.
+	 * Try several times.
+	 */
+	for (i = 0; i < 100; i++) {
+		server = udp_server_create(a_flags, a_port);
+		if (NULL != server)
+			return server;
+		/* Do a somewhat random sleep up to 100 ms. */
+		time_sleep(fmod(time_getd(),0.1));
+	}
+
+	log_warn(LOGL, "Gave up creating UDP server at port %d.", a_port);
+	return NULL;
+}
 
 NTEST(ServerSetup)
 {
 	struct UDPServer *server;
 
-	server = udp_server_create(UDP_IPV4, 12346);
+	server = udp_server_create_repeat(UDP_IPV4, 12346);
 	NTRY_PTR(NULL, !=, server);
 	udp_server_free(&server);
 	NTRY_PTR(NULL, ==, server);
@@ -61,7 +85,7 @@ NTEST(ServerClient)
 	 */
 
 	s = (char *)datagram.buf;
-	server = udp_server_create(UDP_IPV4, 12348);
+	server = udp_server_create_repeat(UDP_IPV4, 12348);
 	NTRY_PTR(NULL, !=, server);
 
 	{
