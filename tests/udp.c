@@ -23,25 +23,34 @@
 #include <util/udp.h>
 #include <util/string.h>
 #include <ntest/ntest.h>
+#include <tests/udp_lock.h>
 
 NTEST(ServerSetup)
 {
 	struct UDPServer *server;
 
+	LOCK_PORT;
+
 	server = udp_server_create(UDP_IPV4, 12346);
 	NTRY_PTR(NULL, !=, server);
 	udp_server_free(&server);
 	NTRY_PTR(NULL, ==, server);
+
+	UNLOCK_PORT;
 }
 
 NTEST(ClientSetup)
 {
 	struct UDPClient *client;
 
+	LOCK_PORT;
+
 	client = udp_client_create(UDP_IPV4, "127.0.0.1", 12347);
 	NTRY_PTR(NULL, !=, client);
 	udp_client_free(&client);
 	NTRY_PTR(NULL, ==, client);
+
+	UNLOCK_PORT;
 }
 
 NTEST(ServerClient)
@@ -51,6 +60,8 @@ NTEST(ServerClient)
 	struct UDPDatagram datagram;
 	struct UDPServer *server;
 	char *s;
+
+	LOCK_PORT;
 
 	/*
 	 * NOTE:
@@ -88,6 +99,8 @@ NTEST(ServerClient)
 	NTRY_I(0, ==, datagram.bytes);
 
 	udp_server_free(&server);
+
+	UNLOCK_PORT;
 }
 
 NTEST(ServerWriting)
@@ -96,6 +109,8 @@ NTEST(ServerWriting)
 	struct UDPDatagram datagram;
 	struct UDPServer *server;
 	uint8_t value;
+
+	LOCK_PORT;
 
 	server = udp_server_create(UDP_IPV4, 12349);
 	value = 2;
@@ -106,6 +121,8 @@ NTEST(ServerWriting)
 	NTRY_I(1, ==, datagram.bytes);
 	NTRY_I(2, ==, datagram.buf[0]);
 	udp_server_free(&server);
+
+	UNLOCK_PORT;
 }
 
 NTEST_SUITE(UDP)
