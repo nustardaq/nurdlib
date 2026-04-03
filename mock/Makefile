@@ -43,6 +43,7 @@ CHECK_TRLOII_POST=$${nconf}.h; then cat $${nconf}.h.log; echo "$@ branch failed!
 all: rio3find rio3smem rio4bma xpc326 xpc3310 rio2 universe rimfaxe \
 	caenabs caensys mvlcc_config mvlcc_env cmvlc_config cmvlc_env \
 	etherbone pex \
+	etherbone_cmvlc_config \
 	tridi trlo \
 	drasi drasi_tridi drasi_trlo \
 	mbs mbs_tridi mbs_trlo
@@ -155,6 +156,18 @@ etherbone_lib: etherbone/lib/libetherbone.a
 	BUILD_DIR_PREFIX=etherbone_lib_ make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone && \
 	$(CHECK_EBONE_PRE) ETHERBONE_bYES $(CHECK_EBONE_POST)
 
+.PHONY: etherbone_cmvlc_config
+etherbone_cmvlc_config: etherbone_cmvlc_config_test
+.PHONY: etherbone_cmvlc_config_test
+etherbone_cmvlc_config_test: etherbone_cmvlc_config_lib
+	BUILD_DIR_PREFIX=etherbone_cmvlc_config_lib_ make -C etherbone_cmvlc
+.PHONY: etherbone_cmvlc_config_lib
+etherbone_cmvlc_config_lib: etherbone/lib/libetherbone.a
+	$(QUIET) \
+	BUILD_DIR_PREFIX=etherbone_cmvlc_config_lib_ CMVLC_CONFIG=mock/cmvlc/cmvlc-config.sh make $(RUNNER_MAKE_J) -C ../ WR_SYS=mock/etherbone && \
+	$(CHECK_EBONE_PRE) ETHERBONE_bYES $(CHECK_EBONE_POST) && \
+	$(CHECK_MAP_PRE) CMVLC $(CHECK_MAP_POST)
+
 .PHONY: pex
 pex: pex/dev/pexor
 	$(QUIET) \
@@ -261,6 +274,7 @@ clean:  clean_rio3find_ \
 	clean_cmvlc_config_ \
 	clean_cmvlc_env_ \
 	clean_etherbone_lib_ \
+	clean_etherbone_cmvlc_config_lib_ \
 	clean_pex_ \
 	clean_tridi_ \
 	clean_trlo_ \
