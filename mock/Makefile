@@ -242,26 +242,28 @@ mbs_trlo: trlo \
 	BUILD_DIR_PREFIX=trlo_ TRLOII_PATH=mock/trlo CPPFLAGS=-Imock/mbs/ LDFLAGS=-Lmock/mbs \
 	    make $(RUNNER_MAKE_J) -C ../ GSI_OS=os GSI_CPU_ENDIAN=endian MBSROOT=mock/mbs fuser_mbs
 
+clean_%:
+	BUILD_DIR_PREFIX=$* make -C ../ clean
+
 .PHONY: clean
-clean:
-	BUILD_DIR_PREFIX=rio3find_ make -C ../ clean
-	BUILD_DIR_PREFIX=rio3smem_ make -C ../ clean
-	BUILD_DIR_PREFIX=rio4bma_ make -C ../ clean
-	BUILD_DIR_PREFIX=xpc326_ make -C ../ clean
-	BUILD_DIR_PREFIX=xpc3310_ make -C ../ clean
-	BUILD_DIR_PREFIX=rio2_ make -C ../ clean
-	BUILD_DIR_PREFIX=universe_ make -C ../ clean
-	BUILD_DIR_PREFIX=rimfaxe_ make -C ../ clean
-	BUILD_DIR_PREFIX=caenabs_ make -C ../ clean
-	BUILD_DIR_PREFIX=caensys_ make -C ../ clean
-	BUILD_DIR_PREFIX=mvlcc_config_ make -C ../ clean
-	BUILD_DIR_PREFIX=mvlcc_env_ make -C ../ clean
-	BUILD_DIR_PREFIX=cmvlc_config_ make -C ../ clean
-	BUILD_DIR_PREFIX=cmvlc_env_ make -C ../ clean
-	BUILD_DIR_PREFIX=etherbone_ make -C ../ clean
-	BUILD_DIR_PREFIX=pex_ make -C ../ clean
-	BUILD_DIR_PREFIX=tridi_ make -C ../ clean
-	BUILD_DIR_PREFIX=trlo_ make -C ../ clean
+clean:  clean_rio3find_ \
+	clean_rio3smem_ \
+	clean_rio4bma_ \
+	clean_xpc326_ \
+	clean_xpc3310_ \
+	clean_rio2_ \
+	clean_universe_ \
+	clean_rimfaxe_ \
+	clean_caenabs_ \
+	clean_caensys_ \
+	clean_mvlcc_config_ \
+	clean_mvlcc_env_ \
+	clean_cmvlc_config_ \
+	clean_cmvlc_env_ \
+	clean_etherbone_ \
+	clean_pex_ \
+	clean_tridi_ \
+	clean_trlo_ \
 	rm -rf */*.a */*.o */lib/ pex \
 	    tridi/*/lib_mock/*.a tridi/*/lib_mock/*.o \
 	    tridi/trloctrl/*/*/*.a tridi/trloctrl/*/*/*.o \
