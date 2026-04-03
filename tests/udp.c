@@ -23,25 +23,70 @@
 #include <util/udp.h>
 #include <util/string.h>
 #include <ntest/ntest.h>
+#include <util/time.h>
+#include <nurdlib/base.h>
+#include <math.h>
+
+static struct UDPServer *
+udp_server_create_repeat(unsigned a_flags, uint16_t a_port)
+{
+	struct UDPServer *server;
+	int i;
+
+	/* With tests running in parallel, port may be in use.
+	 * Try several times.
+	 */
+	for (i = 0; i < 100; i++) {
+		server = udp_server_create(a_flags, a_port);
+		if (NULL != server)
+			return server;
+		/* Do a somewhat random sleep up to 100 ms. */
+		time_sleep(fmod(time_getd(),0.1));
+	}
+
+	log_warn(LOGL, "Gave up creating UDP server at port %d.", a_port);
+	return NULL;
+}
+
+/* In order that tests that run in parallel do not interfere with each
+ * other (client by accident talking to server opened by other test),
+ * they are run only one at a time.  Locking is achieved by holding a
+ * separate UDP port.
+ */
+static struct UDPServer *g_lock_port = NULL;
+#define LOCK_PORT do { \
+		g_lock_port = udp_server_create_repeat(UDP_IPV4, 12345); \
+	} while (0)
+#define UNLOCK_PORT do { \
+		udp_server_free(&g_lock_port); \
+	} while (0)
 
 NTEST(ServerSetup)
 {
 	struct UDPServer *server;
 
+	LOCK_PORT;
+
 	server = udp_server_create(UDP_IPV4, 12346);
 	NTRY_PTR(NULL, !=, server);
 	udp_server_free(&server);
 	NTRY_PTR(NULL, ==, server);
+
+	UNLOCK_PORT;
 }
 
 NTEST(ClientSetup)
 {
 	struct UDPClient *client;
 
+	LOCK_PORT;
+
 	client = udp_client_create(UDP_IPV4, "127.0.0.1", 12347);
 	NTRY_PTR(NULL, !=, client);
 	udp_client_free(&client);
 	NTRY_PTR(NULL, ==, client);
+
+	UNLOCK_PORT;
 }
 
 NTEST(ServerClient)
@@ -51,6 +96,8 @@ NTEST(ServerClient)
 	struct UDPDatagram datagram;
 	struct UDPServer *server;
 	char *s;
+
+	LOCK_PORT;
 
 	/*
 	 * NOTE:
@@ -88,6 +135,8 @@ NTEST(ServerClient)
 	NTRY_I(0, ==, datagram.bytes);
 
 	udp_server_free(&server);
+
+	UNLOCK_PORT;
 }
 
 NTEST(ServerWriting)
@@ -96,6 +145,8 @@ NTEST(ServerWriting)
 	struct UDPDatagram datagram;
 	struct UDPServer *server;
 	uint8_t value;
+
+	LOCK_PORT;
 
 	server = udp_server_create(UDP_IPV4, 12349);
 	value = 2;
@@ -106,6 +157,8 @@ NTEST(ServerWriting)
 	NTRY_I(1, ==, datagram.bytes);
 	NTRY_I(2, ==, datagram.buf[0]);
 	udp_server_free(&server);
+
+	UNLOCK_PORT;
 }
 
 NTEST_SUITE(UDP)
