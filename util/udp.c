@@ -282,7 +282,7 @@ receive_datagram(SOCKET a_socket, int a_fd_extra, struct UDPDatagram *a_dgram,
 			if (EAGAIN == errno || EWOULDBLOCK == errno) {
 				return 1;
 			}
-			log_warn(LOGL, "recvfrom");
+			log_warn(LOGL, "read");
 			return 0;
 		}
 		a_dgram->bytes = got;
