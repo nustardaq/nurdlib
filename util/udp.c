@@ -687,4 +687,32 @@ udp_server_write(struct UDPServer const *a_server, void const *a_data, size_t
 	return 1;
 }
 
+int
+udp_server_port(struct UDPServer const *a_server)
+{
+	struct SOCKADDR_STORAGE addr;
+	socklen_t len;
+
+	if (SOCKET_ERROR == getsockname(a_server->socket,
+	    (void *)&addr, &len)) {
+                log_warn(LOGL, "getsockname");
+                return -1;
+        }
+	/* fprintf(stderr,"get port %d %d\n", addr.sin_family, (int) len); */
+	if (AF_INET == addr.sin_family) {
+		/* fprintf(stderr,"get port -> %d\n", addr.sin_port); */
+		return ntohs(addr.sin_port);
+#if defined(AF_INET6)
+        } else if (AF_INET6 == addr.sin_family) {
+		struct sockaddr_in6 const *addr6;
+
+		addr6 = (void const *)&addr;
+		return ntohs(addr6->sin6_port);
+#endif
+	} else {
+                assert(0 && "Invalid address family.");
+                return -1;
+        }
+}
+
 #endif

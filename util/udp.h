@@ -68,5 +68,6 @@ int			udp_server_send(struct UDPServer const *, struct
     UDPAddress const *, struct UDPDatagram const *) FUNC_NONNULL(());
 int			udp_server_write(struct UDPServer const *, void const
     *, size_t) FUNC_NONNULL(());
+int			udp_server_port(struct UDPServer const *);
 
 #endif
