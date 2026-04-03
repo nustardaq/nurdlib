@@ -28,7 +28,7 @@ NTEST(ServerSetup)
 {
 	struct UDPServer *server;
 
-	server = udp_server_create(UDP_IPV4, 12345);
+	server = udp_server_create(UDP_IPV4, 12346);
 	NTRY_PTR(NULL, !=, server);
 	udp_server_free(&server);
 	NTRY_PTR(NULL, ==, server);
@@ -38,7 +38,7 @@ NTEST(ClientSetup)
 {
 	struct UDPClient *client;
 
-	client = udp_client_create(UDP_IPV4, "127.0.0.1", 12345);
+	client = udp_client_create(UDP_IPV4, "127.0.0.1", 12347);
 	NTRY_PTR(NULL, !=, client);
 	udp_client_free(&client);
 	NTRY_PTR(NULL, ==, client);
@@ -61,13 +61,13 @@ NTEST(ServerClient)
 	 */
 
 	s = (char *)datagram.buf;
-	server = udp_server_create(UDP_IPV4, 12345);
+	server = udp_server_create(UDP_IPV4, 12348);
 	NTRY_PTR(NULL, !=, server);
 
 	{
 		struct UDPClient *client;
 
-		client = udp_client_create(UDP_IPV4, "127.0.0.1", 12345);
+		client = udp_client_create(UDP_IPV4, "127.0.0.1", 12348);
 		NTRY_PTR(NULL, != , client);
 		strlcpy_(s, STRING, sizeof datagram.buf);
 		datagram.bytes = sizeof(STRING);
@@ -97,7 +97,7 @@ NTEST(ServerWriting)
 	struct UDPServer *server;
 	uint8_t value;
 
-	server = udp_server_create(UDP_IPV4, 12345);
+	server = udp_server_create(UDP_IPV4, 12349);
 	value = 2;
 	udp_server_write(server, &value, sizeof value);
 	datagram.bytes = 0;
