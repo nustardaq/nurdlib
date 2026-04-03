@@ -51,6 +51,7 @@ NTEST(ServerClient)
 	struct UDPDatagram datagram;
 	struct UDPServer *server;
 	char *s;
+	int port;
 
 	/*
 	 * NOTE:
@@ -61,12 +62,24 @@ NTEST(ServerClient)
 	 */
 
 	s = (char *)datagram.buf;
-	server = udp_server_create(UDP_IPV4, 12345);
+	server = udp_server_create(UDP_IPV4, 0 /* Random port. */);
+	/* Ugly: The UDP socket does not decide on the random
+	 * port to bidn to until something is sent through it?
+	 * Hack: Send a dummy datagram through the socket.
+	 * Sending to some other(?) port - sorry for the spam.
+	 */
+	address = udp_address_create(UDP_IPV4, "127.0.0.1", 33333);
+	strlcpy_(s, STRING, sizeof datagram.buf);
+	datagram.bytes = sizeof(STRING);
+	udp_server_send(server, address, &datagram);
+	/* Get the random port the socket was bound to. */
+	port = udp_server_port(server);
+	/* fprintf(stderr,"Bound to port: %d.\n", port); */
 
 	{
 		struct UDPClient *client;
 
-		client = udp_client_create(UDP_IPV4, "127.0.0.1", 12345);
+		client = udp_client_create(UDP_IPV4, "127.0.0.1", port);
 		NTRY_PTR(NULL, != , client);
 		strlcpy_(s, STRING, sizeof datagram.buf);
 		datagram.bytes = sizeof(STRING);
