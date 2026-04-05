@@ -27,6 +27,7 @@
 #include <nurdlib/config.h>
 #include <nurdlib/log.h>
 #include <util/string.h>
+#include <tests/udp_lock.h>
 
 NTEST(AbsolutePaths)
 {
@@ -36,6 +37,11 @@ NTEST(AbsolutePaths)
 	char *path;
 	size_t strsiz;
 	int ret;
+
+	/* Test uses a file in a fixed path.
+	 * Test can not be run concurrently.
+	 */
+	LOCK_PORT;
 
 	path = getcwd(cwd, sizeof cwd);
 	NTRY_PTR(NULL, !=, path);
@@ -71,6 +77,8 @@ NTEST(AbsolutePaths)
 	if (0 != ret) {
 		log_error(LOGL, "remove: %s.", strerror(errno));
 	}
+
+	UNLOCK_PORT;
 }
 
 NTEST(IncludeSingle)
