@@ -616,7 +616,8 @@ udp_server_create(unsigned a_flags, uint16_t a_port)
 		me.sin_addr.s_addr = htonl(INADDR_ANY);
 		me.sin_port = htons(a_port);
 		if (0 != bind(sock, (void *)&me, sizeof me)) {
-			log_warn(LOGL, "bind(NULL:%u)", a_port);
+			if (EADDRINUSE != errno)
+				log_warn(LOGL, "bind(NULL:%u)", a_port);
 			goto udp_server_create_fail;
 		}
 	}
