@@ -33,12 +33,14 @@
 #include <nurdlib/crate.h>
 #include <util/endian.h>
 #include <util/pack.h>
+#include <tests/udp_lock.h>
 
 NTEST(OnlineStatus)
 {
 	struct CtrlClient *client;
 	struct CtrlServer *server;
 
+	LOCK_PORT;
 	config_load("tests/ctrl_yes.cfg");
 
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
@@ -57,6 +59,7 @@ NTEST(OnlineStatus)
 	NTRY_PTR(NULL, ==, client);
 
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(EmptyCrate)
@@ -68,6 +71,7 @@ NTEST(EmptyCrate)
 	struct CtrlCrate const *ctrl_crate;
 	int ret;
 
+	LOCK_PORT;
 	/* Load one empty crate. */
 	crate_setup();
 	module_setup();
@@ -93,6 +97,7 @@ NTEST(EmptyCrate)
 
 	crate_free(&crate);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(SimpleCrate)
@@ -104,6 +109,7 @@ NTEST(SimpleCrate)
 	struct CtrlCrate const *ctrl_crate;
 	struct CtrlModule const *ctrl_module;
 
+	LOCK_PORT;
 	/* Load one crate with a single module. */
 	crate_setup();
 	module_setup();
@@ -137,6 +143,7 @@ NTEST(SimpleCrate)
 
 	crate_free(&crate);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(UnknownCrate)
@@ -146,6 +153,7 @@ NTEST(UnknownCrate)
 	struct Crate *crate;
 	struct CtrlCrateInfo crate_info;
 
+	LOCK_PORT;
 	crate_setup();
 	module_setup();
 	config_load("tests/crate_simple.cfg");
@@ -170,6 +178,7 @@ NTEST(UnknownCrate)
 
 	crate_free(&crate);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(UnknownModule)
@@ -179,6 +188,7 @@ NTEST(UnknownModule)
 	struct CtrlServer *server;
 	struct Crate *crate;
 
+	LOCK_PORT;
 	crate_setup();
 	module_setup();
 	config_load("tests/crate_simple.cfg");
@@ -198,6 +208,7 @@ NTEST(UnknownModule)
 
 	crate_free(&crate);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(UnsupportedModule)
@@ -207,6 +218,7 @@ NTEST(UnsupportedModule)
 	struct CtrlServer *server;
 	struct Crate *crate;
 
+	LOCK_PORT;
 	crate_setup();
 	module_setup();
 	config_load("tests/crate_sam.cfg");
@@ -225,6 +237,7 @@ NTEST(UnsupportedModule)
 
 	crate_free(&crate);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(Confed)
@@ -233,6 +246,7 @@ NTEST(Confed)
 	struct CtrlServer *server;
 	int i;
 
+	LOCK_PORT;
 	/* Try a few times to be sure... */
 	for (i = 0; 2 > i; ++i) {
 		config_load("tests/ctrl_yes.cfg");
@@ -258,6 +272,7 @@ NTEST(Confed)
 		ctrl_server_free(&server);
 		config_shutdown();
 	}
+	UNLOCK_PORT;
 }
 
 NTEST(CustomPort)
@@ -265,6 +280,7 @@ NTEST(CustomPort)
 	struct CtrlClient *client;
 	struct CtrlServer *server;
 
+	LOCK_PORT;
 	config_load("tests/ctrl_customport.cfg");
 	server = ctrl_server_create();
 	NTRY_PTR(NULL, !=, server);
@@ -281,6 +297,7 @@ NTEST(CustomPort)
 
 	ctrl_server_free(&server);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST(ConfigDump)
@@ -297,6 +314,7 @@ NTEST(ConfigDump)
 	size_t i;
 	int ret;
 
+	LOCK_PORT;
 	/* TODO: Do we really need exactly this cfg? */
 	config_load("tests/barriers.cfg");
 	server = ctrl_server_create();
@@ -411,6 +429,7 @@ NTEST(ConfigDump)
 	ctrl_client_free(&client);
 	ctrl_server_free(&server);
 	config_shutdown();
+	UNLOCK_PORT;
 }
 
 NTEST_SUITE(Ctrl)
