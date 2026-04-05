@@ -42,9 +42,11 @@ NTEST(OnlineStatus)
 	config_load("tests/ctrl_yes.cfg");
 
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 	NTRY_BOOL(!ctrl_client_is_online(client));
 
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 	NTRY_BOOL(ctrl_client_is_online(client));
 
 	ctrl_server_free(&server);
@@ -73,8 +75,8 @@ NTEST(EmptyCrate)
 	crate = crate_create();
 
 	server = ctrl_server_create();
-	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, server);
+	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
 
 	/* There should be one crate with specific data. */
@@ -109,7 +111,9 @@ NTEST(SimpleCrate)
 	crate = crate_create();
 
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 
 	/* There should be one crate with specific data. */
 	ctrl_client_crate_array_get(client, &crate_array);
@@ -148,7 +152,9 @@ NTEST(UnknownCrate)
 	crate = crate_create();
 
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 
 	/* Ask for ghost crate. */
 	ZERO(crate_info);
@@ -179,7 +185,9 @@ NTEST(UnknownModule)
 	crate = crate_create();
 
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 
 	/* Ask for ghost module. */
 	NTRY_BOOL(!ctrl_client_register_array_get(client, &reg_array, 0, 3,
@@ -205,7 +213,9 @@ NTEST(UnsupportedModule)
 	crate = crate_create();
 
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 
 	NTRY_BOOL(!ctrl_client_register_array_get(client, &reg_array, 0, 0,
 	    -1));
@@ -227,17 +237,22 @@ NTEST(Confed)
 	for (i = 0; 2 > i; ++i) {
 		config_load("tests/ctrl_yes.cfg");
 		server = ctrl_server_create();
+		NTRY_PTR(NULL, !=, server);
 		client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT +
 		    1);
+		NTRY_PTR(NULL, !=, client);
 		NTRY_BOOL(ctrl_client_is_online(client));
 		ctrl_client_free(&client);
 		ctrl_server_free(&server);
 		config_shutdown();
 
 		config_load("tests/ctrl_no.cfg");
+		/* Note: this shall create no server. */
 		server = ctrl_server_create();
+		NTRY_PTR(NULL, ==, server);
 		client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT +
 		    1);
+		NTRY_PTR(NULL, !=, client);
 		NTRY_BOOL(!ctrl_client_is_online(client));
 		ctrl_client_free(&client);
 		ctrl_server_free(&server);
@@ -252,12 +267,15 @@ NTEST(CustomPort)
 
 	config_load("tests/ctrl_customport.cfg");
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 	NTRY_BOOL(!ctrl_client_is_online(client));
 	ctrl_client_free(&client);
 
 	client = ctrl_client_create("127.0.0.1", 50000);
+	NTRY_PTR(NULL, !=, client);
 	NTRY_BOOL(ctrl_client_is_online(client));
 	ctrl_client_free(&client);
 
@@ -282,7 +300,9 @@ NTEST(ConfigDump)
 	/* TODO: Do we really need exactly this cfg? */
 	config_load("tests/barriers.cfg");
 	server = ctrl_server_create();
+	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
+	NTRY_PTR(NULL, !=, client);
 	TAILQ_INIT(&list);
 	ret = ctrl_client_config_dump(client, &list);
 	NTRY_BOOL(ret);
