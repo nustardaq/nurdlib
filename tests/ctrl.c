@@ -34,6 +34,22 @@
 #include <util/endian.h>
 #include <util/pack.h>
 
+NTEST(NooneOnline)
+{
+	struct CtrlClient *client;
+
+	config_load("tests/ctrl_yes.cfg");
+
+	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 2);
+	NTRY_PTR(NULL, !=, client);
+	NTRY_BOOL(!ctrl_client_is_online(client));
+
+	ctrl_client_free(&client);
+	NTRY_PTR(NULL, ==, client);
+
+	config_shutdown();
+}
+
 NTEST(OnlineStatus)
 {
 	struct CtrlClient *client;
@@ -43,7 +59,10 @@ NTEST(OnlineStatus)
 
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
-	NTRY_BOOL(!ctrl_client_is_online(client));
+	/* This cannot be tested with parallel tests, since some other
+	 * test may have the server online.
+	 */
+	/* NTRY_BOOL(!ctrl_client_is_online(client)); */
 
 	server = ctrl_server_create();
 	NTRY_PTR(NULL, !=, server);
@@ -51,7 +70,10 @@ NTEST(OnlineStatus)
 
 	ctrl_server_free(&server);
 	NTRY_PTR(NULL, ==, server);
-	NTRY_BOOL(!ctrl_client_is_online(client));
+	/* This cannot be tested with parallel tests, some other test
+	 * may already have opened the server again.
+	 */
+	/* NTRY_BOOL(!ctrl_client_is_online(client)); */
 
 	ctrl_client_free(&client);
 	NTRY_PTR(NULL, ==, client);
@@ -415,6 +437,7 @@ NTEST(ConfigDump)
 
 NTEST_SUITE(Ctrl)
 {
+	NTEST_ADD(NooneOnline);
 	NTEST_ADD(OnlineStatus);
 	NTEST_ADD(EmptyCrate);
 	NTEST_ADD(SimpleCrate);
