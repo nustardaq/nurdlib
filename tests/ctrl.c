@@ -33,6 +33,29 @@
 #include <nurdlib/crate.h>
 #include <util/endian.h>
 #include <util/pack.h>
+#include <util/time.h>
+#include <math.h>
+
+static struct CtrlServer *
+ctrl_server_create_repeat(void)
+{
+	struct CtrlServer *server;
+	int i;
+
+	/* With tests running in parallel, port may be in use.
+	 * Try several times.
+	 */
+	for (i = 0; i < 100; i++) {
+		server = ctrl_server_create();
+		if (NULL != server)
+			return server;
+		/* Do a somewhat random sleep up to 100 ms. */
+		time_sleep(fmod(time_getd(),0.1));
+	}
+
+	log_warn(LOGL, "Gave up creating ctrl server.");
+	return NULL;
+}
 
 NTEST(NooneOnline)
 {
@@ -64,7 +87,7 @@ NTEST(OnlineStatus)
 	 */
 	/* NTRY_BOOL(!ctrl_client_is_online(client)); */
 
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	NTRY_BOOL(ctrl_client_is_online(client));
 
@@ -96,7 +119,7 @@ NTEST(EmptyCrate)
 	config_load("tests/crate_empty.cfg");
 	crate = crate_create();
 
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
@@ -132,7 +155,7 @@ NTEST(SimpleCrate)
 	config_load("tests/crate_simple.cfg");
 	crate = crate_create();
 
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
@@ -173,7 +196,7 @@ NTEST(UnknownCrate)
 	config_load("tests/crate_simple.cfg");
 	crate = crate_create();
 
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
@@ -206,7 +229,7 @@ NTEST(UnknownModule)
 	config_load("tests/crate_simple.cfg");
 	crate = crate_create();
 
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
@@ -234,7 +257,7 @@ NTEST(UnsupportedModule)
 	config_load("tests/crate_sam.cfg");
 	crate = crate_create();
 
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
@@ -258,7 +281,7 @@ NTEST(Confed)
 	/* Try a few times to be sure... */
 	for (i = 0; 2 > i; ++i) {
 		config_load("tests/ctrl_yes.cfg");
-		server = ctrl_server_create();
+		server = ctrl_server_create_repeat();
 		NTRY_PTR(NULL, !=, server);
 		client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT +
 		    1);
@@ -269,7 +292,7 @@ NTEST(Confed)
 		config_shutdown();
 
 		config_load("tests/ctrl_no.cfg");
-		/* Note: this shall create no server. */
+		/* Note: this shall create no server.  Thus no repeat. */
 		server = ctrl_server_create();
 		NTRY_PTR(NULL, ==, server);
 		client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT +
@@ -288,7 +311,7 @@ NTEST(CustomPort)
 	struct CtrlServer *server;
 
 	config_load("tests/ctrl_customport.cfg");
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
@@ -321,7 +344,7 @@ NTEST(ConfigDump)
 
 	/* TODO: Do we really need exactly this cfg? */
 	config_load("tests/barriers.cfg");
-	server = ctrl_server_create();
+	server = ctrl_server_create_repeat();
 	NTRY_PTR(NULL, !=, server);
 	client = ctrl_client_create("127.0.0.1", CTRL_DEFAULT_PORT + 1);
 	NTRY_PTR(NULL, !=, client);
