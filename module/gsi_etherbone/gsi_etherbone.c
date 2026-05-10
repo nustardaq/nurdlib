@@ -694,9 +694,9 @@ write_ts(struct EventBuffer *a_event_buffer, uint32_t a_hi, uint32_t a_lo,
 	    ((uint64_t)a_hi << 35) |
 	    ((uint64_t)a_lo << 3) |
 	    ((uint64_t)a_fn & 0x7);
-	/* Store network-order/big-endian. */
-	*p32++ = htonl_(ts >> 32);
-	*p32++ = htonl_(ts & 0xffffffff);
+	/* Store with high 32-bit word first, host endian. */
+	*p32++ = (ts >> 32);
+	*p32++ = (ts & 0xffffffff);
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32);
 	return 0;
 }

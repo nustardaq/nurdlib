@@ -246,9 +246,9 @@ gsi_##nlib_name##_readout(struct Crate *a_crate, struct Module *a_module, \
 			ret = CRATE_READOUT_FAIL_DATA_CORRUPT; \
 			goto nlib_name##_readout_done; \
 		} \
-		/* Store it in network-order/big-endian. */ \
-		*p32++ = htonl_(stamp >> 32); \
-		*p32++ = htonl_(stamp & 0xffffffff); \
+		/* Store with high 32-bit word first, host endian. */ \
+		*p32++ = (stamp >> 32); \
+		*p32++ = (stamp & 0xffffffff); \
 	} \
 	EVENT_BUFFER_ADVANCE(*a_event_buffer, p32); \
 	chksum_header = (trloii->ts_status >> 24) & 0x0ff; \
@@ -408,9 +408,9 @@ gsi_##nlib_name##_readout_shadow(struct Crate *a_crate, struct Module \
 		} else { \
 			int desync; \
 \
-			/* Store it in network-order/big-endian. */ \
-			*p32++ = htonl_(u32); \
-			*p32++ = htonl_(trloii->u32_low); \
+			/* Store with high 32-bit word first, host endian. */ \
+			*p32++ = (u32); \
+			*p32++ = (trloii->u32_low); \
 			desync = (u32 >> 30) & 1; \
 			if (desync) { \
 				log_error(LOGL, \

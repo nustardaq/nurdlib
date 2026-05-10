@@ -29,6 +29,11 @@
 #include <nurdlib/base.h>
 #include <util/funcattr.h>
 
+/* Macro to tell that nurdlib stores timestamps with high word first in
+ * host byte order.
+ */
+#define NURDLIB_STORES_TS_HI_FIRST_NATIVE 1
+
 /* Ripped from trloii header to avoid vararg macros. */
 void trcom_hwmap_error_internal(int, const char *, int, const char *, ...);
 typedef void (*hwmap_error_internal_func)(int, const char *, int, const char
