@@ -93,7 +93,8 @@ CFLAGS_:=$(CFLAGS) \
 	-Wall -Wcast-qual -Werror -Wformat=2 \
 	-Wmissing-prototypes -Wshadow -Wstrict-prototypes
 LDFLAGS_:=$(LDFLAGS)
-LIBS_:=$(LIBS)
+LIBS_:=$(LIBS) \
+	-lm
 
 ifeq (debug,$(BUILD_MODE))
  CFLAGS_+=-ggdb
