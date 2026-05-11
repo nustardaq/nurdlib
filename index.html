@@ -1,0 +1,918 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NUstar ReaDout LIBrary - nurdlib &mdash; Nurdlib 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Nurdlib
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">NUstar ReaDout LIBrary - nurdlib</a><ul>
+<li><a class="reference internal" href="#acquire-and-build">Acquire and build</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#features">Features</a></li>
+<li><a class="reference internal" href="#support">Support</a></li>
+<li><a class="reference internal" href="#building">Building</a><ul>
+<li><a class="reference internal" href="#testing-and-coverage">Testing and coverage</a></li>
+<li><a class="reference internal" href="#release-mode">Release mode</a></li>
+<li><a class="reference internal" href="#build-for-shared-library-use">Build for shared library use</a></li>
+<li><a class="reference internal" href="#caen-vmelib">CAEN VMElib</a></li>
+<li><a class="reference internal" href="#cmvlc">cmvlc</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#utils">Utils</a><ul>
+<li><a class="reference internal" href="#nurdctrl">nurdctrl</a></li>
+<li><a class="reference internal" href="#rwdump">rwdump</a></li>
+<li><a class="reference internal" href="#wrslew">wrslew</a></li>
+<li><a class="reference internal" href="#memtest">memtest</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#glue-code-example">Glue code example</a></li>
+<li><a class="reference internal" href="#functions">Functions</a><ul>
+<li><a class="reference internal" href="#tags">Tags</a></li>
+<li><a class="reference internal" href="#multi-event">Multi-event</a></li>
+<li><a class="reference internal" href="#control-interface">Control interface</a></li>
+<li><a class="reference internal" href="#configuration-parser">Configuration parser</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#environment-variables">Environment variables</a><ul>
+<li><a class="reference internal" href="#run-time-variables">Run-time variables</a></li>
+<li><a class="reference internal" href="#build-variables">Build variables</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#build-system">Build system</a><ul>
+<li><a class="reference internal" href="#nconf">nconf</a></li>
+<li><a class="reference internal" href="#ntest">ntest</a></li>
+<li><a class="reference internal" href="#mocking">mocking</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#guidelines">Guidelines</a></li>
+<li><a class="reference internal" href="#people">People</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Nurdlib</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">NUstar ReaDout LIBrary - nurdlib</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="nustar-readout-library-nurdlib">
+<h1>NUstar ReaDout LIBrary - nurdlib<a class="headerlink" href="#nustar-readout-library-nurdlib" title="Link to this heading">¶</a></h1>
+<img alt="_images/nurdlib.png" src="_images/nurdlib.png" />
+<p>A library for configuring, reading data from, and carefully checking data
+collection modules commonly used in nuclear physics experiments.</p>
+<p>This document will start with simple examples, then cover common use cases and
+questions, and at last delve deeper into the inner workings of this library.</p>
+<section id="acquire-and-build">
+<h2>Acquire and build<a class="headerlink" href="#acquire-and-build" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/nustardaq/nurdlib.git
+<span class="nb">cd</span><span class="w"> </span>nurdlib
+make<span class="w"> </span>-j8
+make<span class="w"> </span>-j8<span class="w"> </span>fuser_drasi
+</pre></div>
+</div>
+<p>The above creates a debug build of the library, some binary tools, and an
+f-user (user readout binary) linked to drasi <a class="reference internal" href="#bib-drasi"><span class="std std-ref">[1]</span></a>.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p>The nurdlib f-user opens <code class="docutils literal notranslate"><span class="pre">nurdlib.cfg</span></code> by default, so the following would go
+to such a file:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">CRATE(&quot;VME0&quot;) {</span>
+<span class="w">    </span><span class="c1"># TRIDI with TRLO II gateware.</span>
+<span class="w">    </span><span class="na">GSI_TRIDI(0x03000000) {</span>
+<span class="w">        </span><span class="c1"># Read timestamps.</span>
+<span class="w">        </span><span class="na">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="w">    </span><span class="na">}</span>
+<span class="w">    </span><span class="c1"># Caen TDC with default nurdlib settings.</span>
+<span class="w">    </span><span class="na">CAEN_V775(0x00010000) {}</span>
+<span class="na">}</span>
+</pre></div>
+</div>
+<p>Run the drasi f-user:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./bin/m_read_meb.drasi<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--label<span class="o">=</span>Test<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--triva<span class="o">=</span>master<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--buf<span class="o">=</span><span class="nv">size</span><span class="o">=</span>100Mi<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--max-ev-size<span class="o">=</span>0x1000<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--subev<span class="o">=</span><span class="nv">crate</span><span class="o">=</span><span class="m">0</span>,type<span class="o">=</span><span class="m">10</span>,subtype<span class="o">=</span><span class="m">1</span>,control<span class="o">=</span><span class="m">1</span>,procid<span class="o">=</span><span class="m">13</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--server<span class="o">=</span>trans<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--server<span class="o">=</span>stream
+</pre></div>
+</div>
+<p>This reads timestamps from a TRIDI on address 0x03000000, and a Caen v775 TDC
+on address 0x00010000, and both should have triggered once for every readout.</p>
+<p>It is also possible to query and modify a running daq online:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dump the config:</span>
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-D
+
+<span class="c1"># Print a simple crate &amp; module tree.</span>
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-s<span class="w"> </span>print
+
+<span class="c1"># Dump known registers of crate=0 module=1, i.e. in this example a V775.</span>
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>,1<span class="w"> </span>-d
+
+<span class="c1"># Get firmware version of the V775 (refer to the manual).</span>
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>,1<span class="w"> </span>-m<span class="w"> </span>0x1000:16
+
+<span class="c1"># Set thresholds of channels 1 &amp; 2.</span>
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>,1<span class="w"> </span>-m<span class="w"> </span>0x1080:16:0x100,0x1082:16:0x120
+</pre></div>
+</div>
+<p>In case there is no running DAQ, one can talk to modules directly:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dump V775 registers.</span>
+./bin/rwdump<span class="w"> </span>-a<span class="w"> </span>0x00010000<span class="w"> </span>-t<span class="w"> </span>CAEN_V775<span class="w"> </span>-d
+
+<span class="c1"># Read and write channel 0 threshold.</span>
+./bin/rwdump<span class="w"> </span>-a<span class="w"> </span>0x00011080<span class="w"> </span>-r16
+./bin/rwdump<span class="w"> </span>-a<span class="w"> </span>0x00011080<span class="w"> </span>-w16,0x100
+</pre></div>
+</div>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>nurdlib is an amalgamation of readout codes and experiences from many
+experiments mainly related to NUSTAR, but has been used also in other setups
+and facilities.</p>
+<p>All this collected support can make nurdlib rather opaque and difficult to
+grasp fully, but it does offer a lot of error checking and recovery that is
+difficult to get right for a new DAQ.</p>
+<p>The library aims to be as agnostic as possible to the DAQ backend, so the user
+will need to provide the “glue” code. nurdlib does know about MBS and drasi
+and ships with a minimal f-user which handles single-event readout.</p>
+<p>For maximum performance and widespread compatibility, especially for old and
+limited systems, the code is written in ANSI C. Existing features should work
+“everywhere”, which for nurdlib is considered more important than how easy it
+is to quickly plug in new features.</p>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>ASCII-based configuration of readout.</p></li>
+<li><p>Sane (debatable) default configurations for modules.</p></li>
+<li><p>Logging and debugging facilities.</p></li>
+<li><p>Striving for DAQ framework and platform independence.</p></li>
+<li><p>Module tagging for mixed module readout.</p></li>
+<li><p>Online module integrity tests.</p></li>
+<li><p>Online data integrity checking.</p></li>
+<li><p>Single- and multi-event, and shadow readout.</p></li>
+<li><p>Static and dynamic mapping of memory.</p></li>
+<li><p>Single cycle and block transfer.</p></li>
+<li><p>TRLO II <a class="reference internal" href="#bib-trlo2"><span class="std std-ref">[2]</span></a>.</p></li>
+<li><p>Strict ANSI C compliance and harsh GCC flags.</p></li>
+<li><p>Unit testing and gcov reporting.</p></li>
+<li><p>Code unification and readability has high priority.</p></li>
+<li><p>Mostly non-recursive GNU makefiles.</p></li>
+<li><p>Command-line monitoring and configuration tool.</p></li>
+<li><p>Command-line module access tool.</p></li>
+</ul>
+</section>
+<section id="support">
+<h2>Support<a class="headerlink" href="#support" title="Link to this heading">¶</a></h2>
+<p>Module support:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>CAEN</p></th>
+<th class="head"><p>GSI</p></th>
+<th class="head"><p>Mesytec</p></th>
+<th class="head"><p>PNPI</p></th>
+<th class="head"><p>Struck</p></th>
+<th class="head"><p>Misc</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>v560</p></td>
+<td><p>ctdc</p></td>
+<td><p>madc32</p></td>
+<td><p>cros3</p></td>
+<td><p>3316</p></td>
+<td><p>dummy</p></td>
+</tr>
+<tr class="row-odd"><td><p>v767a</p></td>
+<td><p>febex</p></td>
+<td><p>mqdc32</p></td>
+<td rowspan="14"></td>
+<td><p>3801</p></td>
+<td rowspan="14"></td>
+</tr>
+<tr class="row-even"><td><p>v775</p></td>
+<td><p>kilom</p></td>
+<td><p>mtdc32</p></td>
+<td><p>3820</p></td>
+</tr>
+<tr class="row-odd"><td><p>v785(n)</p></td>
+<td><p>mppc</p></td>
+<td rowspan="3"><p>mdpp16 &amp; 32</p>
+<p>scp/qdc</p>
+<p>triggered/streaming</p>
+</td>
+<td><p>3820 scaler</p></td>
+</tr>
+<tr class="row-even"><td><p>v792</p></td>
+<td><p>pexaria</p></td>
+<td rowspan="11"></td>
+</tr>
+<tr class="row-odd"><td><p>v820</p></td>
+<td><p>sam</p></td>
+</tr>
+<tr class="row-even"><td><p>v830</p></td>
+<td><p>siderem</p></td>
+<td><p>vmmr8</p></td>
+</tr>
+<tr class="row-odd"><td><p>v895</p></td>
+<td><p>tacquila</p></td>
+<td rowspan="8"></td>
+</tr>
+<tr class="row-even"><td><p>v965</p></td>
+<td><p>tamex 2 &amp; 3</p></td>
+</tr>
+<tr class="row-odd"><td><p>v1190</p></td>
+<td><p>tridi TRLO II</p></td>
+</tr>
+<tr class="row-even"><td><p>v1290</p></td>
+<td><p>triva</p></td>
+</tr>
+<tr class="row-odd"><td><p>v1725</p></td>
+<td><p>vetar</p></td>
+</tr>
+<tr class="row-even"><td rowspan="3"></td>
+<td><p>vftx2</p></td>
+</tr>
+<tr class="row-odd"><td><p>vulom TRLO II</p></td>
+</tr>
+<tr class="row-even"><td><p>vuprom TDC</p></td>
+</tr>
+</tbody>
+</table>
+<p>Controller support:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>CAEN</p></th>
+<th class="head"><p>Mesytec</p></th>
+<th class="head"><p>CES RIO4</p></th>
+<th class="head"><p>CES RIO2&amp;3</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td rowspan="3"><p>VMELib</p></td>
+<td rowspan="3"><p>MVLC (cmvlc)</p></td>
+<td><p>XPC 3.3</p></td>
+<td rowspan="3"><p>Has worked, not guaranteed</p></td>
+</tr>
+<tr class="row-odd"><td><p>XPC 2.6</p></td>
+</tr>
+<tr class="row-even"><td><p>BMA</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="building">
+<h2>Building<a class="headerlink" href="#building" title="Link to this heading">¶</a></h2>
+<p>The nurdlib build system is based on non-recursive GNU makefiles, a custom
+auto-configuration tool called <code class="docutils literal notranslate"><span class="pre">nconf</span></code>, and passing tests by <code class="docutils literal notranslate"><span class="pre">ntest</span></code>. All
+generated files are placed inside nurdlib in a build directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nurdlib/build_&lt;gcc<span class="w"> </span>machine&gt;_&lt;gcc<span class="w"> </span>version&gt;_&lt;build<span class="w"> </span>mode&gt;
+</pre></div>
+</div>
+<p>The build directory name is always printed when invoking <code class="docutils literal notranslate"><span class="pre">make</span></code>
+successfully. The somewhat complicated name eliminates collisions between
+several builds across platforms and build modes with the same source
+directory.</p>
+<p>One of the more interesting generated files is the static library
+<code class="docutils literal notranslate"><span class="pre">libnurdlib.a</span></code> that contains everything for typical readout.</p>
+<section id="testing-and-coverage">
+<h3>Testing and coverage<a class="headerlink" href="#testing-and-coverage" title="Link to this heading">¶</a></h3>
+<p>Unit testing is done with the custom <code class="docutils literal notranslate"><span class="pre">ntest</span></code>. The library won’t be built and
+the binaries not linked unless the battery of unit tests pass.</p>
+<p>Coverage analysis is done using the standard tool <code class="docutils literal notranslate"><span class="pre">gcov</span></code>. Testing works in
+any build mode, but coverage is only available in one specific mode since it
+requires instrumentation which reduces runtime performance significantly. With
+the <code class="docutils literal notranslate"><span class="pre">cov</span></code> build mode the following targets are available:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>cov<span class="w"> </span><span class="nb">test</span><span class="w">       </span><span class="c1"># Run tests.</span>
+make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>cov<span class="w"> </span>cov<span class="w">        </span><span class="c1"># Coverage summary.</span>
+make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>cov<span class="w"> </span>cov_files<span class="w">  </span><span class="c1"># Coverage summary per file (gcov -n).</span>
+make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>cov<span class="w"> </span>cov_funcs<span class="w">  </span><span class="c1"># Coverage summary per function (gcov -fn).</span>
+make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>cov<span class="w"> </span>cov_anno<span class="w">   </span><span class="c1"># Annotated source in build_*/cov/ (gcov -lp).</span>
+</pre></div>
+</div>
+</section>
+<section id="release-mode">
+<h3>Release mode<a class="headerlink" href="#release-mode" title="Link to this heading">¶</a></h3>
+<p>When you are done debugging, build in release mode for meep-meep speeds:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>release
+</pre></div>
+</div>
+</section>
+<section id="build-for-shared-library-use">
+<h3>Build for shared library use<a class="headerlink" href="#build-for-shared-library-use" title="Link to this heading">¶</a></h3>
+<p>Only a static library is built by default, which is typically less prone to
+accidents such as using the wrong version of the library, but could also be
+faster in some cases. It is still possible to build a shared object version
+(-fPIC), which is needed for example for the Python control support. The
+<code class="docutils literal notranslate"><span class="pre">pic</span></code> build mode enables this flag and will also build the Python control:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nv">BUILD_MODE</span><span class="o">=</span>pic
+</pre></div>
+</div>
+</section>
+<section id="caen-vmelib">
+<h3>CAEN VMElib<a class="headerlink" href="#caen-vmelib" title="Link to this heading">¶</a></h3>
+<p>The CAEN controller support library CAENVMElib can be compiled against and
+linked in a few ways. If it is installed system-wide, <code class="docutils literal notranslate"><span class="pre">nconf</span></code> should
+automatically pick it up. Otherwise it’s also possible to link straight to a
+local version:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="nv">CPPFLAGS</span><span class="o">=</span><span class="s2">&quot;-isystem &lt;CAENVMElib-path&gt;/include&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="nv">LIBS</span><span class="o">=</span>&lt;CAENVMElib-path&gt;/lib/&lt;platform&gt;/libCAENVME.so.&lt;version&gt;
+</pre></div>
+</div>
+<p>or use the runtime linker:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>&lt;CAENVMElib-path&gt;/lib/&lt;platform&gt;
+ln<span class="w"> </span>-s<span class="w"> </span>libCAENVME.so.&lt;version&gt;<span class="w"> </span>libCAENVME.so
+<span class="nb">cd</span><span class="w"> </span>&lt;nurdlib-path&gt;
+make<span class="w">  </span><span class="se">\</span>
+<span class="w">    </span><span class="nv">CPPFLAGS</span><span class="o">=</span><span class="s2">&quot;-isystem &lt;CAENVMElib-path&gt;/include&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="nv">LDFLAGS</span><span class="o">=</span><span class="s2">&quot;-L&lt;CAENVMElib-path&gt;/lib/&lt;platform&gt; \</span>
+<span class="s2">             -Wl,-rpath=&lt;CAENVMElib-path&gt;/lib/&lt;platform&gt;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="cmvlc">
+<h3>cmvlc<a class="headerlink" href="#cmvlc" title="Link to this heading">¶</a></h3>
+<p>The Mesytec MVLC controller can be accessed in a few ways, but the recommended
+way is via cmvlc <a class="reference internal" href="#bib-cmvlc"><span class="std std-ref">[3]</span></a>. Set the <code class="docutils literal notranslate"><span class="pre">CMVLC_CONFIG</span></code> make
+variable and <code class="docutils literal notranslate"><span class="pre">nconf</span></code> should pick up the library:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nv">CMVLC_CONFIG</span><span class="o">=</span>&lt;cmvlc-path&gt;/bin/cmvlc-config.sh
+</pre></div>
+</div>
+</section>
+</section>
+<section id="utils">
+<h2>Utils<a class="headerlink" href="#utils" title="Link to this heading">¶</a></h2>
+<p>The utils typically have a help screen, which list alternative command line
+arguments.</p>
+<section id="nurdctrl">
+<h3>nurdctrl<a class="headerlink" href="#nurdctrl" title="Link to this heading">¶</a></h3>
+<p>Inspect a running nurdlib:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-D
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-sprint
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>,2<span class="w"> </span>-d
+./bin/nurdctrl<span class="w"> </span>-a<span class="w"> </span>localhost<span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>,2<span class="w"> </span>-m<span class="w"> </span>0x02000000:32
+</pre></div>
+</div>
+<p>Note that reading/writing from/to a module is really dangerous with a running
+DAQ! nurdlib does check the given addresses against known registers to
+referred modules to prevent mapping failures, but module logic can still be
+negatively impacted.</p>
+</section>
+<section id="rwdump">
+<h3>rwdump<a class="headerlink" href="#rwdump" title="Link to this heading">¶</a></h3>
+<p>Dump read/write module registers directly:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./bin/rwdump<span class="w"> </span>-a<span class="w"> </span>0x02000000<span class="w"> </span>-r<span class="w"> </span><span class="m">32</span>
+./bin/rwdump<span class="w"> </span>-a<span class="w"> </span>0x02000000<span class="w"> </span>-w<span class="w"> </span><span class="m">32</span>,0xc4c4d0d0
+./bin/rwdump<span class="w"> </span>-a<span class="w"> </span>0x02000000<span class="w"> </span>-t<span class="w"> </span>MESYTEC_MADC32<span class="w"> </span>-d
+</pre></div>
+</div>
+</section>
+<section id="wrslew">
+<h3>wrslew<a class="headerlink" href="#wrslew" title="Link to this heading">¶</a></h3>
+<p>Latches and reads timestamps from a VETAR and a TRLO II module, and controls
+the slewing speed of the TRLO II module to follow the VETAR timestamp scale.
+This allows to sync e.g. ratatime and heimtime timestamp distribution against
+White Rabbit, although with offsets that is fixed w.r.t. cable lengths.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span><span class="s">&lt;&lt; EOF &gt; slew.cfg</span>
+<span class="s">CRATE(&quot;slewer&quot;) {</span>
+<span class="s">    GSI_TRIDI(0x02000000) {}</span>
+<span class="s">    GSI_VETAR(0x50000000) {}</span>
+<span class="s">}</span>
+<span class="s">EOF</span>
+./bin/wrslew<span class="w"> </span>-c<span class="w"> </span>slew.cfg
+</pre></div>
+</div>
+</section>
+<section id="memtest">
+<h3>memtest<a class="headerlink" href="#memtest" title="Link to this heading">¶</a></h3>
+<p>Some modules support memory testing to verify their function. This program
+runs the module memory testing method infinitely.</p>
+</section>
+</section>
+<section id="glue-code-example">
+<h2>Glue code example<a class="headerlink" href="#glue-code-example" title="Link to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nurdlib.h&gt;</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">Crate</span><span class="w"> </span><span class="o">*</span><span class="n">g_crate</span><span class="p">;</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">CrateTag</span><span class="w"> </span><span class="o">*</span><span class="n">g_tag</span><span class="p">;</span>
+
+<span class="kt">void</span>
+<span class="nf">backend_setup</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">g_crate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nurdlib_setup</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nurdlib.cfg&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">g_tag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crate_get_tag_by_name</span><span class="p">(</span><span class="n">g_crate</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">backend_shutdown</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">nurdlib_shutdown</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g_crate</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span>
+<span class="nf">backend_readout</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">a_buf</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="o">*</span><span class="n">a_buf_bytes</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">EventBuffer</span><span class="w"> </span><span class="n">eb</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ret</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">eb</span><span class="p">.</span><span class="n">ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a_buf</span><span class="p">;</span>
+<span class="w">    </span><span class="n">eb</span><span class="p">.</span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">a_buf_bytes</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">crate_tag_counter_increase</span><span class="p">(</span><span class="n">g_crate</span><span class="p">,</span><span class="w"> </span><span class="n">g_tag</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crate_readout_dt</span><span class="p">(</span><span class="n">g_crate</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ret</span><span class="p">)</span><span class="w"> </span><span class="n">log_error</span><span class="p">(</span><span class="s">&quot;crate_readout_dt failed with 0x%x.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">ret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crate_readout</span><span class="p">(</span><span class="n">g_crate</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">event_buffer</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">ret</span><span class="p">)</span><span class="w"> </span><span class="n">log_error</span><span class="p">(</span><span class="s">&quot;crate_readout failed with 0x%x.&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">ret</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">crate_readout_finalize</span><span class="p">(</span><span class="n">g_crate</span><span class="p">);</span>
+
+<span class="w">    </span><span class="o">*</span><span class="n">a_buf_bytes</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">eb</span><span class="p">.</span><span class="n">bytes</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
+<section id="tags">
+<h3>Tags<a class="headerlink" href="#tags" title="Link to this heading">¶</a></h3>
+<p>Tags group modules so different sets of modules can be read out each time.
+Internally this lets nurdlib know how to treat the event counters of every
+module, since they may advance differently.</p>
+<p>Example:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">CRATE(&quot;MyCrate&quot;) {</span>
+<span class="w">    </span><span class="na">CAEN_V775(0x00010000) {} # Let&#39;s call this module A.</span>
+<span class="w">    </span><span class="na">TAGS(&quot;1&quot;)                # The following modules are tagged &quot;1&quot;.</span>
+<span class="w">    </span><span class="na">CAEN_V775(0x00020000) {} # Module B.</span>
+<span class="w">    </span><span class="na">TAGS(&quot;2&quot;)                # The following modules are tagged &quot;2&quot;.</span>
+<span class="w">    </span><span class="na">CAEN_V775(0x00030000) {} # Module C.</span>
+<span class="w">    </span><span class="na">TAGS(&quot;1&quot;, &quot;2&quot;)           # The following are tagged both &quot;1&quot; and &quot;2&quot;.</span>
+<span class="w">    </span><span class="na">CAEN_V775(0x00040000) {} # Module D.</span>
+<span class="na">}</span>
+</pre></div>
+</div>
+<p>Tabulated in both directions:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Module</p></th>
+<th class="head"><p>Tags</p></th>
+<th class="head"></th>
+<th class="head"><p>Tag</p></th>
+<th class="head"><p>Modules</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A</p></td>
+<td><p>Default</p></td>
+<td></td>
+<td><p>Default</p></td>
+<td><p>A</p></td>
+</tr>
+<tr class="row-odd"><td><p>B</p></td>
+<td><p>1</p></td>
+<td></td>
+<td><p>1</p></td>
+<td><p>B,D</p></td>
+</tr>
+<tr class="row-even"><td><p>C</p></td>
+<td><p>2</p></td>
+<td></td>
+<td><p>2</p></td>
+<td><p>C,D</p></td>
+</tr>
+<tr class="row-odd"><td><p>D</p></td>
+<td><p>1,2</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The user code then has to say how the event counters have advanced for every
+tag, let’s say there is only 1 event per readout:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crate_get_tag_by_name</span><span class="p">(</span><span class="n">crate</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Default&quot;</span><span class="p">);</span>
+<span class="n">tag</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crate_get_tag_by_name</span><span class="p">(</span><span class="n">crate</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;1&quot;</span><span class="p">);</span>
+<span class="n">tag</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">crate_get_tag_by_name</span><span class="p">(</span><span class="n">crate</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;2&quot;</span><span class="p">);</span>
+<span class="p">...</span>
+<span class="n">crate_tag_counter_increase</span><span class="p">(</span><span class="n">crate</span><span class="p">,</span><span class="w"> </span><span class="n">tag</span><span class="p">[</span><span class="n">readout_type</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="multi-event">
+<h3>Multi-event<a class="headerlink" href="#multi-event" title="Link to this heading">¶</a></h3>
+<p>In multi-event mode, the readout happens after any number of events between 1
+and some number N. nurdlib must know the exact number in order to correctly
+compare event counters, and this is typically done with a scaler channel.
+Let’s say that the V775 trigger is copied to the 1st channel in a V830:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">CRATE(&quot;Multi-event&quot;) {</span>
+<span class="w">    </span><span class="na">TAGS(&quot;1&quot;) {</span>
+<span class="w">        </span><span class="na">scaler_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;my_scaler&quot;</span>
+<span class="w">    </span><span class="na">}</span>
+<span class="w">    </span><span class="na">CAEN_V775(0x00020000) {}</span>
+<span class="w">    </span><span class="na">TAGS(&quot;2&quot;)</span>
+<span class="w">    </span><span class="na">CAEN_V830(0x00030000) {</span>
+<span class="w">        </span><span class="na">SCALER(&quot;my_scaler&quot;) { channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0 }</span>
+<span class="w">    </span><span class="na">}</span>
+<span class="na">}</span>
+</pre></div>
+</div>
+<p>Tag “1” will use the first channel of the V830 scaler module as its counter.
+The V830 is however expected to be latched in single-event mode together with
+tag “2”, which could be another trigger.</p>
+<p>Exactly how a module type defines a scaler channel depends on its
+implementation. Below are the available options as of writing:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">CAEN_V8{2,3}0</span><span class="o">:</span>
+<span class="w">    </span><span class="na">SCALER(literal-string) { channel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0..n }</span>
+<span class="na">GSI_{TRIDI,VULOM4,RFX1}</span><span class="o">:</span>
+<span class="w">    </span><span class="na">SCALER(literal-string) { type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">accept_pulse }</span>
+<span class="w">    </span><span class="na">SCALER(literal-string) { type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">accept_trig, channel = 0..15 }</span>
+<span class="w">    </span><span class="na">SCALER(literal-string) { type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">ecl, channel = 0..n }</span>
+<span class="w">    </span><span class="na">SCALER(literal-string) { type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">master_start }</span>
+<span class="w">    </span><span class="na">SCALER(literal-string) { type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">nim, channel = 0..n }</span>
+</pre></div>
+</div>
+</section>
+<section id="control-interface">
+<h3>Control interface<a class="headerlink" href="#control-interface" title="Link to this heading">¶</a></h3>
+<p>While running, nurdlib can provide information on crate and module
+configuration and allow the user to talk to configured modules. This control
+interface is served by a UDP server inside the library. Since it does eat some
+resources it can be disabled.</p>
+<p>In order to talk to this control server, use <code class="docutils literal notranslate"><span class="pre">bin/nurdctrl</span></code>. The help text
+explains the available commands, but here are a examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./nurdctrl<span class="w"> </span>-c
+</pre></div>
+</div>
+<p>This lists configured crates in the nurdlib running on localhost on the
+default port.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./nurdctrl<span class="w"> </span>-s<span class="w"> </span>print
+</pre></div>
+</div>
+<p>Prints a simple graph view of the crate and modules, with indices used to
+refer to specific parts.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./nurdctrl<span class="w"> </span>-a192.168.0.100:10000<span class="w"> </span>-s0,1<span class="w"> </span>-d
+</pre></div>
+</div>
+<p>This dumps the hardware registers in module 1 (zero-based indexing) in crate
+0, with nurdlib running on the host 192.168.0.100 on port 10000.</p>
+<p>To control the UDP server, set the global <code class="docutils literal notranslate"><span class="pre">control_port</span></code> config, which is
+documented in <code class="docutils literal notranslate"><span class="pre">cfg/default/global.cfg</span></code>:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">control_port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">-1</span><span class="w">  </span><span class="c1"># Use the default port.</span>
+<span class="na">control_port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0</span><span class="w">   </span><span class="c1"># Disable the server.</span>
+<span class="na">control_port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">n</span><span class="w">   </span><span class="c1"># Use the given port.</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration-parser">
+<h3>Configuration parser<a class="headerlink" href="#configuration-parser" title="Link to this heading">¶</a></h3>
+<p>The config parser was written by hand to save memory for systems with limited
+resources, so there’s no handy list of grammar rules for the parsing. This
+section aims to explain most of the grammar.</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">top</span><span class="o">:</span><span class="w">              </span><span class="s">item_list</span>
+<span class="na">item_list</span><span class="o">:</span><span class="w">        </span><span class="s">item_list item</span>
+<span class="na">item</span><span class="o">:</span><span class="w">             </span><span class="s">block OR config</span>
+
+<span class="na">block</span><span class="o">:</span><span class="w">            </span><span class="s">block_header { item_list }</span>
+<span class="na">block_header</span><span class="o">:</span><span class="w">     </span><span class="s">name OR name(block_param_list)</span>
+<span class="na">block_param_list</span><span class="o">:</span><span class="w"> </span><span class="s">block_param_list block_param</span>
+<span class="na">block_param</span><span class="o">:</span><span class="w">      </span><span class="s">scalar</span>
+
+<span class="na">config</span><span class="o">:</span><span class="w">           </span><span class="s">name = value</span>
+<span class="na">value</span><span class="o">:</span><span class="w">            </span><span class="s">scalar OR vector</span>
+<span class="na">vector</span><span class="o">:</span><span class="w">           </span><span class="s">( scalar_list )</span>
+<span class="na">scalar_list</span><span class="o">:</span><span class="w">      </span><span class="s">scalar_list scalar</span>
+<span class="na">scalar</span><span class="o">:</span><span class="w">           </span><span class="s">literal_string OR range OR value OR value unit</span>
+<span class="na">range</span><span class="o">:</span><span class="w">            </span><span class="s">integer .. integer</span>
+<span class="na">value</span><span class="o">:</span><span class="w">            </span><span class="s">integer OR double</span>
+<span class="na">unit</span><span class="o">:</span><span class="w">             </span><span class="s">mV OR uV etc...</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="environment-variables">
+<h2>Environment variables<a class="headerlink" href="#environment-variables" title="Link to this heading">¶</a></h2>
+<p>Many environment variables control the build process, but a few also control
+run-time behaviour.</p>
+<section id="run-time-variables">
+<h3>Run-time variables<a class="headerlink" href="#run-time-variables" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NURDLIB_DEF_PATH</span></code>: Points to the directory where default configuration
+files reside. This variable will override the default
+<code class="docutils literal notranslate"><span class="pre">../nurdlib/cfg/default/</span></code> path.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NTEST_COLOR</span></code>: The tests output by ntest prints ANSI color escape codes
+by default. Setting <code class="docutils literal notranslate"><span class="pre">NTEST_COLOR=0</span></code> will disable these codes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NTEST_BAIL</span></code>: Abort on first failed test.</p></li>
+</ul>
+<p>The configuration files can also use environment variables when including
+files:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">CRATE(&quot;MyCrate&quot;) {</span>
+<span class="w">    </span><span class="na">include &quot;$CFG_PATH/my_config.cfg&quot;</span>
+<span class="na">}</span>
+</pre></div>
+</div>
+</section>
+<section id="build-variables">
+<h3>Build variables<a class="headerlink" href="#build-variables" title="Link to this heading">¶</a></h3>
+<p>The typical compilation and linking flags are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CPPFLAGS</span></code>: Pre-compiler flags, such as -I and -D. These are prepended to
+the nurdlib pre-compiler flags so these can override search paths, e.g.
+<code class="docutils literal notranslate"><span class="pre">-Iuser_header_path</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CFLAGS</span></code>: Compilation flags, such as -W. These are appended to the
+nurdlib compilation flags to override compilation switches, e.g.
+<code class="docutils literal notranslate"><span class="pre">-Wno-crazy-warning</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LDFLAGS</span></code>: Linking flags, such as -L. These are prepended to the nurdlib
+linking flags to override search paths, e.g. <code class="docutils literal notranslate"><span class="pre">-Luser_library_path</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LIBS</span></code>: Libraries, such as -l and direct paths to static and dynamic
+libraries. These are appended to the nurdlib libraries to cover for missing
+libraries, e.g. <code class="docutils literal notranslate"><span class="pre">-luser_library</span></code> or <code class="docutils literal notranslate"><span class="pre">/path/userlib.so.1.2.3</span></code>.</p></li>
+</ul>
+<p>Build modes set with <code class="docutils literal notranslate"><span class="pre">BUILD_MODE</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cov</span></code>: Coverage compiled and linked in. This will insert instrumentation
+into the code and the final binaries will run much slower.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gprof</span></code>: -pg added to compilation and linking for profiling. This will
+run a bit slower.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pic</span></code>: Position independent code to build a shared object, necessary to
+build the Python online support.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">release</span></code>: Optimized build.</p></li>
+</ul>
+<p>Several programs can be overridden:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">AR</span></code>: Static linker.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BISON</span></code>: Bison-like parser generator.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CCACHE</span></code>: Ccache for fast recompilations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CPPCHECK</span></code>: Static analysis tool for C code.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLEX</span></code>: Lexical analyser generator for Bison input.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INKSCAPE</span></code>: To convert SVG to PNG for this documentation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LATEX</span></code>: Latex to DVI converter.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PYTHON</span></code>: Python support for online communication .</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SED</span></code>: GNU sed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SPHINX_BUILD</span></code>: To build this documentation.</p></li>
+</ul>
+<p>Drasi related:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DRASI_PATH</span></code>: Path to drasi, where <code class="docutils literal notranslate"><span class="pre">$DRASI_PATH/bin/drasi-config.sh</span></code>
+must exist.</p></li>
+</ul>
+<p>TRLO II related:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TRLOII_PATH</span></code>: Path to TRLO II directory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">{TRIDI,VULOM4,RFX1}_FW</span></code>: By default, nurdlib chooses TRLO II
+firmware versions by looking at the directories
+<code class="docutils literal notranslate"><span class="pre">$TRLOII_PATH/trloctrl/fw_\*_\*/</span></code>, but this decision can be overridden
+with these env-vars.</p></li>
+</ul>
+<p>Mesytec MVLC related:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CMVLC_CONFIG</span></code>: Path to cmvlc_config.sh.</p></li>
+</ul>
+</section>
+</section>
+<section id="build-system">
+<h2>Build system<a class="headerlink" href="#build-system" title="Link to this heading">¶</a></h2>
+<p>Early versions of nurdlib supported CES RIO2 systems with very old versions of
+GNU make. This platform has not been tested in a long time, but the makefiles
+probably support rather old versions of make.</p>
+<p>The master makefile in the project root directory includes rules.mk files in
+sub-directories. This way all dependencies and references end up in the same
+space and can produce a more complete build graph.</p>
+<p>Early in the build process, an <code class="docutils literal notranslate"><span class="pre">MD5</span></code> sum is calculated from source files
+which have an impact on the online communication. The sum stored in the
+library and the client must match at runtime to be sure that the data handling
+in the readout and client processes are compatible.</p>
+<p>Auto-configuration of flags and libraries is done by <code class="docutils literal notranslate"><span class="pre">nconf</span></code>. This step is
+performed early in the build, following the usual make dependency rules.</p>
+<p>If you would like to build only a sub-set of all available module types, you
+can specify them in this file. There is a list of modules near the top of the
+main makefile which can be copied and modified.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;MODULE_LIST=caen_v775&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>local.mk
+</pre></div>
+</div>
+<p>Note that some modules depend on other modules and there is no guard on such
+dependencies, it is completely manual!</p>
+<section id="nconf">
+<h3>nconf<a class="headerlink" href="#nconf" title="Link to this heading">¶</a></h3>
+<p>Auto-configuring is tricky business, since different features may require
+different versions of system files. For example, extension functions may exist
+in different versions of POSIX on one platform, but with a mix of POSIX and
+BSD support on another.</p>
+<p>nurdlib tries to reduce these troubles in two ways: not exposing extension
+functions outside of one file, and <code class="docutils literal notranslate"><span class="pre">nconf</span></code>.</p>
+<p>A simple example of the first is the inconspicuous <code class="docutils literal notranslate"><span class="pre">strdup</span></code> function.
+nurdlib defines this as an error and instead pushes for the built-in
+<code class="docutils literal notranslate"><span class="pre">strdup_</span></code> (see <code class="docutils literal notranslate"><span class="pre">util/string.h</span></code>). It’s a bit of a faff, but avoids issues
+with compiling the same code on the many platforms that nurdlib has been
+ported to.</p>
+<p>nconf takes care of the rest. It scans through a file looking for
+<code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">NCONF_m&lt;module&gt;_b&lt;branch&gt;</span></code>, groups all switches with the same
+<code class="docutils literal notranslate"><span class="pre">module</span></code>, tries to build, link, and execute a test program for every
+<code class="docutils literal notranslate"><span class="pre">branch</span></code>, and whichever branch succeeds first within a module is chosen.
+The following output files are written:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Used by nconf during testing:</span>
+build_*/nconfing/nconf/&lt;source&gt;<span class="w">     </span><span class="c1"># Module/branch macros.</span>
+build_*/nconfing/nconf/&lt;source&gt;.bin<span class="w"> </span><span class="c1"># Linked file.</span>
+build_*/nconfing/nconf/&lt;source&gt;.c<span class="w">   </span><span class="c1"># Main code.</span>
+build_*/nconfing/nconf/&lt;source&gt;.o<span class="w">   </span><span class="c1"># Compiled code.</span>
+<span class="c1"># Final output:</span>
+build_*/nconf/&lt;source&gt;<span class="w">              </span><span class="c1"># Module/branch macros.</span>
+build_*/nconf/&lt;source&gt;.args<span class="w">         </span><span class="c1"># Accumulating compiler flags.</span>
+build_*/nconf/&lt;source&gt;.log<span class="w">          </span><span class="c1"># Tests log.</span>
+build_*/nconf.args<span class="w">                  </span><span class="c1"># Accumulated compiler flags.</span>
+</pre></div>
+</div>
+<p>To use the results of another project in your own code, for example to use
+nurdlib decisions in your own DAQ build:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">NCONF_ARGS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">$(NURDLIB_PATH)/$(BUILD_DIR)/nconf.args</span>
+<span class="na">include $(NURDLIB_PATH)/nconf/nconf.mk</span>
+</pre></div>
+</div>
+<p>If you then access the four variables <code class="docutils literal notranslate"><span class="pre">NCONF_CPPFLAGS</span></code>, <code class="docutils literal notranslate"><span class="pre">NCONF_CFLAGS</span></code>,
+<code class="docutils literal notranslate"><span class="pre">NCONF_LDFLAGS</span></code>, <code class="docutils literal notranslate"><span class="pre">NCONF_LIBS</span></code>, you will get the flags that were chosen in
+the nurdlib build process.</p>
+<p>If you’d like to use nconf yourself, first:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="na">NCONF_H</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">all files to be nconfed, header or source files</span>
+<span class="na">NCONF_ARGS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">$(BUILD_DIR)/nconf.args</span>
+<span class="na">NCONF_PREV</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">$(NURDLIB_PATH)/$(BUILD_DIR)/nconf.args</span>
+<span class="na">include $(NURDLIB_PATH)/nconf/nconf.mk</span>
+<span class="na">object</span><span class="o">:</span><span class="w"> </span><span class="s">source $(NCONF_ARGS)</span>
+</pre></div>
+</div>
+<p>This will create files in <code class="docutils literal notranslate"><span class="pre">$(BUILD_DIR)/nconf\*</span></code> as listed above.</p>
+</section>
+<section id="ntest">
+<h3>ntest<a class="headerlink" href="#ntest" title="Link to this heading">¶</a></h3>
+<p>nurdlib has a rigorous set of unit tests to verify a large fraction of the
+code. New features and critical bugs should be accompanied by testing code.
+This way, new code should not break existing tested code, and old bugs should
+be detected to the extent of the tests, just the typical testing approach.
+Note that this testing only applies to internal logic and utilities, and can
+not test hardware or external user implementations!</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</section>
+<section id="mocking">
+<h3>mocking<a class="headerlink" href="#mocking" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">mock</span></code> directory contains library stubs, such as for mapping or driver
+interfaces. This comes with some great advantages:</p>
+<ul class="simple">
+<li><p>Every module can be built on every platform to make sure there is as little
+guarded code as possible.</p></li>
+<li><p>Different combinations of enabled/disabled features can be tested.</p></li>
+<li><p>Modern platforms may have compilers with better static checking than old
+platforms which helps maintenance of as many code paths as possible.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>&lt;nurdlib-path&gt;/mock
+make
+</pre></div>
+</div>
+<p>Don’t pass <code class="docutils literal notranslate"><span class="pre">-j</span></code> since it will make the output very ugly between all the
+builds! Instead run e.g. <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">RUNNER_MAKE_J=-j16</span></code> for 16 concurrent jobs
+per mocked build. This takes quite long, so don’t run it on slow hosts.</p>
+</section>
+</section>
+<section id="guidelines">
+<h2>Guidelines<a class="headerlink" href="#guidelines" title="Link to this heading">¶</a></h2>
+<p>nurdlib aims to follow certain guidelines to be safe and somewhat
+maintainable:</p>
+<ul class="simple">
+<li><p>Monotonic counters: Any progressing value is not reset, unless the hardware
+enforces it. Software counters are absolute, and progression is calculated
+as differences. This approach carries more information than resetting
+values.</p></li>
+<li><p>Resource freeing: Always follows a certain pattern, which makes sure that
+pointers cannot escape:</p></li>
+</ul>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">myobj_free</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">MyObject</span><span class="w"> </span><span class="o">**</span><span class="n">a_obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">MyObject</span><span class="w"> </span><span class="o">*</span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="n">a_obj</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="w">        </span><span class="n">FREE</span><span class="p">(</span><span class="o">*</span><span class="n">a_obj</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Goto is not completely evil: Liberal use can make code difficult to follow,
+but is used for a lot of error handling in larger functions:</p></li>
+</ul>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">func</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">cond</span><span class="p">)</span><span class="w"> </span><span class="k">goto</span><span class="w"> </span><span class="n">fail</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">success</span><span class="p">;</span>
+<span class="nl">fail</span><span class="p">:</span>
+<span class="w">    </span><span class="n">log_die</span><span class="p">(</span><span class="n">LOGL</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Well, crap.&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>OpenBSD KNF-like style: There are many exceptions to this style, but
+indentation, not typedef-ing struct’s, snake-case variables are some of
+the most important.</p></li>
+</ul>
+</section>
+<section id="people">
+<h2>People<a class="headerlink" href="#people" title="Link to this heading">¶</a></h2>
+<p>Haik Simon, Håkan T. Johansson, Alexandre Charpy, Bastian Löher, Michael
+Munch, Oliver Papst, Stephane Pietri, Hans Törnqvist.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>GSI Scientific report 2014: <a class="reference external" href="https://repository.gsi.de/record/183940/files/MU-NUSTAR-NR-08.pdf">MU-NUSTAR-NR-08.pdf</a>.</p>
+<p id="bib-drasi">[1] drasi: <a class="reference external" href="http://fy.chalmers.se/~f96hajo/drasi/doc/">http://fy.chalmers.se/~f96hajo/drasi/doc/</a></p>
+<p id="bib-trlo2">[2] TRLO II: <a class="reference external" href="https://fy.chalmers.se/~f96hajo/trloii/">https://fy.chalmers.se/~f96hajo/trloii/</a></p>
+<p id="bib-cmvlc">[3] cmvlc: <a class="reference external" href="https://git.chalmers.se/expsubphys/cmvlc">https://git.chalmers.se/expsubphys/cmvlc</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2017, 2021-2022, 2025, Bastian Löher, Hans Toshihide Törnqvist.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
