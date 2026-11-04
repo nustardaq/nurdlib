@@ -33,7 +33,7 @@ cmvlc_close(struct cmvlc_client *a)
 }
 
 struct cmvlc_client *
-cmvlc_connect(const char *a_a, int a_b, const char **a_c, FILE *a_d,
+cmvlc_connect(const char *a_a, int a_b, char **a_c, FILE *a_d,
     FILE *a_e)
 {
 	(void)a_a;

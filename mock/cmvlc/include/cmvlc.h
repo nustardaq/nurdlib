@@ -66,7 +66,7 @@ struct cmvlc_event_info
 };
 
 int			cmvlc_close(struct cmvlc_client *);
-struct cmvlc_client	*cmvlc_connect(const char *, int, const char **, FILE
+struct cmvlc_client	*cmvlc_connect(const char *, int, char **, FILE
     *, FILE *);
 const char		*cmvlc_last_error(struct cmvlc_client *);
 

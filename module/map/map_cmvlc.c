@@ -67,7 +67,7 @@ cmvlc_init(void)
 	if (NULL == g_cmvlc) {
 		struct ConfigBlock *cmvlc_cfg;
 		char const *str;
-		char const *error_str;
+		char *error_str;
 
 		cmvlc_cfg = config_get_block(NULL, KW_MESYTEC_MVLC);
 
@@ -89,6 +89,7 @@ cmvlc_init(void)
 			log_die(LOGL, "cmvlc_connect failure for "
 				"url='%s': '%s'.", str, error_str);
 		}
+		free(error_str); /* Not really needed after log_die. */
 		/* It is mighty confusing when daq mode (= sequencer)
 		 * already is enabled - it may empty data behind our
 		 * backs before we are set up.
